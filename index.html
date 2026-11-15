@@ -55,6 +55,7 @@
     transition: transform .15s, border-color .15s, background .15s;
     display: flex; flex-direction: column; gap: 8px;
   }
+  a.card { text-decoration: none; }
   .card:hover { transform: translateY(-4px); border-color: var(--accent); background: var(--panel2); }
   .card .emoji { font-size: 40px; }
   .card h2 { font-size: 20px; }
@@ -520,11 +521,19 @@ const GAMES = [
   { id: 'reaction', emoji: '⚡', name: '반응속도', desc: '초록불이 켜지는 순간을 잡아라', run: reactionGame, help: '클릭 / 탭 / 스페이스', best: v => `최고 ${v}ms` },
   { id: 'brick', emoji: '🧱', name: '벽돌깨기', desc: '공을 튕겨 벽돌을 모두 부수자', run: brickGame, help: '마우스 · 터치 · ←→ 이동, 클릭/스페이스 발사', best: v => `최고 ${v}점` },
   { id: 'mole', emoji: '🐹', name: '두더지 잡기', desc: '30초 동안 최대한 많이! 폭탄은 조심', run: moleGame, help: '튀어나온 햄스터를 클릭 / 탭', best: v => `최고 ${v}점` },
+  // 여럿이 하는 게임: 별도 서버에서 실행 → 카드 누르면 해당 주소로 이동
+  { id: 'synchro', emoji: '🎯', name: 'Synchro 100', desc: '15초 안에 모두와 같은 단어를! 단체 모임용 이심전심 파티 게임', url: 'https://synchro100.onrender.com/host', tag: '👥 여럿이 · 진행자 화면으로 이동' },
 ];
 
 let cleanup = null;
 function renderHome() {
   $('#grid').innerHTML = GAMES.map(g => {
+    if (g.url) return `<a class="card" href="${g.url}" target="_blank" rel="noopener">
+      <div class="emoji">${g.emoji}</div>
+      <h2>${g.name}</h2>
+      <p>${g.desc}</p>
+      <div class="best">${g.tag}</div>
+    </a>`;
     const b = store.get(g.id);
     return `<button class="card" data-id="${g.id}">
       <div class="emoji">${g.emoji}</div>
@@ -533,11 +542,11 @@ function renderHome() {
       <div class="best">${b != null ? '🏆 ' + g.best(b) : '아직 기록 없음'}</div>
     </button>`;
   }).join('');
-  document.querySelectorAll('.card').forEach(el => el.onclick = () => location.hash = el.dataset.id);
+  document.querySelectorAll('button.card').forEach(el => el.onclick = () => location.hash = el.dataset.id);
 }
 function route() {
   if (cleanup) { cleanup(); cleanup = null; }
-  const g = GAMES.find(g => g.id === location.hash.slice(1));
+  const g = GAMES.find(g => g.id === location.hash.slice(1) && g.run);
   const stage = $('#stage');
   stage.innerHTML = ''; setHud('');
   if (!g) { document.body.classList.remove('playing'); renderHome(); return; }
