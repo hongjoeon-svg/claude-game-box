@@ -7,6 +7,7 @@
 <title>시한폭탄 릴레이</title>
 <style>
   :root {
+    color-scheme: dark;
     --bg: #14110f;
     --panel: #221d19;
     --panel2: #2d2621;
@@ -445,6 +446,11 @@
    공통
    ========================================================= */
 const PREFIX = 'bombrelay-v1-';
+// claude.ai 아티팩트 안에서는 WebRTC가 막혀 있어 내장 실시간 룸(room)을 쓰고,
+// 일반 웹 호스팅(GitHub Pages 등)에서는 PeerJS(WebRTC)를 씁니다.
+const IN_ARTIFACT = !!(window.claude && typeof window.claude.use === 'function');
+const ARTIFACT_URL = 'https://claude.ai/artifact/UUXh8H2xbnuPNoKUUBuzKV';  // 게시 후 채움: QR이 가리킬 아티팩트 주소
+const roomName = code => 'bomb-' + code.toLowerCase();
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const now = () => performance.now();
@@ -553,12 +559,12 @@ function startRole(role) {
 }
 document.querySelectorAll('.roleBtn').forEach(b => b.onclick = () => {
   const role = b.dataset.role;
-  const u = new URL(location.href); u.searchParams.set('role', role); history.replaceState(null, '', u);
+  try { const u = new URL(location.href); u.searchParams.set('role', role); history.replaceState(null, '', u); } catch (e) {}
   startRole(role);
 });
 
 function peerMissing() {
-  if (typeof Peer === 'undefined') {
+  if (!IN_ARTIFACT && typeof Peer === 'undefined') {
     document.body.innerHTML = '<div style="padding:40px;text-align:center;font-size:18px;line-height:1.6">⚠️ 실시간 연결 라이브러리(PeerJS)를 불러오지 못했어요.<br>인터넷 연결을 확인하고 새로고침해 주세요.</div>';
     return true;
   }
@@ -570,7 +576,11 @@ function peerMissing() {
    ========================================================= */
 const Host = {
   peer: null, code: '',
-  conns: new Map(),      // pid -> DataConnection
+  conns: new Map(),      // pid -> DataConnection (PeerJS)
+  rm: null,              // 아티팩트 실시간 룸
+  roomPeers: new Map(),  // room peer label -> pid
+  lastN: new Map(),      // pid -> 마지막으로 처리한 단어 번호 (룸 presence)
+  banned: new Set(),
   players: new Map(),    // pid -> player
   cfg: { rounds: 5, fuse: 30, turn: 5, lives: 3 },
   phase: 'lobby',        // lobby | countdown | playing | roundEnd | final
@@ -603,6 +613,7 @@ const Host = {
   openRoom() {
     const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
     this.code = Array.from({ length: 4 }, () => rand(A)).join('');
+    if (IN_ARTIFACT) { this.openClaudeRoom(); return; }
     const peer = new Peer(PREFIX + this.code);
     this.peer = peer;
     peer.on('open', () => {
@@ -617,14 +628,57 @@ const Host = {
     peer.on('disconnected', () => { this.setNet(false, '재연결 중…'); setTimeout(() => { if (!peer.destroyed) peer.reconnect(); }, 1000); });
     peer.on('connection', conn => this.onConn(conn));
   },
+  async openClaudeRoom() {
+    let room = null;
+    try { room = await window.claude.use('room'); } catch (e) {}
+    if (!room) { this.setNet(false, '실시간 룸에 연결할 수 없어요'); this.showCode(); return; }
+    try { this.rm = await room.join(roomName(this.code)); }
+    catch (e) { this.setNet(false, '룸 입장 실패: ' + (e && e.code || e)); return; }
+    this.rm.onConnection(c => this.setNet(c, c ? '연결됨' : '재연결 중…'));
+    this.rm.onPeers(ch => {
+      for (const pe of [...ch.joined, ...ch.updated]) this.onRoomPeer(pe);
+      for (const pe of ch.left) this.onRoomLeft(pe);
+    });
+    this.showCode();
+  },
+  onRoomPeer(pe) {
+    if (pe.sameTab) return;
+    const pr = pe.presence || {};
+    const pid = String(pr.pid || '').slice(0, 24);
+    if (!pid || pr.code !== this.code || this.banned.has(pid)) return;
+    const n = +pr.n || 0;
+    const p = this.players.get(pid);
+    if (!p || !p.connected || p.peerLabel !== pe.peer) {
+      this.roomPeers.set(pe.peer, pid);
+      if (!p) this.lastN.set(pid, n);  // 입장 전 남아 있던 단어는 무시
+      this.addPlayer(pid, pr.name, { via: 'room', peerLabel: pe.peer });
+    }
+    if (n > (this.lastN.get(pid) || 0)) {
+      this.lastN.set(pid, n);
+      if (pr.w) this.submit(pid, String(pr.w));
+    }
+  },
+  onRoomLeft(pe) {
+    const pid = this.roomPeers.get(pe.peer);
+    this.roomPeers.delete(pe.peer);
+    const p = pid && this.players.get(pid);
+    if (p && p.peerLabel === pe.peer) { p.connected = false; this.renderLobby(); }
+  },
+  emitRoom(topic, data) {
+    if (!this.rm) return;
+    this.rm.emit(topic, data).catch(e => {
+      if (e && e.code === 'not_permitted') this.setNet(false, '메인 화면은 이 아티팩트의 편집 권한이 있는 사람만 열 수 있어요');
+    });
+  },
   setNet(on, txt) { $('hNet').classList.toggle('on', on); $('hNetTxt').textContent = txt; },
   showCode() {
     $('hCode').textContent = this.code; $('hCodeSmall').textContent = this.code;
     const u = new URL(location.href); u.search = ''; u.hash = '';
     u.searchParams.set('role', 'player'); u.searchParams.set('room', this.code);
-    const url = u.toString();
-    $('hUrl').textContent = url;
-    if (typeof qrcode !== 'undefined') {
+    let url = u.toString();
+    if (IN_ARTIFACT) url = ARTIFACT_URL ? ARTIFACT_URL + '#join-' + this.code : '';
+    $('hUrl').textContent = url || 'claude.ai에서 이 게임을 연 뒤 참가자 → 방 코드 입력';
+    if (url && typeof qrcode !== 'undefined') {
       const q = qrcode(0, 'M'); q.addData(url); q.make();
       $('qr').innerHTML = q.createSvgTag({ cellSize: 8, margin: 2, scalable: true });
     } else {
@@ -643,14 +697,29 @@ const Host = {
       }
     });
   },
-  send(pid, msg) { const c = this.conns.get(pid); if (c && c.open) { try { c.send(msg); } catch (e) {} } },
+  send(pid, msg) {
+    const p = this.players.get(pid);
+    if (p && p.via === 'room') { this.emitRoom('fx', { ...msg, to: pid }); return; }
+    const c = this.conns.get(pid); if (c && c.open) { try { c.send(msg); } catch (e) {} }
+  },
 
   onMsg(conn, msg) {
     if (!msg || typeof msg !== 'object') return;
     if (msg.t === 'join') {
-      const pid = String(msg.pid || '').slice(0, 40);
-      let name = String(msg.name || '').trim().slice(0, 8) || '익명';
-      if (!pid) return;
+      const pid = String(msg.pid || '').slice(0, 24);
+      if (!pid || this.banned.has(pid)) return;
+      const old = this.conns.get(pid);
+      if (old && old !== conn) { try { old.close(); } catch (e) {} }
+      this.conns.set(pid, conn);
+      this.addPlayer(pid, msg.name, { via: 'peer', peerLabel: null });
+    } else if (msg.t === 'word') {
+      const pid = [...this.conns].find(([, c]) => c === conn)?.[0];
+      if (pid) this.submit(pid, String(msg.w || ''));
+    }
+  },
+
+  addPlayer(pid, rawName, link) {
+      let name = String(rawName || '').trim().slice(0, 8) || '익명';
       let p = this.players.get(pid);
       if (!p) {
         const names = new Set([...this.players.values()].map(x => x.name));
@@ -661,24 +730,17 @@ const Host = {
         if (this.phase !== 'lobby') { p.prevRank = this.players.size; }
         SFX.init(); SFX.tone(880, .08, 'triangle', .15);
       }
-      const old = this.conns.get(pid);
-      if (old && old !== conn) { try { old.close(); } catch (e) {} }
-      this.conns.set(pid, conn);
-      p.connected = true;
+      p.connected = true; p.via = link.via; p.peerLabel = link.peerLabel;
       this.send(pid, { t: 'welcome', id: pid, name: p.name });
       this.computeRanks();
       this.renderLobby();
       this.broadcast();
-    } else if (msg.t === 'word') {
-      const pid = [...this.conns].find(([, c]) => c === conn)?.[0];
-      if (pid) this.submit(pid, String(msg.w || ''));
-    }
   },
 
   kick(pid) {
     this.send(pid, { t: 'kicked' });
     const c = this.conns.get(pid); if (c) setTimeout(() => { try { c.close(); } catch (e) {} }, 200);
-    this.conns.delete(pid); this.players.delete(pid);
+    this.conns.delete(pid); this.players.delete(pid); this.banned.add(pid);
     this.renderLobby(); this.broadcast();
   },
 
@@ -844,25 +906,25 @@ const Host = {
   },
 
   /* ----- 플레이어별 상태 전송 ----- */
-  view(p) {
+  // 모든 참가자에게 같은 상태를 보냄 (각 폰이 자기 항목을 골라 씀). 4KiB 이내로 압축.
+  stateMsg() {
     const t = now();
-    const holder = this.players.get(this.holder);
-    const ranked = this.ranked();
     return {
       t: 'state', phase: this.phase, code: this.code,
-      round: this.round, total: this.cfg.rounds, count: this.players.size, aliveCount: this.alive().length,
-      maxLives: this.cfg.lives,
-      holderId: this.holder, holderName: holder?.name || '',
-      chosung: this.holder === p.id ? this.chosung : null,
+      round: this.round, total: this.cfg.rounds, maxLives: this.cfg.lives,
+      holderId: this.holder, chosung: this.phase === 'playing' ? this.chosung : null,
       turnLeft: Math.max(0, this.turnEnd - t), turnMs: this.cfg.turn * 1000,
       roundLeft: Math.max(0, this.roundEnd - t), roundMs: this.cfg.fuse * 1000,
       cdLeft: Math.max(0, this.cdEnd - t), nextLeft: Math.max(0, this.nextAt - t),
-      you: { id: p.id, name: p.name, score: p.score, lives: p.lives, alive: p.alive, rank: p.rank, delta: p.delta, roundChange: p.roundChange },
       result: this.lastResult,
-      top: ranked.slice(0, 3).map(x => ({ name: x.name, score: x.score })),
+      players: this.ranked().map(p => [p.id, p.name, p.score, p.lives, p.alive ? 1 : 0, p.rank, p.delta, p.roundChange]),
     };
   },
-  broadcast() { for (const p of this.players.values()) this.send(p.id, this.view(p)); },
+  broadcast() {
+    const msg = this.stateMsg();
+    for (const [pid, c] of this.conns) if (c.open) { try { c.send(msg); } catch (e) {} }
+    this.emitRoom('state', msg);
+  },
 
   /* ----- 화면 ----- */
   renderLobby() {
@@ -989,6 +1051,7 @@ const Host = {
    ========================================================= */
 const Player = {
   peer: null, conn: null, pid: '', code: '', name: '',
+  via: 'peer', rm: null, n: 0, joinTimer: null,
   st: null, recvAt: 0, joined: false, wakeLock: null,
   lastHolding: false, lastPhase: '', nextTickAt: 0, reconnTimer: null,
 
@@ -997,7 +1060,8 @@ const Player = {
     show($('player'));
     try { this.pid = sessionStorage.getItem('bombrelay-pid') || ''; } catch (e) {}
     if (!this.pid) { this.pid = 'p' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); try { sessionStorage.setItem('bombrelay-pid', this.pid); } catch (e) {} }
-    const room = (params.get('room') || '').toUpperCase();
+    const hm = location.hash.match(/^#join-([A-Za-z]{4})$/);
+    const room = (params.get('room') || (hm ? hm[1] : '')).toUpperCase();
     $('pCode').value = room;
     try { $('pName').value = localStorage.getItem('bombrelay-name') || ''; } catch (e) {}
     (room ? $('pName') : $('pCode')).focus();
@@ -1021,7 +1085,31 @@ const Player = {
     this.code = code; this.name = name.slice(0, 8);
     try { localStorage.setItem('bombrelay-name', this.name); } catch (e) {}
     $('pJoinBtn').disabled = true; $('pJoinBtn').textContent = '연결 중…'; this.err('');
-    this.connect();
+    if (IN_ARTIFACT) this.connectRoom(); else this.connect();
+  },
+
+  async connectRoom() {
+    this.via = 'room';
+    let room = null;
+    try { room = await window.claude.use('room'); } catch (e) {}
+    if (!room) { this.err('실시간 연결에 들어갈 수 없어요. claude.ai에 로그인하고, 호스트에게 이 게임에 초대받았는지 확인하세요.'); this.resetJoinBtn(); return; }
+    try {
+      if (this.rm) { try { await this.rm.leave(); } catch (e) {} }
+      this.rm = await room.join(roomName(this.code));
+    } catch (e) { this.err('입장 실패: ' + (e && e.code || e)); this.resetJoinBtn(); return; }
+    this.rm.on('state', m => { if (m.data && m.data.code === this.code) this.onMsg(m.data); });
+    this.rm.on('fx', m => { if (m.data && m.data.to === this.pid) this.onMsg(m.data); });
+    this.rm.onConnection(c => { if (this.joined) this.setStatusSub(c ? '' : '⚠️ 연결이 끊겼어요. 재연결 중…'); });
+    this.n = Date.now();
+    try { await this.rm.presence({ pid: this.pid, name: this.name, code: this.code, n: this.n, w: '' }); }
+    catch (e) { this.err('입장 실패: ' + (e && e.code || e)); this.resetJoinBtn(); return; }
+    clearTimeout(this.joinTimer);
+    this.joinTimer = setTimeout(() => {
+      if (this.joined) return;
+      this.err('방을 찾을 수 없어요. 코드를 확인하고, 메인 화면이 켜져 있는지 보세요.');
+      this.resetJoinBtn();
+      try { this.rm.leave(); } catch (e) {} this.rm = null;
+    }, 7000);
   },
   err(t) { $('pErr').textContent = t; },
 
@@ -1062,9 +1150,18 @@ const Player = {
       SFX.good();
     } else if (m.t === 'kicked') {
       this.joined = false; this.st = null;
-      try { this.conn.close(); } catch (e) {}
+      try { this.conn && this.conn.close(); } catch (e) {}
+      try { this.rm && this.rm.leave(); } catch (e) {} this.rm = null;
       this.screen('pJoin'); this.resetJoinBtn(); this.err('호스트가 내보냈어요');
     } else if (m.t === 'state') {
+      const list = (m.players || []).map(a => ({ id: a[0], name: a[1], score: a[2], lives: a[3], alive: !!a[4], rank: a[5], delta: a[6], roundChange: a[7] }));
+      const you = list.find(x => x.id === this.pid);
+      if (!you) return;  // 아직 등록 전이거나 내보내짐
+      if (!this.joined) { this.joined = true; clearTimeout(this.joinTimer); this.requestWake(); SFX.good(); }
+      m.you = you;
+      m.count = list.length;
+      m.holderName = (list.find(x => x.id === m.holderId) || {}).name || '';
+      m.top = list.slice(0, 3);
       this.st = m; this.recvAt = now();
       this.render();
     } else if (m.t === 'fx') this.fx(m);
@@ -1107,7 +1204,10 @@ const Player = {
       $('pFb').className = 'pFeedback no'; $('pFb').textContent = '지금은 폭탄이 없어요'; return;
     }
     if (!w) { $('pWord').focus(); return; }
-    if (this.conn && this.conn.open) this.conn.send({ t: 'word', w });
+    if (this.via === 'room' && this.rm) {
+      this.n = Math.max(this.n + 1, Date.now());
+      this.rm.presence({ w: w.slice(0, 40), n: this.n }).catch(() => {});
+    } else if (this.conn && this.conn.open) this.conn.send({ t: 'word', w });
     $('pWord').focus();
   },
   setStatusSub(t) { $('pStatusSub').textContent = t; $('pWaitSub').textContent = t; },
@@ -1196,7 +1296,7 @@ const Player = {
 /* ---------- 진입 ---------- */
 const initialRole = params.get('role');
 if (initialRole === 'host' || initialRole === 'player') startRole(initialRole);
-else if (params.get('room')) startRole('player');
+else if (params.get('room') || /^#join-/.test(location.hash)) startRole('player');
 else show($('roleSelect'));
 </script>
 </body>
