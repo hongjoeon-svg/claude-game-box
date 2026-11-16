@@ -105,6 +105,21 @@
   .seg { display: flex; background: var(--bg); border-radius: 10px; padding: 3px; gap: 3px; }
   .seg button { background: none; padding: 7px 12px; border-radius: 8px; color: var(--muted); font-weight: 700; }
   .seg button.on { background: var(--accent); color: #1a0f0a; }
+  .localJoin { display: flex; gap: 8px; }
+  .localJoin input { flex: 1; min-width: 0; background: var(--bg); border: 2px solid var(--line); border-radius: 10px; padding: 8px 12px; font-size: 17px; font-weight: 700; outline: none; }
+  .localJoin input:focus { border-color: var(--accent); }
+  .localJoin .btn { padding: 8px 16px; font-size: 16px; }
+  .chip.bot { border-color: #4a5a7a; background: #232a38; }
+  .chip.local { border-color: var(--accent); }
+  .localPlay { width: min(520px, 100%); display: flex; flex-direction: column; gap: 8px; }
+  .localTurn { color: var(--hot); font-weight: 900; font-size: 18px; animation: throb .6s infinite; }
+  #hWord { font-size: 26px; padding: 12px 16px; border-color: var(--hot); text-align: center; }
+  #hPass { font-size: 20px; background: var(--hot); color: #fff; }
+  .compact #stage { gap: 1.2vh; }
+  .compact .fuseNum { font-size: clamp(48px, 7vw, 110px); }
+  .compact .bomb { font-size: clamp(40px, 5vw, 80px); }
+  .compact .holderName { font-size: clamp(30px, 4.5vw, 64px); }
+  .compact .cho { width: clamp(56px, 6vw, 92px); font-size: clamp(34px, 4.2vw, 62px); }
   .startRow { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
   .startRow .btn { font-size: 24px; padding: 18px 36px; }
 
@@ -295,7 +310,8 @@
     · 폭탄을 받으면 폰이 붉게 깜빡이고 진동해요. <b>제시된 초성</b>에 맞는 단어를 입력하면 무작위 다른 사람에게 넘어갑니다.<br>
     · 한 턴 제한시간(기본 5초)을 넘기면 −5점, 초성이 바뀌어요.<br>
     · 퓨즈가 끝나는 순간 폭탄을 쥔 사람은 <b>−30점 & 목숨 1개</b>. 살아남은 사람은 +20점. 목숨이 0이면 탈락!<br>
-    · 단어 +10점, 빨리 넘길수록 보너스. 이미 나온 단어는 못 써요.
+    · 단어 +10점, 빨리 넘길수록 보너스. 이미 나온 단어는 못 써요.<br>
+    · 🤖 사람이 모자라면 메인 화면에서 <b>AI 참가자</b>를 추가하세요. <b>나도 참가</b>를 누르면 폰 없이 메인 화면에서 바로 AI와 대결할 수 있어요.
   </div>
 </section>
 
@@ -327,6 +343,11 @@
         <div class="setting"><label>턴 제한</label><div class="seg" data-key="turn"><button data-v="5">5초</button><button data-v="7">7초</button><button data-v="10">10초</button></div></div>
         <div class="setting"><label>목숨</label><div class="seg" data-key="lives"><button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button></div></div>
       </div>
+      <div class="settings addRow">
+        <div class="setting"><label>🤖 AI 참가자 추가</label><div class="seg" id="hAddBot"><button data-lv="easy">쉬움</button><button data-lv="normal">보통</button><button data-lv="hard">어려움</button></div></div>
+        <div class="setting" style="flex:1;min-width:220px"><label>🙋 이 화면에서 나도 참가 (폰 없이)</label>
+          <div class="localJoin"><input id="hLocalName" maxlength="8" placeholder="닉네임" autocomplete="off"><button class="btn ghost" id="hLocalJoin">참가</button></div></div>
+      </div>
       <div class="startRow">
         <button class="btn" id="hStart" disabled>게임 시작 ▶</button>
         <span class="muted" id="hStartHint">2명 이상 모이면 시작할 수 있어요</span>
@@ -356,6 +377,11 @@
         <div class="choRow" id="hCho"></div>
         <div class="turnBar"><i id="hTurnBar"></i></div>
         <div class="lastWord" id="hLast">&nbsp;</div>
+        <div class="localPlay hidden" id="hLocal">
+          <div class="localTurn">🙋 내 차례! 초성에 맞는 단어를 입력하세요</div>
+          <div class="localJoin"><input id="hWord" maxlength="20" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="단어 입력 후 Enter"><button class="btn" id="hPass">넘기기 💣</button></div>
+          <div class="pFeedback" id="hFb"></div>
+        </div>
       </div>
       <div id="hResult" class="hidden">
         <div class="boomTitle" id="hBoomTitle">💥 펑!</div>
@@ -462,6 +488,20 @@ const CHO = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','
 const CHOSUNG_POOL = ['ㄱㅈ','ㅅㄹ','ㄱㅅ','ㅂㄹ','ㅅㅈ','ㅈㄱ','ㄷㄹ','ㅁㄹ','ㄱㄹ','ㅇㅅ','ㅇㄱ','ㅈㅅ','ㅅㄱ','ㅎㄱ','ㄱㅇ','ㅂㅅ','ㅊㄱ','ㅅㅇ','ㅇㅈ','ㅈㅇ',
   'ㄱㄷ','ㄷㅅ','ㅁㅅ','ㅂㄷ','ㅎㅅ','ㅈㄹ','ㄱㅁ','ㅇㄹ','ㅅㅁ','ㄴㄹ','ㄱㅂ','ㅎㄹ','ㅂㅈ','ㅊㅅ','ㅍㄷ','ㄷㄱ','ㅁㅈ','ㄴㅁ','ㅅㅂ','ㅇㅁ',
   'ㅌㄱ','ㄱㅊ','ㅈㅁ','ㅇㅎ','ㄱㅎ','ㅂㅎ','ㅎㅈ','ㅅㅎ','ㅁㄱ','ㄷㅈ','ㅊㄹ','ㅍㅅ','ㄴㅅ','ㅈㄷ','ㅎㅂ','ㅊㅈ','ㅂㄱ','ㄱㄴ','ㅅㅊ','ㅁㅎ'];
+
+// AI가 쓰는 단어장 (초성별)
+const BOT_DICT = (() => {
+  const m = {};
+  'ㄱㅈ 가족 감자 고장 국자 가지 과자 기자 공주 경주 거절 가정 결정 기준 고집 금지 간장|ㅅㄹ 사랑 소리 사람 서랍 소란 실력 순례 선로 수량 시럽 세력 수리 사례|ㄱㅅ 기사 가수 감사 교수 고수 과속 검사 군사 가시 귀신 각시 공사 결승 기술|ㅂㄹ 바람 보리 별로 부리 비례 발레 벌레 분리 보류 반란 비리 법률 배려 바로|ㅅㅈ 사자 수집 사진 시장 선장 성적 상자 숙제 수정 신작 소주 시작 사장 성장|ㅈㄱ 자기 장갑 지구 주걱 자극 자갈 지갑 장기 전국 정각 주권 저금 직각 지금|ㄷㄹ 다리 도로 달력 대리 독립 단련 동료 도령 등록 대령 돌림|ㅁㄹ 머리 마루 미래 무리 매력 목록 마련 물론 만루 모래 명령 무료|ㄱㄹ 가루 고래 거리 기름 구름 그림 거래 고려 관리 결론 경력 기록|ㅇㅅ 우산 의사 의상 이사 여신 운석 약속 연습 입술 열쇠 안심 음식|ㅇㄱ 아기 연기 얼굴 악기 야구 인기 열기 용기 엽기 응급 아가 요가|ㅈㅅ 자석 정신 장소 조수 지식 주소 전설 자신 진실 접시 조식 정상|ㅅㄱ 소금 사과 시간 생각 세계 사고 성격 수건 시계 상금 선거 식구|ㅎㄱ 학교 한국 향기 휴가 호감 회계 합격 환경 해결 희극 효과 한계|ㄱㅇ 가위 거울 기억 가을 강의 공원 기업 경영 국어 경우 금요 고음|ㅂㅅ 버스 비수 보석 박수 반사 변신 봉사 불신 부상 빙수 배송 방송|ㅊㄱ 축구 친구 창고 최고 출근 참가 초급 추가 측근 체감 충격 출구|ㅅㅇ 소용 사이 수영 사용 시원 새우 서울 상어 시인 사업 성인 수입|ㅇㅈ 의자 이자 여자 안전 영재 우정 인정 아직 의지 음주 요즘 연주|ㅈㅇ 자연 장인 주인 장어 정원 중요 저울 지옥 자유 직원 조언 주의|ㄱㄷ 기둥 거대 기도 고독 가득 고등 공동 경도 기대 계단 군대 감독|ㄷㅅ 단식 대신 도시 동생 독서 당신 대사 단속 등산 대상 도서|ㅁㅅ 매수 미소 마술 문서 모습 마산 무시 명사 미션 매실 목수 망상|ㅂㄷ 반대 부두 바닥 반도 본드 보도 부담 배달 별도 분담 불도|ㅎㅅ 해수 회사 행사 화살 학생 혼술 허상 현실 호수 확신 한숨 희생|ㅈㄹ 자료 재래 정리 종류 지리 주로 자랑 저렴 조립 전략 질량 잔류|ㄱㅁ 가면 기미 고민 거미 개미 고모 가문 고목 공무 감명 기말|ㅇㄹ 요리 이론 오리 어른 우리 여름 이름 유리 연락 위로 열량 오락|ㅅㅁ 소문 사모 시민 수면 사막 산모 설명 생명 숙모 신문 세면 소멸|ㄴㄹ 노래 나라 놀람 내륙 논란 노력 능력 난리 누리 노란 나루|ㄱㅂ 가방 기법 김밥 공부 가발 고백 건배 구분 기분 개발 고비|ㅎㄹ 하루 허리 하락 화력 협력 활력 회로 효력 허락 화랑|ㅂㅈ 바지 부자 배지 보존 방지 부족 비자 본점 발전 비중 반죽 벌집|ㅊㅅ 처세 초상 청소 출산 축사 최선 추석 철새 침실 출석 착시 천사|ㅍㄷ 파도 포대 판단 평등 포도 파동 풍덩 편도 피디 폭동|ㄷㄱ 도구 대기 단골 동굴 대가 대구 두건 독감 등급 도감 동기 대금|ㅁㅈ 모자 매장 미지 문제 무지 명절 마주 모집 목장 민족 미정 매진|ㄴㅁ 나무 남매 내막 눈물 나물 농민 냉면 노망 누명 낭만 남미|ㅅㅂ 소비 수비 상복 시비 세배 수박 선배 신발 사방 설비 수법|ㅇㅁ 영문 이마 엄마 안마 의미 열매 운명 악마 오만 유명 일몰 얼마|ㅌㄱ 태극 탁구 투구 타격 통계 특급 퇴근 탐구 통과 투기 탈곡|ㄱㅊ 기차 가치 고추 김치 검찰 경찰 국채 관찰 구청 고층 감초 고체|ㅈㅁ 지문 장미 주먹 재미 조명 정말 제목 지명 전망 주말 자막|ㅇㅎ 운하 이해 영화 여행 은행 연휴 위험 오후 용해 약혼 의회 인형|ㄱㅎ 가해 기획 결혼 공항 경험 교회 기회 고향 국회 간호 경향 국화|ㅂㅎ 반환 보험 방학 변화 배합 복합 부활 불행 방해 보호 번호 비행|ㅎㅈ 회장 한자 효자 환자 혼자 화장 현재 행정 호주 협조 휴지 해적|ㅅㅎ 사회 수학 시험 서해 소화 실험 상황 선호 수확 수험 사형 산호|ㅁㄱ 무기 마감 미각 매각 목격 몸값 문구 명곡 미국 모기 만기|ㄷㅈ 도장 대중 단지 도전 동전 대장 독자 단점 대지 동정 다정 등장|ㅊㄹ 차량 추리 철로 체력 출력 치료 차례 처리 칠리 침략 초록|ㅍㅅ 피사 표시 폭설 포스 풍선 평생 패션 필수 피서 판사 폭식 평소|ㄴㅅ 내실 난세 농사 냉수 나사 남산 논술 녹색 내심 노선 남성 능숙|ㅈㄷ 전동 저당 제도 주도 진도 지도 정답 조달 장대 자동 전달 정도|ㅎㅂ 화분 학번 행복 홍보 호박 회복 활발 환불 합병 해변 허브 한복|ㅊㅈ 추진 차장 측정 청주 출장 친절 초점 체중 추정 철저 출전 차지|ㅂㄱ 번개 보고 방금 비교 반값 별개 부근 배경 본격 벌금 비결|ㄱㄴ 기능 가난 고뇌 기념 개념 가능 귀농 구내 기내 관념|ㅅㅊ 시청 수출 상처 세차 설치 순찰 상추 신청 사촌 생체 선출|ㅁㅎ 문화 모험 만화 명함 미혼 무효 매혹 문학 미화 민화 모함 묵화'.split('|').forEach(seg => { const [k, ...ws] = seg.split(' '); m[k] = ws; });
+  return m;
+})();
+const BOT_LEVELS = {
+  easy:   { label: '쉬움',   min: 2200, max: 5600, miss: 0.25 },
+  normal: { label: '보통',   min: 1300, max: 4000, miss: 0.12 },
+  hard:   { label: '어려움', min: 600,  max: 2300, miss: 0.04 },
+};
+const BOT_NAMES = ['봇순이', '알파냥', '챗돌이', '로봇킹', '삐약봇', '초성왕', '두뇌봇', '깡통이', '번개봇', '말랑봇'];
+const LOCAL_ID = 'local-host';
 
 function chosungOf(word) {
   return [...word].map(ch => {
@@ -601,6 +641,11 @@ const Host = {
       paint();
     });
     $('hStart').onclick = () => { SFX.init(); this.startGame(); };
+    document.querySelectorAll('#hAddBot button').forEach(b => b.onclick = () => { SFX.init(); this.addBot(b.dataset.lv); });
+    $('hLocalJoin').onclick = () => { SFX.init(); this.toggleLocal(); };
+    $('hLocalName').onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) this.toggleLocal(); };
+    $('hPass').onclick = () => this.localSubmit();
+    $('hWord').onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); this.localSubmit(); } };
     $('hAgain').onclick = () => { SFX.init(); this.backToLobby(); };
     $('hNextNow').onclick = () => { SFX.init(); this.advance(); };
     document.addEventListener('click', () => SFX.init(), { once: true });
@@ -699,6 +744,8 @@ const Host = {
   },
   send(pid, msg) {
     const p = this.players.get(pid);
+    if (p && p.via === 'bot') return;
+    if (p && p.via === 'local') { this.localFx(msg); return; }
     if (p && p.via === 'room') { this.emitRoom('fx', { ...msg, to: pid }); return; }
     const c = this.conns.get(pid); if (c && c.open) { try { c.send(msg); } catch (e) {} }
   },
@@ -731,16 +778,55 @@ const Host = {
         SFX.init(); SFX.tone(880, .08, 'triangle', .15);
       }
       p.connected = true; p.via = link.via; p.peerLabel = link.peerLabel;
+      if (link.bot) p.bot = link.bot;
       this.send(pid, { t: 'welcome', id: pid, name: p.name });
       this.computeRanks();
       this.renderLobby();
       this.broadcast();
   },
 
+  addBot(level) {
+    const used = new Set([...this.players.values()].map(p => p.name));
+    const base = BOT_NAMES.find(n => !used.has('🤖' + n)) || ('봇' + (this.players.size + 1));
+    const pid = 'bot-' + Math.random().toString(36).slice(2, 8);
+    this.addPlayer(pid, '🤖' + base, { via: 'bot', peerLabel: null, bot: level });
+  },
+  toggleLocal() {
+    if (this.players.has(LOCAL_ID)) { this.kick(LOCAL_ID); this.banned.delete(LOCAL_ID); $('hLocalJoin').textContent = '참가'; return; }
+    const name = $('hLocalName').value.trim() || '호스트';
+    this.addPlayer(LOCAL_ID, name, { via: 'local', peerLabel: null });
+    $('hLocalJoin').textContent = '빠지기';
+  },
+  localSubmit() {
+    const w = $('hWord').value.trim();
+    if (!w) { $('hWord').focus(); return; }
+    this.submit(LOCAL_ID, w);
+  },
+  localFx(m) {
+    const fb = $('hFb');
+    if (m.k === 'gotBomb') { fb.textContent = ''; $('hWord').value = ''; setTimeout(() => $('hWord').focus(), 30); SFX.alarm(); }
+    else if (m.k === 'accepted') { fb.className = 'pFeedback ok'; fb.textContent = '✅ "' + m.w + '" +' + m.pts; $('hWord').value = ''; }
+    else if (m.k === 'rejected') { fb.className = 'pFeedback no'; fb.textContent = '❌ ' + m.why; $('hWord').select(); SFX.bad(); }
+    else if (m.k === 'timeout') { fb.className = 'pFeedback no'; fb.textContent = '⏰ 시간 초과 −5'; $('hWord').value = ''; }
+  },
+  scheduleBot() {
+    const p = this.players.get(this.holder);
+    if (!p || !p.bot || this.phase !== 'playing') return;
+    const L = BOT_LEVELS[p.bot] || BOT_LEVELS.normal;
+    const seq = this.turnSeq;
+    const delay = (L.min + Math.random() * (L.max - L.min)) * (this.cfg.turn / 5);
+    setTimeout(() => {
+      if (this.phase !== 'playing' || this.holder !== p.id || this.turnSeq !== seq) return;
+      if (Math.random() < L.miss) return;  // 머리가 하얘짐 → 시간 초과
+      const cands = (BOT_DICT[this.chosung] || []).filter(w => !this.usedSet.has(w));
+      if (cands.length) this.submit(p.id, rand(cands));
+    }, delay);
+  },
   kick(pid) {
     this.send(pid, { t: 'kicked' });
     const c = this.conns.get(pid); if (c) setTimeout(() => { try { c.close(); } catch (e) {} }, 200);
     this.conns.delete(pid); this.players.delete(pid); this.banned.add(pid);
+    if (pid === LOCAL_ID) { this.banned.delete(pid); $('hLocalJoin').textContent = '참가'; }
     this.renderLobby(); this.broadcast();
   },
 
@@ -793,7 +879,9 @@ const Host = {
     this.holder = pid;
     this.chosung = this.pickChosung();
     this.turnEnd = now() + this.cfg.turn * 1000;
+    this.turnSeq = (this.turnSeq || 0) + 1;
     this.send(pid, { t: 'fx', k: 'gotBomb' });
+    this.scheduleBot();
     const b = $('hBomb'); b.classList.remove('fly'); void b.offsetWidth; b.classList.add('fly');
     const h = $('hHolder'); h.classList.remove('swap'); void h.offsetWidth; h.classList.add('swap');
   },
@@ -847,6 +935,8 @@ const Host = {
     SFX.bad();
     this.chosung = this.pickChosung();
     this.turnEnd = now() + this.cfg.turn * 1000;
+    this.turnSeq = (this.turnSeq || 0) + 1;
+    this.scheduleBot();
     this.render(); this.broadcast();
   },
   explode() {
@@ -942,12 +1032,14 @@ const Host = {
         wrap.appendChild(c);
       }
       have.delete(p.id);
-      c.firstChild.textContent = p.name;
+      c.firstChild.textContent = p.name + (p.bot ? ' · ' + BOT_LEVELS[p.bot].label : '') + (p.id === LOCAL_ID ? ' (이 화면)' : '');
       c.classList.toggle('off', !p.connected);
+      c.classList.toggle('bot', !!p.bot);
+      c.classList.toggle('local', p.id === LOCAL_ID);
     });
     have.forEach(id => wrap.querySelector(`.chip[data-id="${CSS.escape(id)}"]`)?.remove());
     $('hStart').disabled = ps.length < 2;
-    $('hStartHint').textContent = ps.length < 2 ? '2명 이상 모이면 시작할 수 있어요' : `${ps.length}명 준비 완료!`;
+    $('hStartHint').textContent = ps.length < 2 ? '2명 이상 모이면 시작할 수 있어요 · 혼자라면 나도 참가 + AI 추가' : `${ps.length}명 준비 완료!`;
     if (this.phase !== 'lobby') this.renderSide();
   },
   addWord(e) {
@@ -977,6 +1069,7 @@ const Host = {
     show($('hFinal'), ph === 'final');
     show($('hRoundPill'), ph !== 'lobby');
     $('hRound').textContent = this.round;
+    $('host').classList.toggle('compact', this.players.has(LOCAL_ID));
     if (ph === 'lobby') { this.renderLobby(); return; }
     show($('hCountdown'), ph === 'countdown');
     $('hPlay').classList.toggle('hidden', ph !== 'playing');
@@ -986,6 +1079,9 @@ const Host = {
     if (ph === 'playing') {
       const h = this.players.get(this.holder);
       $('hHolder').textContent = h ? h.name : '-';
+      const mine = this.holder === LOCAL_ID;
+      show($('hLocal'), mine);
+      if (!mine) $('hFb').textContent = '';
       const cho = $('hCho');
       if (cho.dataset.v !== this.chosung) {
         cho.dataset.v = this.chosung;
