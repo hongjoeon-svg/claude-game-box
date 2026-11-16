@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#14110f">
+<title>시한폭탄 릴레이</title>
+<style>
+  :root {
+    --bg: #14110f;
+    --panel: #221d19;
+    --panel2: #2d2621;
+    --line: #3a322c;
+    --text: #f6efe8;
+    --muted: #a99d92;
+    --accent: #d97757;
+    --accent2: #f0b27a;
+    --hot: #ff3b30;
+    --good: #5fd38d;
+    --bad: #ff6b6b;
+    --gold: #ffd166;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    overflow-x: hidden;
+  }
+  button, input, select { font: inherit; color: inherit; }
+  button { cursor: pointer; border: 0; }
+  .hidden { display: none !important; }
+  .muted { color: var(--muted); }
+
+  .btn {
+    background: var(--accent); color: #1a0f0a; font-weight: 800;
+    border-radius: 14px; padding: 14px 22px; font-size: 18px;
+    transition: transform .08s, filter .15s, opacity .15s;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn:disabled { opacity: .35; cursor: not-allowed; }
+  .btn.ghost { background: var(--panel2); color: var(--text); border: 1px solid var(--line); }
+
+  /* ================= 역할 선택 ================= */
+  #roleSelect {
+    min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 28px; padding: 32px 16px; text-align: center;
+  }
+  #roleSelect h1 { font-size: clamp(30px, 7vw, 56px); letter-spacing: -0.03em; }
+  #roleSelect h1 span { color: var(--hot); }
+  .roleBtns { display: grid; gap: 14px; width: min(560px, 100%); grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .roleBtn {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 26px 18px;
+    display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center;
+    transition: transform .15s, border-color .15s;
+  }
+  .roleBtn:hover { transform: translateY(-3px); border-color: var(--accent); }
+  .roleBtn .e { font-size: 44px; }
+  .roleBtn b { font-size: 20px; }
+  .roleBtn small { color: var(--muted); line-height: 1.4; }
+  .rules { max-width: 560px; color: var(--muted); font-size: 14px; line-height: 1.6; text-align: left; background: var(--panel); border-radius: 16px; padding: 16px 18px; border: 1px solid var(--line); }
+  .rules b { color: var(--text); }
+
+  /* ================= 호스트 ================= */
+  #host { min-height: 100dvh; display: flex; flex-direction: column; }
+  .hTop {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 14px 24px; border-bottom: 1px solid var(--line); background: #1a1613;
+  }
+  .hTop .brand { font-weight: 900; font-size: 22px; letter-spacing: -0.02em; }
+  .hTop .brand span { color: var(--hot); }
+  .hTop .meta { display: flex; gap: 18px; align-items: center; color: var(--muted); font-size: 16px; }
+  .hTop .meta b { color: var(--text); font-size: 20px; letter-spacing: .12em; }
+  .pill { background: var(--panel2); border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; }
+  .netDot { width: 10px; height: 10px; border-radius: 50%; background: #777; display: inline-block; margin-right: 6px; }
+  .netDot.on { background: var(--good); box-shadow: 0 0 10px var(--good); }
+
+  /* 로비 */
+  #hLobby { flex: 1; display: grid; grid-template-columns: minmax(300px, 420px) 1fr; gap: 28px; padding: 28px; }
+  .qrCard { background: #fff; color: #111; border-radius: 24px; padding: 22px; text-align: center; align-self: start; }
+  .qrCard #qr { width: 100%; aspect-ratio: 1; display: grid; place-items: center; }
+  .qrCard #qr svg, .qrCard #qr img { width: 100%; height: 100%; }
+  .qrCard .code { font-size: 64px; font-weight: 900; letter-spacing: .14em; margin-top: 8px; font-variant-numeric: tabular-nums; }
+  .qrCard .url { font-size: 12px; color: #666; word-break: break-all; margin-top: 4px; }
+  .qrCard .hint { font-size: 15px; color: #333; margin-top: 10px; }
+  .lobbyRight { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+  .lobbyRight h2 { font-size: 28px; }
+  .lobbyRight h2 small { color: var(--muted); font-size: 18px; font-weight: 500; margin-left: 8px; }
+  #hPlayers { display: flex; flex-wrap: wrap; gap: 10px; align-content: flex-start; min-height: 120px; }
+  .chip {
+    background: var(--panel2); border: 1px solid var(--line); border-radius: 999px; padding: 10px 18px; font-size: 20px; font-weight: 700;
+    animation: pop .35s cubic-bezier(.2,1.6,.4,1);
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .chip.off { opacity: .4; }
+  .chip button { background: none; color: var(--muted); font-size: 16px; padding: 0 2px; }
+  .chip button:hover { color: var(--bad); }
+  @keyframes pop { from { transform: scale(.4); opacity: 0; } }
+  .settings { display: flex; flex-wrap: wrap; gap: 14px 22px; background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px; }
+  .setting { display: flex; flex-direction: column; gap: 6px; }
+  .setting label { font-size: 13px; color: var(--muted); }
+  .seg { display: flex; background: var(--bg); border-radius: 10px; padding: 3px; gap: 3px; }
+  .seg button { background: none; padding: 7px 12px; border-radius: 8px; color: var(--muted); font-weight: 700; }
+  .seg button.on { background: var(--accent); color: #1a0f0a; }
+  .startRow { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .startRow .btn { font-size: 24px; padding: 18px 36px; }
+
+  /* 게임 */
+  #hGame { flex: 1; display: grid; grid-template-columns: minmax(220px, 1fr) minmax(0, 2.1fr) minmax(260px, 1.1fr); gap: 20px; padding: 20px; min-height: 0; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 16px; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+  .panel h3 { font-size: 15px; color: var(--muted); font-weight: 700; margin-bottom: 10px; letter-spacing: .04em; display: flex; justify-content: space-between; }
+  #hWords { list-style: none; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  #hWords li {
+    display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; background: var(--panel2);
+    animation: slideIn .4s cubic-bezier(.2,.9,.3,1);
+  }
+  #hWords li .w { font-size: 22px; font-weight: 800; }
+  #hWords li .by { color: var(--muted); font-size: 13px; flex: 1; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #hWords li .x { background: none; color: #6b5f56; font-size: 14px; padding: 2px 6px; border-radius: 6px; }
+  #hWords li .x:hover { color: var(--bad); background: #3a2622; }
+  #hWords li.veto .w { text-decoration: line-through; color: var(--bad); }
+  #hWords li.sys { background: transparent; color: var(--muted); font-size: 13px; justify-content: center; }
+  @keyframes slideIn { from { transform: translateX(-30px); opacity: 0; } }
+
+  #stage { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2vh; text-align: center; padding: 20px; }
+  #stage.danger { animation: dangerBg 0.5s infinite alternate; }
+  @keyframes dangerBg { to { background: #3a1513; border-color: #ff3b3066; } }
+  .fuseWrap { width: 100%; max-width: 760px; }
+  .fuseNum { font-size: clamp(64px, 11vw, 170px); font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -0.04em; }
+  .fuseNum.low { color: var(--hot); animation: throb .5s infinite; }
+  @keyframes throb { 50% { transform: scale(1.06); } }
+  .fuseBar { height: 14px; background: #0d0b0a; border-radius: 999px; overflow: hidden; margin-top: 10px; position: relative; }
+  .fuseBar i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, var(--gold), var(--accent), var(--hot)); border-radius: 999px; }
+  .fuseBar i::after { content: ""; position: absolute; right: -6px; top: 50%; width: 18px; height: 18px; margin-top: -9px; border-radius: 50%; background: radial-gradient(#fff, #ffd166 40%, transparent 70%); animation: spark .15s infinite alternate; }
+  @keyframes spark { to { transform: scale(1.5); opacity: .7; } }
+  .holderBox { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .bomb { font-size: clamp(60px, 9vw, 130px); line-height: 1; filter: drop-shadow(0 0 24px #ff3b3077); animation: wobble .6s infinite; }
+  .bomb.fly { animation: fly .5s cubic-bezier(.3,1.5,.5,1); }
+  @keyframes wobble { 25% { transform: rotate(-8deg); } 75% { transform: rotate(8deg); } }
+  @keyframes fly { from { transform: translateY(-80px) scale(.5) rotate(-180deg); opacity: 0; } }
+  .holderLabel { color: var(--muted); font-size: 18px; }
+  .holderName {
+    font-size: clamp(36px, 6vw, 84px); font-weight: 900; letter-spacing: -0.03em;
+    background: var(--hot); color: #fff; padding: 2px 28px; border-radius: 18px;
+    box-shadow: 0 0 0 6px #ff3b3033, 0 0 50px #ff3b3088;
+    max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .holderName.swap { animation: swap .45s cubic-bezier(.2,1.6,.4,1); }
+  @keyframes swap { from { transform: scale(.6) rotate(-4deg); } }
+  .choRow { display: flex; gap: 14px; justify-content: center; }
+  .cho {
+    width: clamp(70px, 8vw, 120px); aspect-ratio: 1; display: grid; place-items: center;
+    background: var(--text); color: #1a0f0a; border-radius: 18px; font-size: clamp(44px, 5.5vw, 84px); font-weight: 900;
+    box-shadow: 0 8px 0 #b9ab9e;
+  }
+  .cho.flip { animation: flipIn .4s; }
+  @keyframes flipIn { from { transform: rotateX(90deg); } }
+  .turnBar { width: min(420px, 80%); height: 10px; background: #0d0b0a; border-radius: 999px; overflow: hidden; }
+  .turnBar i { display: block; height: 100%; background: var(--accent2); border-radius: 999px; }
+  .lastWord { font-size: 20px; color: var(--muted); min-height: 28px; }
+  .lastWord b { color: var(--good); font-size: 26px; }
+
+  .countdown { font-size: clamp(120px, 22vw, 320px); font-weight: 900; animation: cd 1s infinite; color: var(--accent2); }
+  @keyframes cd { from { transform: scale(1.4); opacity: 0; } 30% { transform: scale(1); opacity: 1; } }
+
+  /* 리더보드 */
+  .board { text-align: left; list-style: none; display: flex; flex-direction: column; gap: 6px; overflow-y: auto; position: relative; }
+  .board li {
+    display: grid; grid-template-columns: 34px 1fr auto auto; align-items: center; gap: 10px;
+    background: var(--panel2); border-radius: 12px; padding: 9px 12px; border: 2px solid transparent;
+    transition: background .3s, opacity .3s;
+  }
+  .board li .rk { font-weight: 900; font-size: 18px; color: var(--muted); text-align: center; }
+  .board li:nth-child(1) .rk { color: var(--gold); }
+  .board li .nm { font-weight: 800; font-size: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .board li .lv { font-size: 13px; letter-spacing: -1px; white-space: nowrap; }
+  .board li .sc { font-weight: 900; font-variant-numeric: tabular-nums; font-size: 20px; min-width: 52px; text-align: right; }
+  .board li.holder { border-color: var(--hot); background: #3a1a17; }
+  .board li.dead { opacity: .42; }
+  .board li.dead .nm { text-decoration: line-through; }
+  .board li .dl { font-size: 13px; font-weight: 900; margin-left: 6px; }
+  .board li .dl.up { color: var(--good); }
+  .board li .dl.down { color: var(--bad); }
+  .board li.flashUp { animation: flashUp 1.6s; }
+  .board li.flashDown { animation: flashDown 1.6s; }
+  .board li.flashBoom { animation: flashBoom 1.6s; }
+  @keyframes flashUp { 0%,40% { background: #1f4a31; border-color: var(--good); box-shadow: 0 0 30px #5fd38d66; } }
+  @keyframes flashDown { 0%,40% { background: #4a1f1f; border-color: var(--bad); } }
+  @keyframes flashBoom { 0%,40% { background: #7a1d14; border-color: var(--hot); transform: scale(1.03); } }
+
+  /* 라운드 결과 */
+  #hResult { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 14px; padding: 22px; background: var(--panel); border-radius: 20px; overflow: hidden; }
+  .boomTitle { font-size: clamp(40px, 6vw, 88px); font-weight: 900; color: var(--hot); animation: boomIn .6s cubic-bezier(.2,1.8,.4,1); text-align: center; line-height: 1.1; }
+  .boomTitle small { display: block; font-size: .38em; color: var(--text); font-weight: 700; margin-top: 6px; }
+  @keyframes boomIn { from { transform: scale(3); opacity: 0; filter: blur(8px); } }
+  #bigBoard { width: min(640px, 100%); flex: 1; }
+  #bigBoard li { padding: 12px 16px; grid-template-columns: 44px 1fr auto auto; }
+  #bigBoard li .nm { font-size: 22px; }
+  #bigBoard li .sc { font-size: 26px; }
+  .nextRow { display: flex; gap: 12px; align-items: center; color: var(--muted); }
+  .flashScreen { position: fixed; inset: 0; background: #fff; pointer-events: none; animation: flash .6s forwards; z-index: 99; }
+  @keyframes flash { to { opacity: 0; } }
+  .shake { animation: shake .5s; }
+  @keyframes shake { 20% { transform: translate(-12px, 6px); } 40% { transform: translate(10px, -8px); } 60% { transform: translate(-8px, 4px); } 80% { transform: translate(6px, -2px); } }
+
+  /* 최종 */
+  #hFinal { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px; padding: 28px; }
+  #hFinal h2 { font-size: clamp(36px, 5vw, 64px); }
+  .podium { display: flex; align-items: flex-end; gap: 16px; }
+  .pod { display: flex; flex-direction: column; align-items: center; gap: 8px; animation: rise .8s cubic-bezier(.2,1.4,.4,1) backwards; }
+  .pod .nm { font-size: 26px; font-weight: 900; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pod .sc { color: var(--muted); font-weight: 700; }
+  .pod .blk { width: 180px; border-radius: 16px 16px 0 0; display: grid; place-items: start center; padding-top: 12px; font-size: 48px; font-weight: 900; color: #1a0f0a; }
+  .pod.p1 .blk { height: 220px; background: var(--gold); }
+  .pod.p2 .blk { height: 160px; background: #d7d7d7; }
+  .pod.p3 .blk { height: 120px; background: #d49a6a; }
+  .pod.p1 { animation-delay: .9s; } .pod.p2 { animation-delay: .5s; } .pod.p3 { animation-delay: .1s; }
+  @keyframes rise { from { transform: translateY(120px); opacity: 0; } }
+
+  /* ================= 플레이어 (모바일) ================= */
+  #player { min-height: 100dvh; display: flex; flex-direction: column; padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); transition: background .2s; }
+  #player.hot { animation: hotBg .6s infinite alternate; }
+  @keyframes hotBg { from { background: #2a0907; } to { background: #b3150c; } }
+  .pScreen { flex: 1; display: flex; flex-direction: column; gap: 14px; }
+  .pCenter { justify-content: center; align-items: center; text-align: center; }
+  .field { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+  .field label { color: var(--muted); font-size: 14px; }
+  .field input {
+    background: var(--panel); border: 2px solid var(--line); border-radius: 14px; padding: 16px; font-size: 22px; font-weight: 700; width: 100%; outline: none;
+  }
+  .field input:focus { border-color: var(--accent); }
+  #pCode { text-transform: uppercase; letter-spacing: .3em; text-align: center; }
+  .pTitle { font-size: 30px; font-weight: 900; text-align: center; letter-spacing: -0.03em; }
+  .pTitle span { color: var(--hot); }
+  .pErr { color: var(--bad); min-height: 20px; text-align: center; font-weight: 700; }
+  .pTop { display: flex; justify-content: space-between; align-items: center; font-size: 15px; color: var(--muted); }
+  .pTop b { color: var(--text); }
+  .statusCard { border-radius: 20px; padding: 16px; text-align: center; background: var(--panel); border: 2px solid var(--line); }
+  .statusCard .big { font-size: 26px; font-weight: 900; }
+  .statusCard .sub { color: var(--muted); margin-top: 4px; font-size: 15px; }
+  #player.hot .statusCard { background: #fff; color: #b3150c; border-color: #fff; animation: throb .6s infinite; }
+  #player.hot .statusCard .sub { color: #7a1d14; }
+  .pFuse { height: 8px; background: #0005; border-radius: 999px; overflow: hidden; }
+  .pFuse i { display: block; height: 100%; background: linear-gradient(90deg, var(--gold), var(--hot)); }
+  .choCard { background: var(--text); color: #1a0f0a; border-radius: 22px; padding: 14px; text-align: center; box-shadow: 0 8px 0 #b9ab9e; }
+  .choCard .lbl { font-size: 13px; font-weight: 800; color: #7a6b5e; }
+  .choCard .chos { font-size: 72px; font-weight: 900; letter-spacing: .12em; line-height: 1.1; }
+  .choCard.wait { background: var(--panel); color: var(--muted); box-shadow: none; border: 2px dashed var(--line); }
+  .choCard.wait .chos { font-size: 22px; letter-spacing: 0; padding: 18px 0; font-weight: 700; }
+  .pTurn { height: 10px; background: #0005; border-radius: 999px; overflow: hidden; }
+  .pTurn i { display: block; height: 100%; background: #fff; }
+  #pWord { font-size: 34px; text-align: center; padding: 18px; }
+  #player.hot #pWord { border-color: #fff; }
+  #pPass { font-size: 24px; padding: 20px; background: var(--hot); color: #fff; box-shadow: 0 6px 0 #8a1209; }
+  #player.hot #pPass { background: #fff; color: #b3150c; box-shadow: 0 6px 0 #ffb3ad; }
+  .pFeedback { text-align: center; font-weight: 800; min-height: 24px; font-size: 17px; }
+  .pFeedback.ok { color: var(--good); } .pFeedback.no { color: #ffd0cc; }
+  #player:not(.hot) .pFeedback.no { color: var(--bad); }
+  .hearts { font-size: 18px; letter-spacing: 1px; }
+  .resEmoji { font-size: 110px; line-height: 1; animation: boomIn .6s cubic-bezier(.2,1.8,.4,1); }
+  .resTitle { font-size: 32px; font-weight: 900; }
+  .resSub { color: var(--muted); font-size: 18px; }
+  .rankBig { font-size: 56px; font-weight: 900; }
+  .rankBig .dl { font-size: 24px; margin-left: 8px; }
+  .rankBig .dl.up { color: var(--good); } .rankBig .dl.down { color: var(--bad); }
+  .deadBanner { background: #000a; border-radius: 14px; padding: 10px; text-align: center; font-weight: 800; }
+
+  @media (max-width: 900px) {
+    #hLobby { grid-template-columns: 1fr; }
+    #hGame { grid-template-columns: 1fr; }
+    .qrCard { max-width: 380px; width: 100%; justify-self: center; }
+    #hResult { position: relative; min-height: 70vh; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= 역할 선택 ================= -->
+<section id="roleSelect" class="hidden">
+  <div>
+    <div style="font-size:72px">💣</div>
+    <h1>시한폭탄 <span>릴레이</span></h1>
+    <p class="muted" style="margin-top:8px">초성에 맞는 단어를 쳐서 폭탄을 넘겨라. 퓨즈가 다 타면 쥐고 있던 사람이 펑!</p>
+  </div>
+  <div class="roleBtns">
+    <button class="roleBtn" data-role="host"><span class="e">📺</span><b>메인 화면 (호스트)</b><small>TV·노트북에 띄우세요<br>QR과 리더보드가 나와요</small></button>
+    <button class="roleBtn" data-role="player"><span class="e">📱</span><b>참가자 (폰)</b><small>방 코드와 닉네임만<br>입력하면 바로 입장</small></button>
+  </div>
+  <div class="rules">
+    <b>규칙</b><br>
+    · 라운드마다 퓨즈(기본 30초)가 타들어 갑니다.<br>
+    · 폭탄을 받으면 폰이 붉게 깜빡이고 진동해요. <b>제시된 초성</b>에 맞는 단어를 입력하면 무작위 다른 사람에게 넘어갑니다.<br>
+    · 한 턴 제한시간(기본 5초)을 넘기면 −5점, 초성이 바뀌어요.<br>
+    · 퓨즈가 끝나는 순간 폭탄을 쥔 사람은 <b>−30점 & 목숨 1개</b>. 살아남은 사람은 +20점. 목숨이 0이면 탈락!<br>
+    · 단어 +10점, 빨리 넘길수록 보너스. 이미 나온 단어는 못 써요.
+  </div>
+</section>
+
+<!-- ================= 호스트 ================= -->
+<section id="host" class="hidden">
+  <div class="hTop">
+    <div class="brand">💣 시한폭탄 <span>릴레이</span></div>
+    <div class="meta">
+      <span class="pill"><span class="netDot" id="hNet"></span><span id="hNetTxt">연결 중…</span></span>
+      <span id="hRoundPill" class="pill hidden">라운드 <b id="hRound">1</b> / <span id="hTotal">5</span></span>
+      <span class="pill">방 코드 <b id="hCodeSmall">----</b></span>
+    </div>
+  </div>
+
+  <!-- 로비 -->
+  <div id="hLobby">
+    <div class="qrCard">
+      <div id="qr"></div>
+      <div class="code" id="hCode">----</div>
+      <div class="url" id="hUrl"></div>
+      <div class="hint">📱 카메라로 QR을 찍거나<br>같은 주소에서 <b>참가자</b> → 방 코드 입력</div>
+    </div>
+    <div class="lobbyRight">
+      <h2>참가자 <small id="hCount">0명</small></h2>
+      <div id="hPlayers"><span class="muted" id="hEmpty">아직 아무도 없어요. QR을 찍어 입장하세요!</span></div>
+      <div class="settings">
+        <div class="setting"><label>라운드 수</label><div class="seg" data-key="rounds"><button data-v="3">3</button><button data-v="5">5</button><button data-v="7">7</button><button data-v="10">10</button></div></div>
+        <div class="setting"><label>퓨즈 (라운드 시간)</label><div class="seg" data-key="fuse"><button data-v="20">20초</button><button data-v="30">30초</button><button data-v="45">45초</button></div></div>
+        <div class="setting"><label>턴 제한</label><div class="seg" data-key="turn"><button data-v="5">5초</button><button data-v="7">7초</button><button data-v="10">10초</button></div></div>
+        <div class="setting"><label>목숨</label><div class="seg" data-key="lives"><button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button></div></div>
+      </div>
+      <div class="startRow">
+        <button class="btn" id="hStart" disabled>게임 시작 ▶</button>
+        <span class="muted" id="hStartHint">2명 이상 모이면 시작할 수 있어요</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 게임 -->
+  <div id="hGame" class="hidden">
+    <div class="panel">
+      <h3><span>📝 사용된 단어</span><span id="hWordCount">0</span></h3>
+      <ul id="hWords"></ul>
+      <p class="muted" style="font-size:12px;margin-top:8px">이상한 단어는 ✕로 무효 처리 (−점수 회수 & −5)</p>
+    </div>
+    <div class="panel" id="stage">
+      <div id="hCountdown" class="countdown hidden">3</div>
+      <div id="hPlay" class="hidden" style="display:contents">
+        <div class="fuseWrap">
+          <div class="fuseNum" id="hFuse">30.0</div>
+          <div class="fuseBar"><i id="hFuseBar"></i></div>
+        </div>
+        <div class="holderBox">
+          <div class="bomb" id="hBomb">💣</div>
+          <div class="holderLabel">지금 폭탄을 쥔 사람</div>
+          <div class="holderName" id="hHolder">-</div>
+        </div>
+        <div class="choRow" id="hCho"></div>
+        <div class="turnBar"><i id="hTurnBar"></i></div>
+        <div class="lastWord" id="hLast">&nbsp;</div>
+      </div>
+      <div id="hResult" class="hidden">
+        <div class="boomTitle" id="hBoomTitle">💥 펑!</div>
+        <ol class="board" id="bigBoard"></ol>
+        <div class="nextRow"><span id="hNextTxt">다음 라운드까지 10초</span><button class="btn ghost" id="hNextNow">바로 시작 ▶</button></div>
+      </div>
+    </div>
+    <div class="panel">
+      <h3><span>🏆 생존자 리더보드</span><span id="hAlive"></span></h3>
+      <ol class="board" id="sideBoard"></ol>
+    </div>
+  </div>
+
+  <!-- 최종 -->
+  <div id="hFinal" class="hidden">
+    <h2>🏁 최종 결과</h2>
+    <div class="podium" id="hPodium"></div>
+    <ol class="board" id="finalBoard" style="width:min(560px,100%)"></ol>
+    <div class="startRow"><button class="btn" id="hAgain">같은 멤버로 다시 하기 ↻</button></div>
+  </div>
+</section>
+
+<!-- ================= 플레이어 ================= -->
+<section id="player" class="hidden">
+  <!-- 입장 -->
+  <div class="pScreen pCenter" id="pJoin">
+    <div style="font-size:64px">💣</div>
+    <div class="pTitle">시한폭탄 <span>릴레이</span></div>
+    <div class="field"><label>방 코드</label><input id="pCode" maxlength="4" autocomplete="off" autocapitalize="characters" placeholder="ABCD"></div>
+    <div class="field"><label>닉네임</label><input id="pName" maxlength="8" autocomplete="off" placeholder="최대 8자"></div>
+    <button class="btn" id="pJoinBtn" style="width:100%;font-size:22px;padding:18px">입장하기</button>
+    <div class="pErr" id="pErr"></div>
+  </div>
+
+  <!-- 대기 -->
+  <div class="pScreen pCenter hidden" id="pWait">
+    <div style="font-size:72px" id="pWaitEmoji">✅</div>
+    <div class="pTitle" id="pWaitTitle">입장 완료!</div>
+    <div class="resSub" id="pWaitSub">메인 화면에서 시작하면 바로 시작돼요</div>
+    <div class="statusCard" style="width:100%"><div class="big" id="pMeName">-</div><div class="sub" id="pWaitCount">0명 대기 중</div></div>
+    <p class="muted" style="font-size:13px">💡 화면을 켜 두세요. 폭탄이 오면 진동이 울려요!</p>
+  </div>
+
+  <!-- 카운트다운 -->
+  <div class="pScreen pCenter hidden" id="pCount">
+    <div class="resSub" id="pCountRound">라운드 1</div>
+    <div class="countdown" id="pCountNum">3</div>
+  </div>
+
+  <!-- 게임 -->
+  <div class="pScreen hidden" id="pGame">
+    <div class="pTop"><span>R<b id="pRound">1</b>/<span id="pTotal">5</span> · <b id="pScore">0</b>점</span><span class="hearts" id="pHearts"></span></div>
+    <div class="pFuse"><i id="pFuseBar"></i></div>
+    <div class="statusCard"><div class="big" id="pStatus">😮‍💨 안전</div><div class="sub" id="pStatusSub">-</div></div>
+    <div class="deadBanner hidden" id="pDead">💀 탈락했어요 — 관전 중</div>
+    <div class="choCard" id="pChoCard"><div class="lbl">이 초성으로 단어를!</div><div class="chos" id="pCho">ㄱㅈ</div></div>
+    <div class="pTurn" id="pTurnWrap"><i id="pTurnBar"></i></div>
+    <div class="field"><input id="pWord" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="send" placeholder="단어 입력"></div>
+    <button class="btn" id="pPass">폭탄 넘기기 💣➡️</button>
+    <div class="pFeedback" id="pFb"></div>
+  </div>
+
+  <!-- 라운드 결과 -->
+  <div class="pScreen pCenter hidden" id="pRes">
+    <div class="resEmoji" id="pResEmoji">😎</div>
+    <div class="resTitle" id="pResTitle">생존!</div>
+    <div class="resSub" id="pResSub">+20점</div>
+    <div class="rankBig" id="pResRank">1위</div>
+    <div class="resSub" id="pResNext">다음 라운드 준비 중…</div>
+  </div>
+
+  <!-- 최종 -->
+  <div class="pScreen pCenter hidden" id="pFin">
+    <div class="resEmoji" id="pFinEmoji">🏆</div>
+    <div class="resTitle">최종 결과</div>
+    <div class="rankBig" id="pFinRank">1위</div>
+    <div class="resSub" id="pFinScore">0점</div>
+    <div class="statusCard" style="width:100%" id="pFinTop"></div>
+    <div class="resSub">호스트가 다시 시작하면 자동으로 이어져요</div>
+  </div>
+</section>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+'use strict';
+/* =========================================================
+   공통
+   ========================================================= */
+const PREFIX = 'bombrelay-v1-';
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const now = () => performance.now();
+const show = (el, on = true) => el.classList.toggle('hidden', !on);
+const rand = arr => arr[Math.floor(Math.random() * arr.length)];
+
+const CHO = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+// 단어가 많이 나오는 2글자 초성 조합
+const CHOSUNG_POOL = ['ㄱㅈ','ㅅㄹ','ㄱㅅ','ㅂㄹ','ㅅㅈ','ㅈㄱ','ㄷㄹ','ㅁㄹ','ㄱㄹ','ㅇㅅ','ㅇㄱ','ㅈㅅ','ㅅㄱ','ㅎㄱ','ㄱㅇ','ㅂㅅ','ㅊㄱ','ㅅㅇ','ㅇㅈ','ㅈㅇ',
+  'ㄱㄷ','ㄷㅅ','ㅁㅅ','ㅂㄷ','ㅎㅅ','ㅈㄹ','ㄱㅁ','ㅇㄹ','ㅅㅁ','ㄴㄹ','ㄱㅂ','ㅎㄹ','ㅂㅈ','ㅊㅅ','ㅍㄷ','ㄷㄱ','ㅁㅈ','ㄴㅁ','ㅅㅂ','ㅇㅁ',
+  'ㅌㄱ','ㄱㅊ','ㅈㅁ','ㅇㅎ','ㄱㅎ','ㅂㅎ','ㅎㅈ','ㅅㅎ','ㅁㄱ','ㄷㅈ','ㅊㄹ','ㅍㅅ','ㄴㅅ','ㅈㄷ','ㅎㅂ','ㅊㅈ','ㅂㄱ','ㄱㄴ','ㅅㅊ','ㅁㅎ'];
+
+function chosungOf(word) {
+  return [...word].map(ch => {
+    const c = ch.charCodeAt(0) - 0xAC00;
+    return (c < 0 || c > 11171) ? null : CHO[Math.floor(c / 588)];
+  });
+}
+
+/* ---------- 사운드 (WebAudio, 외부 파일 없음) ---------- */
+const SFX = {
+  ctx: null,
+  init() {
+    if (!this.ctx) { try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+  },
+  tone(freq, dur = .1, type = 'square', vol = .15, slide = 0) {
+    const c = this.ctx; if (!c) return;
+    const t = c.currentTime, o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, freq + slide), t + dur);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(c.destination); o.start(t); o.stop(t + dur + .02);
+  },
+  tick(high) { this.tone(high ? 1400 : 900, .05, 'square', .12); },
+  pass() { this.tone(500, .18, 'triangle', .2, 900); },
+  good() { this.tone(660, .08, 'triangle', .2); setTimeout(() => this.tone(990, .12, 'triangle', .2), 80); },
+  bad() { this.tone(180, .25, 'sawtooth', .18, -80); },
+  count(go) { this.tone(go ? 1046 : 523, go ? .4 : .15, 'triangle', .25); },
+  alarm() { this.tone(880, .12, 'square', .2); setTimeout(() => this.tone(1175, .16, 'square', .2), 120); },
+  boom() {
+    const c = this.ctx; if (!c) return;
+    const t = c.currentTime, len = c.sampleRate * 1.4;
+    const buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.2);
+    const src = c.createBufferSource(); src.buffer = buf;
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.setValueAtTime(2200, t); lp.frequency.exponentialRampToValueAtTime(60, t + 1.3);
+    const g = c.createGain(); g.gain.setValueAtTime(.9, t);
+    src.connect(lp).connect(g).connect(c.destination); src.start(t);
+    this.tone(90, .8, 'sine', .6, -50);
+  },
+  fanfare() { [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => this.tone(f, .22, 'triangle', .22), i * 140)); },
+};
+const vibrate = p => { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} };
+
+/* ---------- 리더보드 (FLIP 애니메이션) ---------- */
+function heartStr(lives, max) { return '❤️'.repeat(Math.max(0, lives)) + '🖤'.repeat(Math.max(0, max - lives)); }
+function animateNumber(el, from, to, ms = 900) {
+  if (from === to) { el.textContent = to; return; }
+  const t0 = now();
+  const step = () => {
+    const k = Math.min(1, (now() - t0) / ms), e = 1 - Math.pow(1 - k, 3);
+    el.textContent = Math.round(from + (to - from) * e);
+    if (k < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+/**
+ * rows: [{id, name, score, fromScore?, lives, maxLives, alive, holder, delta?, flash?}]
+ */
+function renderBoard(el, rows, opt = {}) {
+  const firstTop = new Map();
+  [...el.children].forEach(li => firstTop.set(li.dataset.id, li.getBoundingClientRect().top));
+  const existing = new Map([...el.children].map(li => [li.dataset.id, li]));
+  rows.forEach((r, i) => {
+    let li = existing.get(r.id);
+    if (!li) { li = document.createElement('li'); li.dataset.id = r.id; }
+    existing.delete(r.id);
+    li.className = (r.holder ? 'holder ' : '') + (r.alive ? '' : 'dead ');
+    let dl = '';
+    if (opt.showDelta && r.delta) dl = `<span class="dl ${r.delta > 0 ? 'up' : 'down'}">${r.delta > 0 ? '▲' : '▼'}${Math.abs(r.delta)}</span>`;
+    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
+    li.innerHTML = `<span class="rk">${medal}</span><span class="nm">${r.holder ? '💣 ' : ''}${esc(r.name)}${dl}</span><span class="lv">${r.alive ? heartStr(r.lives, r.maxLives) : '💀'}</span><span class="sc">${r.fromScore ?? r.score}</span>`;
+    el.appendChild(li);
+    if (r.fromScore != null && r.fromScore !== r.score) animateNumber(li.querySelector('.sc'), r.fromScore, r.score);
+  });
+  existing.forEach(li => li.remove());
+  [...el.children].forEach(li => {
+    const r = rows.find(x => x.id === li.dataset.id);
+    const f = firstTop.get(li.dataset.id);
+    if (f != null) {
+      const dy = f - li.getBoundingClientRect().top;
+      if (Math.abs(dy) > 1) li.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: opt.slow ? 1100 : 600, easing: 'cubic-bezier(.2,.8,.2,1)' });
+    }
+    if (r && r.flash) { li.classList.remove('flashUp', 'flashDown', 'flashBoom'); void li.offsetWidth; li.classList.add(r.flash); }
+  });
+}
+
+/* =========================================================
+   라우팅
+   ========================================================= */
+const params = new URLSearchParams(location.search);
+function startRole(role) {
+  show($('roleSelect'), false);
+  if (role === 'host') Host.start(); else Player.start();
+}
+document.querySelectorAll('.roleBtn').forEach(b => b.onclick = () => {
+  const role = b.dataset.role;
+  const u = new URL(location.href); u.searchParams.set('role', role); history.replaceState(null, '', u);
+  startRole(role);
+});
+
+function peerMissing() {
+  if (typeof Peer === 'undefined') {
+    document.body.innerHTML = '<div style="padding:40px;text-align:center;font-size:18px;line-height:1.6">⚠️ 실시간 연결 라이브러리(PeerJS)를 불러오지 못했어요.<br>인터넷 연결을 확인하고 새로고침해 주세요.</div>';
+    return true;
+  }
+  return false;
+}
+
+/* =========================================================
+   호스트 (권위 서버 역할: 모든 판정은 여기서)
+   ========================================================= */
+const Host = {
+  peer: null, code: '',
+  conns: new Map(),      // pid -> DataConnection
+  players: new Map(),    // pid -> player
+  cfg: { rounds: 5, fuse: 30, turn: 5, lives: 3 },
+  phase: 'lobby',        // lobby | countdown | playing | roundEnd | final
+  round: 0,
+  holder: null, chosung: '', prevCho: '',
+  roundEnd: 0, turnEnd: 0, cdEnd: 0, nextAt: 0,
+  used: [], usedSet: new Set(),
+  lastResult: null,
+  timers: [],
+
+  start() {
+    if (peerMissing()) return;
+    show($('host'));
+    document.querySelectorAll('.seg').forEach(seg => {
+      const key = seg.dataset.key;
+      const paint = () => seg.querySelectorAll('button').forEach(b => b.classList.toggle('on', +b.dataset.v === this.cfg[key]));
+      seg.querySelectorAll('button').forEach(b => b.onclick = () => { this.cfg[key] = +b.dataset.v; paint(); });
+      paint();
+    });
+    $('hStart').onclick = () => { SFX.init(); this.startGame(); };
+    $('hAgain').onclick = () => { SFX.init(); this.backToLobby(); };
+    $('hNextNow').onclick = () => { SFX.init(); this.advance(); };
+    document.addEventListener('click', () => SFX.init(), { once: true });
+    this.openRoom();
+    setInterval(() => this.loop(), 50);
+    const raf = () => { this.paintTimers(); requestAnimationFrame(raf); };
+    requestAnimationFrame(raf);
+  },
+
+  openRoom() {
+    const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    this.code = Array.from({ length: 4 }, () => rand(A)).join('');
+    const peer = new Peer(PREFIX + this.code);
+    this.peer = peer;
+    peer.on('open', () => {
+      this.setNet(true, '연결됨');
+      this.showCode();
+    });
+    peer.on('error', err => {
+      if (err.type === 'unavailable-id') { peer.destroy(); this.openRoom(); return; }
+      if (err.type === 'peer-unavailable') return;
+      this.setNet(false, '오류: ' + err.type);
+    });
+    peer.on('disconnected', () => { this.setNet(false, '재연결 중…'); setTimeout(() => { if (!peer.destroyed) peer.reconnect(); }, 1000); });
+    peer.on('connection', conn => this.onConn(conn));
+  },
+  setNet(on, txt) { $('hNet').classList.toggle('on', on); $('hNetTxt').textContent = txt; },
+  showCode() {
+    $('hCode').textContent = this.code; $('hCodeSmall').textContent = this.code;
+    const u = new URL(location.href); u.search = ''; u.hash = '';
+    u.searchParams.set('role', 'player'); u.searchParams.set('room', this.code);
+    const url = u.toString();
+    $('hUrl').textContent = url;
+    if (typeof qrcode !== 'undefined') {
+      const q = qrcode(0, 'M'); q.addData(url); q.make();
+      $('qr').innerHTML = q.createSvgTag({ cellSize: 8, margin: 2, scalable: true });
+    } else {
+      $('qr').innerHTML = '<div style="font-size:14px;color:#666;padding:20px">QR 라이브러리를 불러오지 못했어요.<br>아래 방 코드로 입장하세요.</div>';
+    }
+    if (location.protocol === 'file:') $('hUrl').textContent = '⚠️ 파일로 열었어요. 폰에서 접속하려면 웹에 올린 주소로 열어 주세요.';
+  },
+
+  onConn(conn) {
+    conn.on('data', msg => this.onMsg(conn, msg));
+    conn.on('close', () => {
+      for (const [pid, c] of this.conns) if (c === conn) {
+        this.conns.delete(pid);
+        const p = this.players.get(pid);
+        if (p) { p.connected = false; this.renderLobby(); }
+      }
+    });
+  },
+  send(pid, msg) { const c = this.conns.get(pid); if (c && c.open) { try { c.send(msg); } catch (e) {} } },
+
+  onMsg(conn, msg) {
+    if (!msg || typeof msg !== 'object') return;
+    if (msg.t === 'join') {
+      const pid = String(msg.pid || '').slice(0, 40);
+      let name = String(msg.name || '').trim().slice(0, 8) || '익명';
+      if (!pid) return;
+      let p = this.players.get(pid);
+      if (!p) {
+        const names = new Set([...this.players.values()].map(x => x.name));
+        let base = name, n = 2; while (names.has(name)) name = base.slice(0, 7) + n++;
+        p = { id: pid, name, score: 0, lives: this.cfg.lives, alive: true, connected: true, joinedAt: Date.now(),
+              rank: 0, prevRank: 0, prevScore: 0, delta: 0, roundChange: 0, words: 0 };
+        this.players.set(pid, p);
+        if (this.phase !== 'lobby') { p.prevRank = this.players.size; }
+        SFX.init(); SFX.tone(880, .08, 'triangle', .15);
+      }
+      const old = this.conns.get(pid);
+      if (old && old !== conn) { try { old.close(); } catch (e) {} }
+      this.conns.set(pid, conn);
+      p.connected = true;
+      this.send(pid, { t: 'welcome', id: pid, name: p.name });
+      this.computeRanks();
+      this.renderLobby();
+      this.broadcast();
+    } else if (msg.t === 'word') {
+      const pid = [...this.conns].find(([, c]) => c === conn)?.[0];
+      if (pid) this.submit(pid, String(msg.w || ''));
+    }
+  },
+
+  kick(pid) {
+    this.send(pid, { t: 'kicked' });
+    const c = this.conns.get(pid); if (c) setTimeout(() => { try { c.close(); } catch (e) {} }, 200);
+    this.conns.delete(pid); this.players.delete(pid);
+    this.renderLobby(); this.broadcast();
+  },
+
+  /* ----- 게임 흐름 ----- */
+  alive() { return [...this.players.values()].filter(p => p.alive); },
+  ranked() {
+    return [...this.players.values()].sort((a, b) => (b.alive - a.alive) || (b.score - a.score) || (a.joinedAt - b.joinedAt));
+  },
+  computeRanks() { this.ranked().forEach((p, i) => p.rank = i + 1); },
+
+  startGame() {
+    if (this.players.size < 2) return;
+    for (const p of this.players.values()) Object.assign(p, { score: 0, lives: this.cfg.lives, alive: true, delta: 0, roundChange: 0, words: 0 });
+    this.round = 0; this.used = []; this.usedSet = new Set(); this.lastResult = null;
+    $('hWords').innerHTML = ''; $('sideBoard').innerHTML = '';
+    $('hTotal').textContent = this.cfg.rounds;
+    this.computeRanks();
+    this.nextRound();
+  },
+  backToLobby() {
+    this.phase = 'lobby';
+    for (const p of this.players.values()) Object.assign(p, { score: 0, lives: this.cfg.lives, alive: true, delta: 0 });
+    this.render(); this.broadcast();
+  },
+  nextRound() {
+    this.round++;
+    this.computeRanks();
+    for (const p of this.players.values()) { p.prevRank = p.rank; p.prevScore = p.score; p.roundChange = 0; }
+    this.phase = 'countdown';
+    this.cdEnd = now() + 3000;
+    this.lastCdSec = 4;
+    this.holder = null;
+    this.addSys(`— 라운드 ${this.round} —`);
+    this.render(); this.broadcast();
+  },
+  beginRound() {
+    const alive = this.alive();
+    const pool = alive.filter(p => p.connected);
+    this.phase = 'playing';
+    this.roundEnd = now() + this.cfg.fuse * 1000;
+    this.nextTickAt = 0;
+    this.giveBomb(rand(pool.length ? pool : alive).id);
+    this.render(); this.broadcast();
+  },
+  pickChosung() {
+    let c; do { c = rand(CHOSUNG_POOL); } while (c === this.prevCho);
+    this.prevCho = c; return c;
+  },
+  giveBomb(pid) {
+    this.holder = pid;
+    this.chosung = this.pickChosung();
+    this.turnEnd = now() + this.cfg.turn * 1000;
+    this.send(pid, { t: 'fx', k: 'gotBomb' });
+    const b = $('hBomb'); b.classList.remove('fly'); void b.offsetWidth; b.classList.add('fly');
+    const h = $('hHolder'); h.classList.remove('swap'); void h.offsetWidth; h.classList.add('swap');
+  },
+  validate(word) {
+    const w = word.replace(/\s+/g, '');
+    if (!w) return { ok: false, why: '단어를 입력하세요' };
+    const cs = chosungOf(w);
+    if (cs.some(x => x === null)) return { ok: false, why: '완성된 한글만 가능해요' };
+    if (cs.join('') !== this.chosung) return { ok: false, why: `초성이 달라요 (${cs.join('')})` };
+    if (this.usedSet.has(w)) return { ok: false, why: '이미 나온 단어예요!' };
+    return { ok: true, w };
+  },
+  submit(pid, word) {
+    if (this.phase !== 'playing') return;
+    if (pid !== this.holder) { this.send(pid, { t: 'fx', k: 'rejected', why: '폭탄이 없어요' }); return; }
+    const v = this.validate(word);
+    const p = this.players.get(pid);
+    if (!v.ok) { this.send(pid, { t: 'fx', k: 'rejected', why: v.why }); return; }
+    const left = Math.max(0, this.turnEnd - now()) / 1000;
+    const pts = 10 + Math.round(left * 2);
+    p.score += pts; p.roundChange += pts; p.words++;
+    this.usedSet.add(v.w);
+    const entry = { id: Math.random().toString(36).slice(2), w: v.w, cho: this.chosung, by: p.name, pid, pts, veto: false };
+    this.used.unshift(entry);
+    this.addWord(entry);
+    this.lastWord = entry;
+    this.send(pid, { t: 'fx', k: 'accepted', pts, w: v.w });
+    // 무작위 다른 생존자에게
+    const others = this.alive().filter(x => x.id !== pid);
+    const online = others.filter(x => x.connected);
+    const target = rand(online.length ? online : others.length ? others : [p]);
+    SFX.pass();
+    this.giveBomb(target.id);
+    this.render(); this.broadcast();
+  },
+  veto(entryId) {
+    const e = this.used.find(x => x.id === entryId);
+    if (!e || e.veto) return;
+    e.veto = true;
+    const p = this.players.get(e.pid);
+    if (p) { p.score -= e.pts + 5; p.roundChange -= e.pts + 5; this.send(p.id, { t: 'fx', k: 'vetoed', w: e.w, pts: e.pts + 5 }); }
+    const li = document.querySelector(`#hWords li[data-id="${e.id}"]`); if (li) li.classList.add('veto');
+    SFX.bad();
+    this.computeRanks(); this.render(); this.broadcast();
+  },
+  timeout() {
+    const p = this.players.get(this.holder);
+    if (p) { p.score -= 5; p.roundChange -= 5; }
+    this.send(this.holder, { t: 'fx', k: 'timeout' });
+    this.addSys(`⏰ ${p ? p.name : '?'} 시간 초과 −5`);
+    SFX.bad();
+    this.chosung = this.pickChosung();
+    this.turnEnd = now() + this.cfg.turn * 1000;
+    this.render(); this.broadcast();
+  },
+  explode() {
+    const loser = this.players.get(this.holder);
+    this.phase = 'roundEnd';
+    if (loser) {
+      loser.score -= 30; loser.roundChange -= 30; loser.lives--;
+      if (loser.lives <= 0) { loser.alive = false; loser.lives = 0; }
+    }
+    for (const p of this.alive()) if (p !== loser) { p.score += 20; p.roundChange += 20; }
+    this.computeRanks();
+    for (const p of this.players.values()) p.delta = (this.round > 1 && p.prevRank) ? p.prevRank - p.rank : 0;
+    const aliveLeft = this.alive().length;
+    const isLast = this.round >= this.cfg.rounds || aliveLeft <= 1;
+    this.lastResult = { loserId: loser?.id, loserName: loser?.name || '?', eliminated: loser && !loser.alive, isLast };
+    this.nextAt = now() + (isLast ? 7000 : 10000);
+    for (const p of this.players.values()) {
+      this.send(p.id, { t: 'fx', k: p === loser ? 'exploded' : 'survived', pts: p.roundChange });
+    }
+    this.addSys(`💥 ${this.lastResult.loserName} 폭발!${this.lastResult.eliminated ? ' (탈락)' : ''}`);
+    SFX.boom();
+    document.body.insertAdjacentHTML('beforeend', '<div class="flashScreen"></div>');
+    setTimeout(() => document.querySelector('.flashScreen')?.remove(), 700);
+    $('host').classList.remove('shake'); void $('host').offsetWidth; $('host').classList.add('shake');
+    this.holder = null;
+    this.render(true); this.broadcast();
+  },
+  advance() {
+    if (this.phase !== 'roundEnd') return;
+    if (this.lastResult?.isLast) this.finish(); else this.nextRound();
+  },
+  finish() {
+    this.phase = 'final';
+    this.computeRanks();
+    SFX.fanfare();
+    this.render(); this.broadcast();
+  },
+
+  loop() {
+    const t = now();
+    if (this.phase === 'countdown') {
+      const s = Math.ceil((this.cdEnd - t) / 1000);
+      if (s !== this.lastCdSec && s >= 1) { this.lastCdSec = s; SFX.count(false); }
+      if (t >= this.cdEnd) { SFX.count(true); this.beginRound(); }
+    } else if (this.phase === 'playing') {
+      if (t >= this.roundEnd) return this.explode();
+      if (t >= this.turnEnd) return this.timeout();
+      // 남은 시간이 적을수록 빨라지는 째깍 소리
+      const left = (this.roundEnd - t) / 1000;
+      const iv = left > 15 ? 1000 : left > 8 ? 500 : left > 3 ? 250 : 120;
+      if (t >= this.nextTickAt) { SFX.tick(left <= 8); this.nextTickAt = t + iv; }
+    } else if (this.phase === 'roundEnd') {
+      if (t >= this.nextAt) this.advance();
+    }
+    // 주기적 동기화 (타이머 보정)
+    if (!this.lastSync || t - this.lastSync > 1500) { this.lastSync = t; if (this.phase !== 'lobby') this.broadcast(); }
+  },
+
+  /* ----- 플레이어별 상태 전송 ----- */
+  view(p) {
+    const t = now();
+    const holder = this.players.get(this.holder);
+    const ranked = this.ranked();
+    return {
+      t: 'state', phase: this.phase, code: this.code,
+      round: this.round, total: this.cfg.rounds, count: this.players.size, aliveCount: this.alive().length,
+      maxLives: this.cfg.lives,
+      holderId: this.holder, holderName: holder?.name || '',
+      chosung: this.holder === p.id ? this.chosung : null,
+      turnLeft: Math.max(0, this.turnEnd - t), turnMs: this.cfg.turn * 1000,
+      roundLeft: Math.max(0, this.roundEnd - t), roundMs: this.cfg.fuse * 1000,
+      cdLeft: Math.max(0, this.cdEnd - t), nextLeft: Math.max(0, this.nextAt - t),
+      you: { id: p.id, name: p.name, score: p.score, lives: p.lives, alive: p.alive, rank: p.rank, delta: p.delta, roundChange: p.roundChange },
+      result: this.lastResult,
+      top: ranked.slice(0, 3).map(x => ({ name: x.name, score: x.score })),
+    };
+  },
+  broadcast() { for (const p of this.players.values()) this.send(p.id, this.view(p)); },
+
+  /* ----- 화면 ----- */
+  renderLobby() {
+    const ps = [...this.players.values()];
+    $('hCount').textContent = ps.length + '명';
+    const wrap = $('hPlayers');
+    const have = new Set([...wrap.querySelectorAll('.chip')].map(c => c.dataset.id));
+    show($('hEmpty'), ps.length === 0);
+    ps.forEach(p => {
+      let c = wrap.querySelector(`.chip[data-id="${CSS.escape(p.id)}"]`);
+      if (!c) {
+        c = document.createElement('span'); c.className = 'chip'; c.dataset.id = p.id;
+        c.innerHTML = `<span></span><button title="내보내기">✕</button>`;
+        c.querySelector('button').onclick = () => this.kick(p.id);
+        wrap.appendChild(c);
+      }
+      have.delete(p.id);
+      c.firstChild.textContent = p.name;
+      c.classList.toggle('off', !p.connected);
+    });
+    have.forEach(id => wrap.querySelector(`.chip[data-id="${CSS.escape(id)}"]`)?.remove());
+    $('hStart').disabled = ps.length < 2;
+    $('hStartHint').textContent = ps.length < 2 ? '2명 이상 모이면 시작할 수 있어요' : `${ps.length}명 준비 완료!`;
+    if (this.phase !== 'lobby') this.renderSide();
+  },
+  addWord(e) {
+    const li = document.createElement('li'); li.dataset.id = e.id;
+    li.innerHTML = `<span class="w">${esc(e.w)}</span><span class="by">${esc(e.by)} +${e.pts}</span><button class="x" title="무효">✕</button>`;
+    li.querySelector('.x').onclick = () => this.veto(e.id);
+    $('hWords').prepend(li);
+    $('hWordCount').textContent = this.used.length;
+  },
+  addSys(txt) {
+    const li = document.createElement('li'); li.className = 'sys'; li.textContent = txt;
+    $('hWords').prepend(li);
+  },
+  boardRows(useFrom) {
+    return this.ranked().map(p => ({
+      id: p.id, name: p.name, score: p.score, lives: p.lives, maxLives: this.cfg.lives, alive: p.alive,
+      holder: p.id === this.holder, delta: p.delta,
+      fromScore: useFrom ? p.prevScore : undefined,
+    }));
+  },
+  renderSide() { renderBoard($('sideBoard'), this.boardRows(false)); $('hAlive').textContent = `생존 ${this.alive().length}/${this.players.size}`; },
+
+  render(justExploded) {
+    const ph = this.phase;
+    show($('hLobby'), ph === 'lobby');
+    show($('hGame'), ph === 'countdown' || ph === 'playing' || ph === 'roundEnd');
+    show($('hFinal'), ph === 'final');
+    show($('hRoundPill'), ph !== 'lobby');
+    $('hRound').textContent = this.round;
+    if (ph === 'lobby') { this.renderLobby(); return; }
+    show($('hCountdown'), ph === 'countdown');
+    $('hPlay').classList.toggle('hidden', ph !== 'playing');
+    show($('hResult'), ph === 'roundEnd');
+    $('stage').classList.remove('danger');
+
+    if (ph === 'playing') {
+      const h = this.players.get(this.holder);
+      $('hHolder').textContent = h ? h.name : '-';
+      const cho = $('hCho');
+      if (cho.dataset.v !== this.chosung) {
+        cho.dataset.v = this.chosung;
+        cho.innerHTML = [...this.chosung].map(c => `<div class="cho flip">${c}</div>`).join('');
+      }
+      $('hLast').innerHTML = this.lastWord ? `방금: <b>${esc(this.lastWord.w)}</b> — ${esc(this.lastWord.by)}` : '&nbsp;';
+    }
+    if (ph === 'countdown') { this.lastWord = null; $('hLast').innerHTML = '&nbsp;'; }
+
+    if (ph === 'roundEnd' && justExploded) {
+      const r = this.lastResult;
+      $('hBoomTitle').innerHTML = `💥 ${esc(r.loserName)} 펑!<small>${r.eliminated ? '💀 탈락했습니다' : '−30점 · 목숨 −1'} / 생존자 전원 +20</small>`;
+      // 1) 이전 순위·점수로 깔고  2) 잠시 후 새 순위로 FLIP
+      const big = $('bigBoard'); big.innerHTML = '';
+      const prev = [...this.players.values()].sort((a, b) => (a.prevRank || 99) - (b.prevRank || 99));
+      renderBoard(big, prev.map(p => ({ id: p.id, name: p.name, score: p.prevScore, lives: p.lives, maxLives: this.cfg.lives, alive: true, holder: p.id === r.loserId })));
+      setTimeout(() => {
+        if (this.phase !== 'roundEnd') return;
+        const rows = this.boardRows(true).map(x => ({
+          ...x, holder: false,
+          flash: x.id === r.loserId ? 'flashBoom' : x.delta > 0 ? 'flashUp' : x.delta < 0 ? 'flashDown' : null,
+        }));
+        renderBoard(big, rows, { showDelta: true, slow: true });
+        if (rows.some(x => x.delta > 0)) SFX.good();
+      }, 1400);
+      $('hNextNow').textContent = r.isLast ? '최종 결과 보기 🏁' : '바로 시작 ▶';
+    }
+    if (ph === 'final') this.renderFinal();
+    this.renderSide();
+  },
+  renderFinal() {
+    const r = this.ranked();
+    const pod = $('hPodium');
+    const order = [1, 0, 2];
+    pod.innerHTML = order.filter(i => r[i]).map(i => `<div class="pod p${i + 1}"><div style="font-size:40px">${['👑', '🥈', '🥉'][i]}</div><div class="nm">${esc(r[i].name)}</div><div class="sc">${r[i].score}점</div><div class="blk">${i + 1}</div></div>`).join('');
+    $('finalBoard').innerHTML = '';
+    renderBoard($('finalBoard'), r.slice(3).map(p => ({ id: p.id, name: p.name, score: p.score, lives: p.lives, maxLives: this.cfg.lives, alive: p.alive })));
+    [...$('finalBoard').children].forEach((li, i) => li.querySelector('.rk').textContent = i + 4);
+  },
+  paintTimers() {
+    const t = now();
+    if (this.phase === 'countdown') {
+      $('hCountdown').textContent = Math.max(1, Math.ceil((this.cdEnd - t) / 1000));
+    } else if (this.phase === 'playing') {
+      const left = Math.max(0, this.roundEnd - t) / 1000;
+      const f = $('hFuse');
+      f.textContent = left.toFixed(1);
+      f.classList.toggle('low', left <= 8);
+      $('stage').classList.toggle('danger', left <= 5);
+      $('hFuseBar').style.width = (left / this.cfg.fuse * 100) + '%';
+      const tl = Math.max(0, this.turnEnd - t) / (this.cfg.turn * 1000);
+      $('hTurnBar').style.width = (tl * 100) + '%';
+      $('hTurnBar').style.background = tl < .35 ? 'var(--hot)' : 'var(--accent2)';
+    } else if (this.phase === 'roundEnd') {
+      const s = Math.max(0, Math.ceil((this.nextAt - t) / 1000));
+      $('hNextTxt').textContent = this.lastResult?.isLast ? `최종 결과까지 ${s}초` : `다음 라운드까지 ${s}초`;
+    }
+  },
+};
+
+/* =========================================================
+   플레이어 (모바일 컨트롤러)
+   ========================================================= */
+const Player = {
+  peer: null, conn: null, pid: '', code: '', name: '',
+  st: null, recvAt: 0, joined: false, wakeLock: null,
+  lastHolding: false, lastPhase: '', nextTickAt: 0, reconnTimer: null,
+
+  start() {
+    if (peerMissing()) return;
+    show($('player'));
+    try { this.pid = sessionStorage.getItem('bombrelay-pid') || ''; } catch (e) {}
+    if (!this.pid) { this.pid = 'p' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); try { sessionStorage.setItem('bombrelay-pid', this.pid); } catch (e) {} }
+    const room = (params.get('room') || '').toUpperCase();
+    $('pCode').value = room;
+    try { $('pName').value = localStorage.getItem('bombrelay-name') || ''; } catch (e) {}
+    (room ? $('pName') : $('pCode')).focus();
+    $('pJoinBtn').onclick = () => this.join();
+    $('pName').onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) this.join(); };
+    $('pCode').oninput = () => { $('pCode').value = $('pCode').value.toUpperCase().replace(/[^A-Z]/g, ''); };
+    $('pPass').onclick = () => this.sendWord();
+    $('pWord').onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); this.sendWord(); } };
+    const raf = () => { this.paint(); requestAnimationFrame(raf); };
+    requestAnimationFrame(raf);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && this.joined) this.requestWake(); });
+  },
+
+  join() {
+    SFX.init();
+    vibrate(30);
+    const code = $('pCode').value.trim().toUpperCase();
+    const name = $('pName').value.trim();
+    if (code.length !== 4) return this.err('방 코드 4자리를 입력하세요');
+    if (!name) return this.err('닉네임을 입력하세요');
+    this.code = code; this.name = name.slice(0, 8);
+    try { localStorage.setItem('bombrelay-name', this.name); } catch (e) {}
+    $('pJoinBtn').disabled = true; $('pJoinBtn').textContent = '연결 중…'; this.err('');
+    this.connect();
+  },
+  err(t) { $('pErr').textContent = t; },
+
+  connect() {
+    if (!this.peer || this.peer.destroyed) {
+      this.peer = new Peer();
+      this.peer.on('open', () => this.dial());
+      this.peer.on('error', e => {
+        if (e.type === 'peer-unavailable') {
+          if (!this.joined) { this.err('방을 찾을 수 없어요. 코드를 확인하세요.'); this.resetJoinBtn(); }
+          else this.scheduleReconnect();
+        } else if (!this.joined) { this.err('연결 오류: ' + e.type); this.resetJoinBtn(); }
+        else this.scheduleReconnect();
+      });
+      this.peer.on('disconnected', () => { if (!this.peer.destroyed) this.peer.reconnect(); });
+    } else if (this.peer.open) this.dial();
+  },
+  dial() {
+    const conn = this.peer.connect(PREFIX + this.code, { reliable: true });
+    this.conn = conn;
+    const timeout = setTimeout(() => { if (!conn.open) { if (!this.joined) { this.err('응답이 없어요. 다시 시도해 주세요.'); this.resetJoinBtn(); } else this.scheduleReconnect(); } }, 10000);
+    conn.on('open', () => { clearTimeout(timeout); conn.send({ t: 'join', pid: this.pid, name: this.name }); });
+    conn.on('data', m => this.onMsg(m));
+    conn.on('close', () => { if (this.conn === conn && this.joined) { this.setStatusSub('⚠️ 연결이 끊겼어요. 재연결 중…'); this.scheduleReconnect(); } });
+  },
+  scheduleReconnect() {
+    if (this.reconnTimer) return;
+    this.reconnTimer = setTimeout(() => { this.reconnTimer = null; this.connect(); }, 2000);
+  },
+  resetJoinBtn() { $('pJoinBtn').disabled = false; $('pJoinBtn').textContent = '입장하기'; },
+  async requestWake() { try { if ('wakeLock' in navigator) this.wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} },
+
+  onMsg(m) {
+    if (!m || typeof m !== 'object') return;
+    if (m.t === 'welcome') {
+      this.joined = true; this.name = m.name;
+      this.requestWake();
+      SFX.good();
+    } else if (m.t === 'kicked') {
+      this.joined = false; this.st = null;
+      try { this.conn.close(); } catch (e) {}
+      this.screen('pJoin'); this.resetJoinBtn(); this.err('호스트가 내보냈어요');
+    } else if (m.t === 'state') {
+      this.st = m; this.recvAt = now();
+      this.render();
+    } else if (m.t === 'fx') this.fx(m);
+  },
+
+  fx(m) {
+    const fb = $('pFb');
+    if (m.k === 'gotBomb') {
+      vibrate([300, 100, 300, 100, 300]); SFX.alarm();
+      fb.className = 'pFeedback'; fb.textContent = '';
+      $('pWord').value = '';
+      setTimeout(() => $('pWord').focus(), 50);
+    } else if (m.k === 'accepted') {
+      vibrate(40); SFX.good();
+      fb.className = 'pFeedback ok'; fb.textContent = `✅ "${m.w}" +${m.pts}점! 폭탄 넘김`;
+      $('pWord').value = '';
+    } else if (m.k === 'rejected') {
+      vibrate([80, 50, 80]); SFX.bad();
+      fb.className = 'pFeedback no'; fb.textContent = '❌ ' + m.why;
+      const w = $('pWord'); w.classList.remove('shake'); void w.offsetWidth; w.classList.add('shake');
+      w.select();
+    } else if (m.k === 'timeout') {
+      vibrate([200, 80, 200]); SFX.bad();
+      fb.className = 'pFeedback no'; fb.textContent = '⏰ 시간 초과 −5점! 새 초성이에요';
+      $('pWord').value = '';
+    } else if (m.k === 'vetoed') {
+      vibrate([80, 50, 80]); SFX.bad();
+      fb.className = 'pFeedback no'; fb.textContent = `🚫 "${m.w}" 무효 처리 −${m.pts}점`;
+    } else if (m.k === 'exploded') {
+      vibrate([900, 100, 400]); SFX.boom();
+    } else if (m.k === 'survived') {
+      vibrate(60); SFX.good();
+    }
+  },
+
+  sendWord() {
+    const s = this.st;
+    const w = $('pWord').value.trim();
+    if (!s || s.phase !== 'playing' || s.holderId !== this.pid) {
+      $('pFb').className = 'pFeedback no'; $('pFb').textContent = '지금은 폭탄이 없어요'; return;
+    }
+    if (!w) { $('pWord').focus(); return; }
+    if (this.conn && this.conn.open) this.conn.send({ t: 'word', w });
+    $('pWord').focus();
+  },
+  setStatusSub(t) { $('pStatusSub').textContent = t; $('pWaitSub').textContent = t; },
+
+  screen(id) {
+    ['pJoin', 'pWait', 'pCount', 'pGame', 'pRes', 'pFin'].forEach(s => show($(s), s === id));
+  },
+  render() {
+    const s = this.st; if (!s) return;
+    const me = s.you;
+    const holding = s.phase === 'playing' && s.holderId === this.pid;
+    $('player').classList.toggle('hot', holding);
+    if (s.phase === 'lobby') {
+      this.screen('pWait');
+      $('pWaitEmoji').textContent = '✅'; $('pWaitTitle').textContent = '입장 완료!';
+      $('pWaitSub').textContent = '메인 화면에서 시작하면 바로 시작돼요';
+      $('pMeName').textContent = me.name; $('pWaitCount').textContent = `${s.count}명 대기 중`;
+    } else if (s.phase === 'countdown') {
+      this.screen('pCount');
+      $('pCountRound').textContent = `라운드 ${s.round} / ${s.total}`;
+    } else if (s.phase === 'playing') {
+      this.screen('pGame');
+      $('pRound').textContent = s.round; $('pTotal').textContent = s.total;
+      $('pScore').textContent = me.score;
+      $('pHearts').textContent = me.alive ? heartStr(me.lives, s.maxLives) : '💀';
+      show($('pDead'), !me.alive);
+      if (holding) {
+        $('pStatus').textContent = '💣 폭탄이 당신에게!';
+        $('pStatusSub').textContent = '빨리 단어를 쳐서 넘기세요!';
+        $('pChoCard').classList.remove('wait');
+        $('pChoCard').querySelector('.lbl').textContent = '이 초성으로 단어를!';
+        $('pCho').textContent = s.chosung;
+      } else {
+        $('pStatus').textContent = me.alive ? '😮‍💨 안전' : '👀 관전 중';
+        $('pStatusSub').textContent = `폭탄은 지금 「${s.holderName}」에게`;
+        $('pChoCard').classList.add('wait');
+        $('pChoCard').querySelector('.lbl').textContent = '';
+        $('pCho').textContent = '폭탄을 받으면 초성이 공개돼요';
+      }
+      show($('pTurnWrap'), holding);
+      $('pPass').disabled = !holding;
+      $('pWord').disabled = !me.alive;
+      if (!holding && this.lastHolding === false && this.lastPhase !== 'playing') { $('pFb').textContent = ''; }
+    } else if (s.phase === 'roundEnd') {
+      this.screen('pRes');
+      const boom = s.result && s.result.loserId === this.pid;
+      $('pResEmoji').textContent = boom ? (me.alive ? '💥' : '💀') : (me.alive ? '😎' : '👻');
+      $('pResTitle').textContent = boom ? (me.alive ? '펑! 폭발했어요' : '펑! 탈락…') : (me.alive ? '생존!' : `${s.result.loserName} 폭발`);
+      const rc = me.roundChange;
+      $('pResSub').textContent = boom ? `이번 라운드 ${rc >= 0 ? '+' : ''}${rc}점 · 목숨 ${me.lives}` : `${s.result?.loserName || ''} 폭발 · 이번 라운드 ${rc >= 0 ? '+' : ''}${rc}점`;
+      const dl = me.delta ? `<span class="dl ${me.delta > 0 ? 'up' : 'down'}">${me.delta > 0 ? '▲' : '▼'}${Math.abs(me.delta)}</span>` : '';
+      $('pResRank').innerHTML = `${me.rank}위${dl}`;
+    } else if (s.phase === 'final') {
+      this.screen('pFin');
+      $('pFinEmoji').textContent = me.rank === 1 ? '🏆' : me.rank <= 3 ? '🎉' : '🍻';
+      $('pFinRank').textContent = `${me.rank}위`;
+      $('pFinScore').textContent = `${me.score}점`;
+      $('pFinTop').innerHTML = s.top.map((x, i) => `<div style="font-size:18px;font-weight:800;padding:3px 0">${['🥇', '🥈', '🥉'][i]} ${esc(x.name)} <span class="muted">${x.score}점</span></div>`).join('');
+      if (this.lastPhase !== 'final' && me.rank === 1) { SFX.fanfare(); vibrate([100, 50, 100, 50, 300]); }
+    }
+    if (this.lastPhase === 'countdown' && s.phase !== 'countdown') this.lastCd = 0;
+    this.lastHolding = holding; this.lastPhase = s.phase;
+  },
+  paint() {
+    const s = this.st; if (!s) return;
+    const el = now() - this.recvAt;
+    if (s.phase === 'countdown') {
+      const sec = Math.max(1, Math.ceil((s.cdLeft - el) / 1000));
+      if ($('pCountNum').textContent !== String(sec)) { $('pCountNum').textContent = sec; SFX.count(false); vibrate(40); }
+    } else if (s.phase === 'playing') {
+      const rl = Math.max(0, s.roundLeft - el);
+      $('pFuseBar').style.width = (rl / s.roundMs * 100) + '%';
+      if (s.holderId === this.pid) {
+        const tl = Math.max(0, s.turnLeft - el) / s.turnMs;
+        $('pTurnBar').style.width = (tl * 100) + '%';
+        const t = now();
+        if (t >= this.nextTickAt) { SFX.tick(tl < .4); vibrate(tl < .4 ? 120 : 50); this.nextTickAt = t + (tl < .4 ? 400 : 1000); }
+      }
+    } else if (s.phase === 'roundEnd') {
+      const sec = Math.max(0, Math.ceil((s.nextLeft - el) / 1000));
+      $('pResNext').textContent = s.result?.isLast ? `최종 결과 발표까지 ${sec}초` : `다음 라운드까지 ${sec}초`;
+    }
+  },
+};
+
+/* ---------- 진입 ---------- */
+const initialRole = params.get('role');
+if (initialRole === 'host' || initialRole === 'player') startRole(initialRole);
+else if (params.get('room')) startRole('player');
+else show($('roleSelect'));
+</script>
+</body>
+</html>
