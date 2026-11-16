@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0e0b1a">
+<title>시한폭탄 릴레이</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@500;700;900&display=swap">
+<style>
+  /* 레이아웃: 밤의 아케이드 — 네이비·보라 바탕 위 네온 레드 글로우, 두꺼운 외곽선 타이틀, 유리 카드 */
+  :root {
+    color-scheme: dark;
+    --bg: #0e0b1a;
+    --bg2: #171230;
+    --panel: rgba(28, 22, 52, .82);
+    --panel2: rgba(44, 35, 78, .9);
+    --line: #3d3168;
+    --violet: #8f6bff;
+    --lav: #cbbcff;
+    --lavIn: #ddd3fb;
+    --text: #ffffff;
+    --muted: #a99fcc;
+    --hot: #ff2d55;
+    --hot2: #ff5d7e;
+    --hotDeep: #8a0f2c;
+    --gold: #ffc83d;
+    --goldDeep: #c98400;
+    --good: #3ddc84;
+    --bad: #ff6b81;
+    --ink: #120e22;
+    --display: "Black Han Sans", "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+    --body: "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background:
+      radial-gradient(1200px 600px at 15% -10%, #3a1d6e55, transparent 60%),
+      radial-gradient(900px 500px at 110% 10%, #ff2d5522, transparent 60%),
+      radial-gradient(800px 600px at 50% 120%, #4b23a033, transparent 60%),
+      var(--bg);
+    background-attachment: fixed;
+    color: var(--text);
+    font-family: var(--body);
+    -webkit-tap-highlight-color: transparent;
+    overflow-x: hidden;
+  }
+  button, input, select { font: inherit; color: inherit; }
+  button { cursor: pointer; border: 0; }
+  button:focus-visible, input:focus-visible { outline: 3px solid var(--lav); outline-offset: 2px; }
+  .hidden { display: none !important; }
+  .muted { color: var(--muted); }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; } }
+
+  /* 공통 요소 */
+  .btn {
+    background: linear-gradient(180deg, #ffd766, var(--gold)); color: #2a1a00; font-weight: 900;
+    border-radius: 999px; padding: 14px 26px; font-size: 18px;
+    box-shadow: 0 6px 0 var(--goldDeep), 0 10px 24px #ffc83d33;
+    transition: transform .08s, box-shadow .08s, opacity .15s;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--goldDeep); }
+  .btn:disabled { opacity: .35; cursor: not-allowed; }
+  .btn.ghost { background: var(--panel2); color: var(--text); border: 1px solid var(--line); box-shadow: 0 4px 0 #0007; }
+  .btn.danger { background: linear-gradient(180deg, var(--hot2), var(--hot)); color: #fff; box-shadow: 0 6px 0 var(--hotDeep), 0 10px 30px #ff2d5555; }
+  .btn.danger:active { box-shadow: 0 2px 0 var(--hotDeep); }
+  .glass { background: var(--panel); border: 1.5px solid var(--line); border-radius: 22px; backdrop-filter: blur(8px); box-shadow: inset 0 1px 0 #ffffff12, 0 12px 40px #0006; }
+
+  /* 외곽선 타이틀 */
+  .title {
+    font-family: var(--display); font-weight: 400; line-height: .98; letter-spacing: -0.01em; color: #fff;
+    text-shadow:
+      -3px -3px 0 var(--ink), 3px -3px 0 var(--ink), -3px 3px 0 var(--ink), 3px 3px 0 var(--ink),
+      0 -4px 0 var(--ink), 0 4px 0 var(--ink), -4px 0 0 var(--ink), 4px 0 0 var(--ink),
+      0 9px 0 #2b1d55, 0 14px 30px #000a;
+    transform: rotate(-3deg);
+  }
+  .title .red { color: var(--hot); filter: drop-shadow(0 0 14px #ff2d5588); }
+  .title .sm { display: block; font-size: .55em; }
+  .tagline {
+    display: inline-block; background: #0d0a18e6; border: 1.5px solid var(--line); border-radius: 999px;
+    padding: 8px 20px; font-weight: 900; font-size: clamp(14px, 2.4vw, 18px);
+  }
+  .tagline b { color: var(--hot); }
+
+  /* 폭탄 일러스트 */
+  .bombSvg { display: block; overflow: visible; filter: drop-shadow(0 0 10px #ff2d5566) drop-shadow(0 0 2px #b9a4ff88); }
+  .bombSvg .spark { transform-origin: 101px 15px; animation: spark .18s infinite alternate; }
+  @keyframes spark { to { transform: scale(1.25) rotate(18deg); } }
+  .bombSvg.shake { animation: wobble .5s infinite; }
+  @keyframes wobble { 25% { transform: rotate(-7deg); } 75% { transform: rotate(7deg); } }
+
+  /* ================= 역할 선택 ================= */
+  #roleSelect {
+    min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 28px; padding-block: 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+    text-align: center; position: relative; overflow: hidden;
+  }
+  .hero { position: relative; display: flex; flex-direction: column; align-items: center; gap: 18px; }
+  .hero .title { font-size: clamp(52px, 11vw, 112px); }
+  .hero .bombSvg { position: absolute; width: clamp(90px, 17vw, 170px); right: clamp(-90px, -9vw, -30px); top: clamp(-60px, -5vw, -20px); transform: rotate(14deg); }
+  .burst { position: absolute; inset: -60px -120px; z-index: -1; pointer-events: none;
+    background: conic-gradient(from 0deg, transparent 0 8deg, #ff2d5522 8deg 14deg, transparent 14deg 30deg, #8f6bff1c 30deg 36deg, transparent 36deg 52deg, #ff2d551a 52deg 58deg, transparent 58deg 80deg);
+    -webkit-mask: radial-gradient(closest-side, #000 30%, transparent 100%); mask: radial-gradient(closest-side, #000 30%, transparent 100%);
+    animation: rot 40s linear infinite; }
+  @keyframes rot { to { transform: rotate(360deg); } }
+  .roleBtns { display: grid; gap: 14px; width: min(620px, 100%); grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+  .roleBtn {
+    padding: 22px 18px; display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center;
+    transition: transform .15s, border-color .15s, box-shadow .15s; color: var(--text);
+  }
+  .roleBtn:hover { transform: translateY(-3px); border-color: var(--violet); box-shadow: 0 0 0 3px #8f6bff33, 0 12px 40px #0006; }
+  .roleBtn .ico { width: 56px; height: 56px; border-radius: 18px; display: grid; place-items: center; font-size: 30px; background: linear-gradient(160deg, #3b2c72, #221a44); border: 1px solid var(--line); }
+  .roleBtn b { font-size: 20px; font-weight: 900; }
+  .roleBtn small { color: var(--muted); line-height: 1.45; }
+  .roleBtn.main { border-color: #ffc83d88; }
+  .roleBtn.main .ico { background: linear-gradient(160deg, #ffd766, #f0a400); }
+  .rules { max-width: 620px; color: #d8d0f5; font-size: 14px; line-height: 1.7; text-align: left; padding: 16px 20px; }
+  .rules b { color: #fff; }
+  .rules h4 { font-family: var(--display); font-weight: 400; font-size: 18px; color: var(--lav); margin-bottom: 4px; }
+
+  /* ================= 호스트 ================= */
+  #host { min-height: 100dvh; display: flex; flex-direction: column; }
+  .hTop {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+    padding-block: 12px; padding-left: max(24px, env(safe-area-inset-left, 0px)); padding-right: max(24px, env(safe-area-inset-right, 0px));
+    border-bottom: 1px solid var(--line); background: #0d0a18cc; backdrop-filter: blur(8px);
+  }
+  .hTop .brand { font-family: var(--display); font-size: 26px; display: flex; align-items: center; gap: 10px; }
+  .hTop .brand .bombSvg { width: 38px; }
+  .hTop .brand span { color: var(--hot); }
+  .hTop .meta { display: flex; gap: 10px; align-items: center; color: var(--muted); font-size: 15px; flex-wrap: wrap; }
+  .hTop .meta b { color: var(--text); font-size: 19px; letter-spacing: .12em; }
+  .pill { background: var(--panel2); border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; display: inline-flex; align-items: center; gap: 6px; }
+  .netDot { width: 10px; height: 10px; border-radius: 50%; background: #777; display: inline-block; }
+  .netDot.on { background: var(--good); box-shadow: 0 0 10px var(--good); }
+
+  /* 로비 */
+  #hLobby { flex: 1; display: grid; grid-template-columns: minmax(300px, 420px) minmax(0, 1fr); gap: 28px; padding: 28px; }
+  .qrCard { background: #fff; color: #111; border-radius: 26px; padding: 20px; text-align: center; align-self: start; box-shadow: 0 0 0 6px #8f6bff55, 0 0 60px #8f6bff44; }
+  .qrCard #qr { width: 100%; aspect-ratio: 1; max-width: 100%; display: grid; place-items: center; }
+  .qrCard #qr svg, .qrCard #qr img { width: 100%; height: 100%; }
+  .qrCard .code { font-family: var(--display); font-size: 68px; letter-spacing: .14em; margin-top: 6px; color: var(--ink); }
+  .qrCard .url { font-size: 12px; color: #666; word-break: break-all; margin-top: 2px; }
+  .qrCard .hint { font-size: 15px; color: #333; margin-top: 10px; line-height: 1.5; }
+  .lobbyRight { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+  .lobbyHead { display: flex; align-items: center; gap: 18px; }
+  .lobbyHead .title { font-size: clamp(38px, 4.6vw, 64px); transform: rotate(-2deg); }
+  .lobbyHead .bombSvg { width: 84px; flex: none; }
+  .lobbyRight h2 { font-family: var(--display); font-weight: 400; font-size: 26px; display: flex; align-items: baseline; gap: 10px; }
+  .lobbyRight h2 small { color: var(--muted); font-family: var(--body); font-size: 17px; font-weight: 700; }
+  #hPlayers { display: flex; flex-wrap: wrap; gap: 10px; align-content: flex-start; min-height: 64px; }
+  .chip {
+    background: var(--panel2); border: 1.5px solid var(--line); border-radius: 999px; padding: 6px 14px 6px 6px; font-size: 18px; font-weight: 800;
+    animation: pop .35s cubic-bezier(.2,1.6,.4,1); display: inline-flex; align-items: center; gap: 8px;
+  }
+  .chip .av { width: 32px; height: 32px; font-size: 15px; }
+  .chip.off { opacity: .4; }
+  .chip button { background: none; color: var(--muted); font-size: 15px; padding: 0 2px; }
+  .chip button:hover { color: var(--bad); }
+  .chip.bot { border-color: #5a6bb0; }
+  .chip.local { border-color: var(--gold); }
+  @keyframes pop { from { transform: scale(.4); opacity: 0; } }
+  .settings { display: flex; flex-wrap: wrap; gap: 14px 22px; padding: 16px 18px; }
+  .setting { display: flex; flex-direction: column; gap: 6px; }
+  .setting label { font-size: 13px; color: var(--muted); font-weight: 700; }
+  .seg { display: flex; background: #0c0918; border-radius: 12px; padding: 3px; gap: 3px; border: 1px solid var(--line); }
+  .seg button { background: none; padding: 7px 13px; border-radius: 9px; color: var(--muted); font-weight: 800; }
+  .seg button.on { background: var(--violet); color: #fff; box-shadow: 0 0 14px #8f6bff77; }
+  #hAddBot button { color: var(--lav); }
+  #hAddBot button:hover { background: #2a2150; }
+  .startRow { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+  .startRow .btn { font-size: 26px; padding: 18px 44px; font-family: var(--display); font-weight: 400; }
+  .localJoin { display: flex; gap: 8px; }
+  .localJoin input { flex: 1; min-width: 0; background: var(--lavIn); color: var(--ink); border: 2px solid transparent; border-radius: 999px; padding: 8px 16px; font-size: 17px; font-weight: 800; outline: none; }
+  .localJoin input::placeholder { color: #7a6aa8; }
+  .localJoin input:focus { border-color: var(--violet); }
+  .localJoin .btn { padding: 8px 18px; font-size: 16px; }
+
+  /* 게임 */
+  #hGame { flex: 1; display: grid; grid-template-columns: minmax(220px, 1fr) minmax(0, 2.1fr) minmax(270px, 1.15fr); gap: 18px; padding: 18px; min-height: 0; }
+  .panel { padding: 16px; display: flex; flex-direction: column; min-height: 0; overflow: hidden; min-width: 0; }
+  .panel h3 { font-size: 17px; font-weight: 900; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+  .panel h3 .n { color: var(--muted); font-size: 14px; font-weight: 700; }
+  #hWords { list-style: none; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  #hWords li {
+    display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 12px; background: #ffffff0a; border: 1px solid #ffffff10;
+    animation: slideIn .4s cubic-bezier(.2,.9,.3,1);
+  }
+  #hWords li .ck { color: var(--lav); font-weight: 900; }
+  #hWords li .w { font-size: 21px; font-weight: 900; }
+  #hWords li .by { color: var(--muted); font-size: 13px; flex: 1; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #hWords li .x { background: none; color: #6f6496; font-size: 14px; padding: 2px 6px; border-radius: 6px; }
+  #hWords li .x:hover { color: var(--bad); background: #3a1f33; }
+  #hWords li.veto .w { text-decoration: line-through; color: var(--bad); }
+  #hWords li.veto .ck { color: var(--bad); }
+  #hWords li.sys { background: transparent; border: 0; color: var(--muted); font-size: 13px; justify-content: center; padding: 4px; }
+  @keyframes slideIn { from { transform: translateX(-30px); opacity: 0; } }
+
+  #stage { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.8vh; text-align: center; padding: 20px; overflow: hidden; }
+  #stage::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(60% 50% at 50% 55%, #ff2d5522, transparent 70%); opacity: 0; transition: opacity .3s; }
+  #stage.danger::before { opacity: 1; animation: dangerBg .5s infinite alternate; }
+  #stage.danger { border-color: #ff2d55aa; box-shadow: 0 0 0 2px #ff2d5544, 0 0 60px #ff2d5555; }
+  @keyframes dangerBg { from { opacity: .5; } to { opacity: 1; } }
+  .fuseWrap { width: 100%; max-width: 760px; display: flex; align-items: center; gap: 16px; position: relative; }
+  .stopwatch { width: clamp(48px, 5vw, 76px); flex: none; }
+  .fuseNum { font-family: var(--display); font-size: clamp(64px, 9vw, 140px); line-height: 1; font-variant-numeric: tabular-nums; min-width: 3.2ch; text-align: left; }
+  .fuseNum small { font-size: .38em; margin-left: 4px; }
+  .fuseNum.low { color: var(--hot); text-shadow: 0 0 30px #ff2d55aa; animation: throb .5s infinite; }
+  @keyframes throb { 50% { transform: scale(1.05); } }
+  .fuseBar { flex: 1; height: 16px; background: #0b0816; border-radius: 999px; overflow: hidden; position: relative; border: 1px solid var(--line); }
+  .fuseBar i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, var(--hot), var(--hot2)); border-radius: 999px; box-shadow: 0 0 16px #ff2d55; }
+  .holderBox { display: flex; align-items: center; gap: 18px; position: relative; padding: 14px 34px 14px 18px; border-radius: 999px;
+    background: linear-gradient(180deg, #2a0d22, #170818); border: 2px solid var(--hot); box-shadow: 0 0 0 5px #ff2d5522, 0 0 50px #ff2d5566; max-width: 100%; }
+  .holderBox .bomb { width: clamp(70px, 8vw, 120px); flex: none; margin: -30px 0 -24px -10px; }
+  .bomb.fly { animation: fly .5s cubic-bezier(.3,1.5,.5,1); }
+  @keyframes fly { from { transform: translateY(-80px) scale(.5) rotate(-180deg); opacity: 0; } }
+  .holderText { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; }
+  .holderLabel { color: #ffb3c1; font-size: 15px; font-weight: 800; }
+  .holderName { font-family: var(--display); font-size: clamp(36px, 5vw, 76px); line-height: 1.05; color: #fff; text-shadow: 0 0 20px #ff2d55aa; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .holderName.swap { animation: swap .45s cubic-bezier(.2,1.6,.4,1); }
+  @keyframes swap { from { transform: scale(.6) rotate(-4deg); } }
+  .choBox { position: relative; padding: 26px 26px 18px; border-radius: 22px; border: 2px solid var(--violet); background: #0d0a1c; box-shadow: 0 0 0 4px #8f6bff22, 0 0 40px #8f6bff44; }
+  .choTag { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); background: var(--violet); color: #fff; font-weight: 900; font-size: 15px; padding: 3px 16px; border-radius: 999px; }
+  .choRow { display: flex; gap: 18px; justify-content: center; }
+  .cho { font-family: var(--display); font-size: clamp(56px, 7vw, 108px); line-height: 1; color: #fff; text-shadow: 0 0 24px #8f6bff99; }
+  .cho.flip { animation: flipIn .4s; }
+  @keyframes flipIn { from { transform: rotateX(90deg); } }
+  .turnBar { width: min(420px, 80%); height: 10px; background: #0b0816; border-radius: 999px; overflow: hidden; border: 1px solid var(--line); }
+  .turnBar i { display: block; height: 100%; background: var(--lav); border-radius: 999px; }
+  .lastWord { font-size: 19px; color: var(--muted); min-height: 28px; }
+  .lastWord b { color: var(--good); font-size: 25px; }
+
+  .countdown { font-family: var(--display); font-size: clamp(130px, 22vw, 320px); color: var(--gold); text-shadow: 0 8px 0 var(--goldDeep), 0 0 60px #ffc83d66; animation: cd 1s infinite; }
+  @keyframes cd { from { transform: scale(1.4); opacity: 0; } 30% { transform: scale(1); opacity: 1; } }
+
+  /* 리더보드 */
+  .board { text-align: left; list-style: none; display: flex; flex-direction: column; gap: 7px; overflow-y: auto; position: relative; }
+  .board li {
+    display: grid; grid-template-columns: 26px 36px minmax(0, 1fr) auto auto; align-items: center; gap: 10px;
+    background: #ffffff0a; border-radius: 14px; padding: 8px 12px; border: 1.5px solid #ffffff12;
+    transition: background .3s, opacity .3s;
+  }
+  .board li .rk { font-family: var(--display); font-size: 20px; color: var(--muted); text-align: center; }
+  .board li:first-child .rk { color: var(--gold); }
+  .av { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-weight: 900; font-size: 16px; color: #fff;
+    background: hsl(var(--h, 260) 60% 45%); border: 2px solid hsl(var(--h, 260) 80% 72%); box-shadow: inset 0 -3px 0 #0003; }
+  .board li .nm { font-weight: 800; font-size: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+  .board li .lv { font-size: 12px; letter-spacing: -1px; white-space: nowrap; }
+  .board li .sc { font-family: var(--display); font-variant-numeric: tabular-nums; font-size: 22px; min-width: 50px; text-align: right; }
+  .board li .ok { width: 20px; height: 20px; border-radius: 50%; background: var(--good); color: #062; font-size: 12px; font-weight: 900; display: inline-grid; place-items: center; flex: none; }
+  .board li .hb { font-style: normal; font-size: 12px; font-weight: 900; background: #fff; color: var(--hot); border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
+  .board li.holder { background: linear-gradient(90deg, var(--hot), var(--hot2)); border-color: #ffb3c1; box-shadow: 0 0 24px #ff2d5577; }
+  .board li.holder .rk, .board li.holder .sc { color: #fff; }
+  .board li.holder .lv { display: none; }
+  .board li.dead { opacity: .4; }
+  .board li.dead .nm { text-decoration: line-through; }
+  .board li .dl { font-size: 13px; font-weight: 900; }
+  .board li .dl.up { color: var(--good); }
+  .board li .dl.down { color: var(--bad); }
+  .board li.flashUp { animation: flashUp 1.6s; }
+  .board li.flashDown { animation: flashDown 1.6s; }
+  .board li.flashBoom { animation: flashBoom 1.6s; }
+  @keyframes flashUp { 0%,40% { background: #164a33; border-color: var(--good); box-shadow: 0 0 30px #3ddc8466; } }
+  @keyframes flashDown { 0%,40% { background: #4a1630; border-color: var(--bad); } }
+  @keyframes flashBoom { 0%,40% { background: var(--hot); border-color: #fff; transform: scale(1.03); } }
+
+  /* 라운드 결과 */
+  #hResult { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 14px; padding: 22px; overflow: hidden;
+    background: radial-gradient(70% 50% at 50% 10%, #ff2d5533, transparent 70%), var(--bg2); border-radius: 20px; }
+  .boomTitle { font-family: var(--display); font-size: clamp(44px, 6vw, 92px); color: var(--hot); animation: boomIn .6s cubic-bezier(.2,1.8,.4,1); text-align: center; line-height: 1.05;
+    text-shadow: -3px -3px 0 var(--ink), 3px -3px 0 var(--ink), -3px 3px 0 var(--ink), 3px 3px 0 var(--ink), 0 0 40px #ff2d55aa; }
+  .boomTitle small { display: block; font-family: var(--body); font-size: .3em; color: #fff; font-weight: 800; margin-top: 8px; text-shadow: none; }
+  @keyframes boomIn { from { transform: scale(3); opacity: 0; filter: blur(8px); } }
+  #bigBoard { width: min(660px, 100%); flex: 1; }
+  #bigBoard li { padding: 11px 16px; grid-template-columns: 30px 42px minmax(0, 1fr) auto auto; }
+  #bigBoard li .av { width: 42px; height: 42px; }
+  #bigBoard li .nm { font-size: 22px; }
+  #bigBoard li .sc { font-size: 28px; }
+  .nextRow { display: flex; gap: 12px; align-items: center; color: var(--muted); flex-wrap: wrap; justify-content: center; }
+  .flashScreen { position: fixed; inset: 0; background: #fff; pointer-events: none; animation: flash .6s forwards; z-index: 99; }
+  @keyframes flash { to { opacity: 0; } }
+  .shake { animation: shake .5s; }
+  @keyframes shake { 20% { transform: translate(-12px, 6px); } 40% { transform: translate(10px, -8px); } 60% { transform: translate(-8px, 4px); } 80% { transform: translate(6px, -2px); } }
+
+  /* 최종 */
+  #hFinal { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px; padding: 28px; }
+  #hFinal h2 { font-size: clamp(44px, 6vw, 76px); }
+  .podium { display: flex; align-items: flex-end; gap: 16px; }
+  .pod { display: flex; flex-direction: column; align-items: center; gap: 8px; animation: rise .8s cubic-bezier(.2,1.4,.4,1) backwards; }
+  .pod .nm { font-size: 24px; font-weight: 900; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pod .sc { color: var(--muted); font-weight: 800; }
+  .pod .blk { width: clamp(100px, 14vw, 180px); border-radius: 18px 18px 0 0; display: grid; place-items: start center; padding-top: 12px; font-family: var(--display); font-size: 52px; color: var(--ink); }
+  .pod.p1 .blk { height: 220px; background: linear-gradient(180deg, #ffe08a, var(--gold)); box-shadow: 0 0 50px #ffc83d66; }
+  .pod.p2 .blk { height: 160px; background: linear-gradient(180deg, #e9e4ff, #b7aee0); }
+  .pod.p3 .blk { height: 120px; background: linear-gradient(180deg, #ffb39a, #d9785a); }
+  .pod.p1 { animation-delay: .9s; } .pod.p2 { animation-delay: .5s; } .pod.p3 { animation-delay: .1s; }
+  @keyframes rise { from { transform: translateY(120px); opacity: 0; } }
+
+  /* 메인 화면에서 직접 참가 */
+  .localPlay { width: min(540px, 100%); display: flex; flex-direction: column; gap: 8px; }
+  .localTurn { font-family: var(--display); color: #fff; font-size: 22px; } .localTurn b { color: var(--hot); font-weight: 400; }
+  #hWord { font-size: 24px; padding: 12px 20px; text-align: center; }
+  #hPass { font-size: 20px; }
+  .compact #stage { gap: 1.1vh; }
+  .compact .fuseNum { font-size: clamp(48px, 6vw, 100px); }
+  .compact .stopwatch { width: clamp(40px, 4vw, 58px); }
+  .compact .holderBox .bomb { width: clamp(56px, 6vw, 86px); }
+  .compact .holderName { font-size: clamp(30px, 4vw, 58px); }
+  .compact .cho { font-size: clamp(44px, 5.4vw, 80px); }
+  .compact .choBox { padding: 22px 22px 12px; }
+
+  /* ================= 플레이어 (모바일) ================= */
+  #player { min-height: 100dvh; display: flex; flex-direction: column; position: relative; overflow: hidden;
+    padding-block: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-bottom));
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  #player::before { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0; transition: opacity .25s;
+    background:
+      repeating-conic-gradient(from 0deg at 50% 38%, #ff2d5522 0 6deg, transparent 6deg 22deg),
+      radial-gradient(70% 55% at 50% 38%, #ff2d5599, #5a0a22 55%, #1a0612 100%); }
+  #player.hot::before { opacity: 1; animation: hotBg .6s infinite alternate; }
+  @keyframes hotBg { from { filter: brightness(.75); } to { filter: brightness(1.15); } }
+  .pScreen { flex: 1; display: flex; flex-direction: column; gap: 14px; position: relative; z-index: 1; }
+  .pCenter { justify-content: center; align-items: center; text-align: center; }
+  .pHero { display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative; margin-bottom: 18px; }
+  .pHero .bombSvg { width: 96px; }
+  .pTitle { font-size: 40px; text-align: center; }
+  .pTitle.plain { font-family: var(--display); font-size: 34px; transform: none; text-shadow: none; }
+  .field { display: flex; flex-direction: column; gap: 6px; width: 100%; text-align: left; }
+  .field label { color: var(--muted); font-size: 14px; font-weight: 700; padding-left: 8px; }
+  .field input {
+    background: var(--lavIn); color: var(--ink); border: 3px solid transparent; border-radius: 999px; padding: 15px 22px; font-size: 21px; font-weight: 800; width: 100%; outline: none;
+    box-shadow: inset 0 3px 0 #0001;
+  }
+  .field input::placeholder { color: #7f70ad; }
+  .field input:focus { border-color: var(--violet); box-shadow: 0 0 0 4px #8f6bff44; }
+  #pCode { text-transform: uppercase; letter-spacing: .3em; text-align: center; font-family: var(--display); font-size: 28px; }
+  .pErr { color: var(--bad); min-height: 20px; text-align: center; font-weight: 800; }
+  .pTop { display: flex; align-items: center; gap: 10px; }
+  .pTop .stopwatch { width: 44px; }
+  .pTop .sec { font-family: var(--display); font-size: 40px; line-height: 1; font-variant-numeric: tabular-nums; min-width: 1.6ch; }
+  .pTop .sec small { font-size: 18px; margin-left: 2px; }
+  .pTop .pFuse { flex: 1; }
+  .pTop .pill { font-weight: 800; color: #fff; padding: 5px 12px; font-size: 14px; }
+  .pMeta { display: flex; justify-content: space-between; color: var(--muted); font-size: 14px; font-weight: 700; }
+  .pMeta b { color: var(--text); }
+  .pFuse { height: 12px; background: #0008; border-radius: 999px; overflow: hidden; border: 1px solid #ffffff1a; }
+  .pFuse i { display: block; height: 100%; background: linear-gradient(90deg, var(--hot), var(--hot2)); box-shadow: 0 0 12px var(--hot); border-radius: 999px; }
+  .statusCard { border-radius: 22px; padding: 16px; text-align: center; background: var(--panel); border: 1.5px solid var(--line); }
+  .statusCard .big { font-size: 24px; font-weight: 900; }
+  .statusCard .sub { color: var(--muted); margin-top: 4px; font-size: 15px; font-weight: 700; }
+  .turnBanner { display: flex; align-items: center; gap: 10px; text-align: left; padding: 14px 18px 14px 12px; border-radius: 999px; }
+  .turnBanner .bombSvg { width: 64px; flex: none; margin: -14px 0 -10px; }
+  .turnBanner .big { font-family: var(--display); font-weight: 400; font-size: 23px; line-height: 1.15; }
+  .turnBanner .sub { margin-top: 2px; }
+  #player.hot .turnBanner { background: linear-gradient(180deg, #2a0816f2, #14040cf2); border: 2px solid var(--hot2); box-shadow: 0 0 0 5px #ff2d5533, 0 0 40px #ff2d55aa; animation: throb .6s infinite; }
+  #player.hot .turnBanner .big b { color: var(--hot); font-weight: 400; }
+  #player.hot .turnBanner .sub { color: #ffd2db; }
+  .choCard { position: relative; text-align: center; padding: 26px 14px 12px; border-radius: 22px; border: 2px solid var(--violet); background: #0d0a1ce6; box-shadow: 0 0 0 4px #8f6bff22, 0 0 30px #8f6bff44; margin-top: 10px; }
+  .choCard .lbl { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: var(--violet); color: #fff; font-weight: 900; font-size: 14px; padding: 3px 16px; border-radius: 999px; white-space: nowrap; }
+  .choCard .chos { font-family: var(--display); font-size: 84px; letter-spacing: .14em; line-height: 1.1; text-shadow: 0 0 24px #8f6bff99; }
+  .choCard.wait { border-style: dashed; border-color: var(--line); box-shadow: none; }
+  .choCard.wait .lbl { background: var(--line); color: var(--muted); }
+  .choCard.wait .chos { font-family: var(--body); font-size: 18px; letter-spacing: 0; padding: 14px 0; font-weight: 700; color: var(--muted); text-shadow: none; }
+  .pTurn { height: 10px; background: #0008; border-radius: 999px; overflow: hidden; }
+  .pTurn i { display: block; height: 100%; background: #fff; border-radius: 999px; }
+  #pWord { font-size: 30px; text-align: center; padding: 16px 20px; }
+  #pPass { font-size: 24px; padding: 18px; width: 100%; font-family: var(--display); font-weight: 400; display: flex; align-items: center; justify-content: center; gap: 10px; }
+  #pPass .bombSvg { width: 34px; }
+  .pFeedback { text-align: center; font-weight: 900; min-height: 24px; font-size: 17px; }
+  .pFeedback.ok { color: var(--good); } .pFeedback.no { color: #ffd0d8; }
+  #player:not(.hot) .pFeedback.no, #host .pFeedback.no { color: var(--bad); }
+  .hearts { font-size: 16px; letter-spacing: 1px; }
+  .resEmoji { font-size: 104px; line-height: 1; animation: boomIn .6s cubic-bezier(.2,1.8,.4,1); }
+  .resTitle { font-family: var(--display); font-size: 40px; }
+  .resSub { color: var(--muted); font-size: 17px; font-weight: 700; }
+  .rankBig { font-family: var(--display); font-size: 64px; color: var(--gold); text-shadow: 0 5px 0 var(--goldDeep); }
+  .rankBig .dl { font-size: 26px; margin-left: 8px; text-shadow: none; }
+  .rankBig .dl.up { color: var(--good); } .rankBig .dl.down { color: var(--bad); }
+  .deadBanner { background: #000a; border: 1px solid var(--line); border-radius: 14px; padding: 10px; text-align: center; font-weight: 800; }
+
+  @media (max-width: 900px) {
+    #hLobby { grid-template-columns: minmax(0, 1fr); }
+    #hGame { grid-template-columns: minmax(0, 1fr); }
+    .qrCard { max-width: 380px; width: 100%; justify-self: center; }
+    #hResult { position: relative; min-height: 70vh; }
+    .hero .bombSvg { right: -10px; top: -70px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= 역할 선택 ================= -->
+<section id="roleSelect" class="hidden">
+  <div class="hero">
+    <div class="burst"></div>
+    <h1 class="title"><span class="sm">30초</span>시한폭탄 <span class="red">릴레이</span></h1>
+    <span data-bomb="shake"></span>
+    <p class="tagline">초성에 맞는 단어를 써서 <b>폭탄을 넘겨라!</b></p>
+  </div>
+  <div class="roleBtns">
+    <button class="roleBtn glass main" data-role="host"><span class="ico">📺</span><b>메인 화면 (호스트)</b><small>TV·노트북에 띄우세요<br>QR과 리더보드가 나와요 · AI와 혼자 하기도 여기서</small></button>
+    <button class="roleBtn glass" data-role="player"><span class="ico">📱</span><b>참가자 (폰)</b><small>방 코드와 닉네임만<br>입력하면 바로 입장</small></button>
+  </div>
+  <div class="rules glass">
+    <h4>게임 방법</h4>
+    · 라운드마다 퓨즈(기본 30초)가 타들어 갑니다.<br>
+    · 폭탄을 받으면 폰이 붉게 깜빡이고 진동해요. <b>제시된 초성</b>에 맞는 단어를 입력하면 무작위 다른 사람에게 넘어갑니다.<br>
+    · 한 턴 제한시간(기본 5초)을 넘기면 −5점, 초성이 바뀌어요.<br>
+    · 퓨즈가 끝나는 순간 폭탄을 쥔 사람은 <b>−30점 & 목숨 1개</b>. 살아남은 사람은 +20점. 목숨이 0이면 탈락!<br>
+    · 단어 +10점, 빨리 넘길수록 보너스. 이미 나온 단어는 못 써요.<br>
+    · 🤖 사람이 모자라면 메인 화면에서 <b>AI 참가자</b>를 추가하세요. <b>나도 참가</b>를 누르면 폰 없이 메인 화면에서 바로 AI와 대결할 수 있어요.
+  </div>
+</section>
+
+<!-- ================= 호스트 ================= -->
+<section id="host" class="hidden">
+  <div class="hTop">
+    <div class="brand"><span data-bomb=""></span>시한폭탄 <span>릴레이</span></div>
+    <div class="meta">
+      <span class="pill"><span class="netDot" id="hNet"></span><span id="hNetTxt">연결 중…</span></span>
+      <span id="hRoundPill" class="pill hidden">라운드 <b id="hRound">1</b> / <span id="hTotal">5</span></span>
+      <span class="pill">방 코드 <b id="hCodeSmall">----</b></span>
+    </div>
+  </div>
+
+  <!-- 로비 -->
+  <div id="hLobby">
+    <div class="qrCard">
+      <div id="qr"></div>
+      <div class="code" id="hCode">----</div>
+      <div class="url" id="hUrl"></div>
+      <div class="hint">📱 카메라로 QR을 찍거나<br>같은 주소에서 <b>참가자</b> → 방 코드 입력</div>
+    </div>
+    <div class="lobbyRight">
+      <div class="lobbyHead"><span data-bomb="shake"></span><h1 class="title">30초 시한폭탄 <span class="red">릴레이</span></h1></div>
+      <h2>참가자 <small id="hCount">0명</small></h2>
+      <div id="hPlayers"><span class="muted" id="hEmpty">아직 아무도 없어요. QR을 찍어 입장하세요!</span></div>
+      <div class="settings glass">
+        <div class="setting"><label>라운드 수</label><div class="seg" data-key="rounds"><button data-v="3">3</button><button data-v="5">5</button><button data-v="7">7</button><button data-v="10">10</button></div></div>
+        <div class="setting"><label>퓨즈 (라운드 시간)</label><div class="seg" data-key="fuse"><button data-v="20">20초</button><button data-v="30">30초</button><button data-v="45">45초</button></div></div>
+        <div class="setting"><label>턴 제한</label><div class="seg" data-key="turn"><button data-v="5">5초</button><button data-v="7">7초</button><button data-v="10">10초</button></div></div>
+        <div class="setting"><label>목숨</label><div class="seg" data-key="lives"><button data-v="1">1</button><button data-v="2">2</button><button data-v="3">3</button></div></div>
+      </div>
+      <div class="settings glass addRow">
+        <div class="setting"><label>🤖 AI 참가자 추가</label><div class="seg" id="hAddBot"><button data-lv="easy">+ 쉬움</button><button data-lv="normal">+ 보통</button><button data-lv="hard">+ 어려움</button></div></div>
+        <div class="setting" style="flex:1;min-width:220px"><label>🙋 이 화면에서 나도 참가 (폰 없이)</label>
+          <div class="localJoin"><input id="hLocalName" maxlength="8" placeholder="닉네임" autocomplete="off"><button class="btn ghost" id="hLocalJoin">참가</button></div></div>
+      </div>
+      <div class="startRow">
+        <button class="btn" id="hStart" disabled>게임 시작 ▶</button>
+        <span class="muted" id="hStartHint">2명 이상 모이면 시작할 수 있어요</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 게임 -->
+  <div id="hGame" class="hidden">
+    <div class="panel glass">
+      <h3><span>📖 사용된 단어</span><span class="n" id="hWordCount">0</span></h3>
+      <ul id="hWords"></ul>
+      <p class="muted" style="font-size:12px;margin-top:8px">이상한 단어는 ✕로 무효 처리 (−점수 회수 & −5)</p>
+    </div>
+    <div class="panel glass" id="stage">
+      <div id="hCountdown" class="countdown hidden">3</div>
+      <div id="hPlay" class="hidden" style="display:contents">
+        <div class="fuseWrap">
+          <span data-watch=""></span>
+          <div class="fuseNum" id="hFuse">30.0</div>
+          <div class="fuseBar"><i id="hFuseBar"></i></div>
+        </div>
+        <div class="holderBox">
+          <div class="bomb" id="hBomb" data-bomb="shake"></div>
+          <div class="holderText">
+            <div class="holderLabel">지금 폭탄을 쥔 사람</div>
+            <div class="holderName" id="hHolder">-</div>
+          </div>
+        </div>
+        <div class="choBox"><span class="choTag">초성</span><div class="choRow" id="hCho"></div></div>
+        <div class="turnBar"><i id="hTurnBar"></i></div>
+        <div class="lastWord" id="hLast">&nbsp;</div>
+        <div class="localPlay hidden" id="hLocal">
+          <div class="localTurn">지금이 <b>너의 차례야!</b></div>
+          <div class="localJoin"><input id="hWord" maxlength="20" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="단어를 입력하세요!"><button class="btn danger" id="hPass">폭탄 넘기기</button></div>
+          <div class="pFeedback" id="hFb"></div>
+        </div>
+      </div>
+      <div id="hResult" class="hidden">
+        <div class="boomTitle" id="hBoomTitle">💥 펑!</div>
+        <ol class="board" id="bigBoard"></ol>
+        <div class="nextRow"><span id="hNextTxt">다음 라운드까지 10초</span><button class="btn" id="hNextNow">바로 시작 ▶</button></div>
+      </div>
+    </div>
+    <div class="panel glass">
+      <h3><span>👑 생존자 현황</span><span class="n" id="hAlive"></span></h3>
+      <ol class="board" id="sideBoard"></ol>
+    </div>
+  </div>
+
+  <!-- 최종 -->
+  <div id="hFinal" class="hidden">
+    <h2 class="title">최종 <span class="red">결과</span></h2>
+    <div class="podium" id="hPodium"></div>
+    <ol class="board" id="finalBoard" style="width:min(560px,100%)"></ol>
+    <div class="startRow"><button class="btn" id="hAgain">같은 멤버로 다시 하기 ↻</button></div>
+  </div>
+</section>
+
+<!-- ================= 플레이어 ================= -->
+<section id="player" class="hidden">
+  <!-- 입장 -->
+  <div class="pScreen pCenter" id="pJoin">
+    <div class="pHero"><span data-bomb="shake"></span><div class="pTitle title"><span class="sm">30초</span>시한폭탄 <span class="red">릴레이</span></div></div>
+    <div class="field"><label for="pCode">방 코드</label><input id="pCode" maxlength="4" autocomplete="off" autocapitalize="characters" placeholder="ABCD"></div>
+    <div class="field"><label for="pName">닉네임</label><input id="pName" maxlength="8" autocomplete="off" placeholder="최대 8자"></div>
+    <button class="btn" id="pJoinBtn" style="width:100%;font-size:24px;padding:18px;font-family:var(--display);font-weight:400">입장하기 ▶</button>
+    <div class="pErr" id="pErr"></div>
+  </div>
+
+  <!-- 대기 -->
+  <div class="pScreen pCenter hidden" id="pWait">
+    <div style="font-size:72px" id="pWaitEmoji">✅</div>
+    <div class="pTitle plain" id="pWaitTitle">입장 완료!</div>
+    <div class="resSub" id="pWaitSub">메인 화면에서 시작하면 바로 시작돼요</div>
+    <div class="statusCard" style="width:100%"><div class="big" id="pMeName">-</div><div class="sub" id="pWaitCount">0명 대기 중</div></div>
+    <p class="muted" style="font-size:13px">💡 화면을 켜 두세요. 폭탄이 오면 진동이 울려요!</p>
+  </div>
+
+  <!-- 카운트다운 -->
+  <div class="pScreen pCenter hidden" id="pCount">
+    <div class="resSub" id="pCountRound">라운드 1</div>
+    <div class="countdown" id="pCountNum">3</div>
+  </div>
+
+  <!-- 게임 -->
+  <div class="pScreen hidden" id="pGame">
+    <div class="pTop"><span data-watch=""></span><span class="sec" id="pSec">30<small>초</small></span><div class="pFuse"><i id="pFuseBar"></i></div><span class="pill">👥 <span id="pPeople">0</span>명</span></div>
+    <div class="pMeta"><span>라운드 <b id="pRound">1</b>/<span id="pTotal">5</span> · <b id="pScore">0</b>점</span><span class="hearts" id="pHearts"></span></div>
+    <div class="statusCard turnBanner"><span data-bomb="shake"></span><div><div class="big" id="pStatus">😮‍💨 안전</div><div class="sub" id="pStatusSub">-</div></div></div>
+    <div class="deadBanner hidden" id="pDead">💀 탈락했어요 — 관전 중</div>
+    <div class="choCard" id="pChoCard"><div class="lbl">초성</div><div class="chos" id="pCho">ㄱㅈ</div></div>
+    <div class="pTurn" id="pTurnWrap"><i id="pTurnBar"></i></div>
+    <div class="field"><input id="pWord" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="send" placeholder="단어를 입력하세요!"></div>
+    <button class="btn danger" id="pPass"><span data-bomb=""></span>폭탄 넘기기</button>
+    <div class="pFeedback" id="pFb"></div>
+  </div>
+
+  <!-- 라운드 결과 -->
+  <div class="pScreen pCenter hidden" id="pRes">
+    <div class="resEmoji" id="pResEmoji">😎</div>
+    <div class="resTitle" id="pResTitle">생존!</div>
+    <div class="resSub" id="pResSub">+20점</div>
+    <div class="rankBig" id="pResRank">1위</div>
+    <div class="resSub" id="pResNext">다음 라운드 준비 중…</div>
+  </div>
+
+  <!-- 최종 -->
+  <div class="pScreen pCenter hidden" id="pFin">
+    <div class="resEmoji" id="pFinEmoji">🏆</div>
+    <div class="resTitle">최종 결과</div>
+    <div class="rankBig" id="pFinRank">1위</div>
+    <div class="resSub" id="pFinScore">0점</div>
+    <div class="statusCard" style="width:100%" id="pFinTop"></div>
+    <div class="resSub">호스트가 다시 시작하면 자동으로 이어져요</div>
+  </div>
+</section>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+'use strict';
+/* =========================================================
+   공통
+   ========================================================= */
+const PREFIX = 'bombrelay-v1-';
+// claude.ai 아티팩트 안에서는 WebRTC가 막혀 있어 내장 실시간 룸(room)을 쓰고,
+// 일반 웹 호스팅(GitHub Pages 등)에서는 PeerJS(WebRTC)를 씁니다.
+const IN_ARTIFACT = !!(window.claude && typeof window.claude.use === 'function');
+const ARTIFACT_URL = 'https://claude.ai/artifact/UUXh8H2xbnuPNoKUUBuzKV';  // 게시 후 채움: QR이 가리킬 아티팩트 주소
+const roomName = code => 'bomb-' + code.toLowerCase();
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const now = () => performance.now();
+const show = (el, on = true) => el.classList.toggle('hidden', !on);
+const rand = arr => arr[Math.floor(Math.random() * arr.length)];
+
+const CHO = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+// 단어가 많이 나오는 2글자 초성 조합
+const CHOSUNG_POOL = ['ㄱㅈ','ㅅㄹ','ㄱㅅ','ㅂㄹ','ㅅㅈ','ㅈㄱ','ㄷㄹ','ㅁㄹ','ㄱㄹ','ㅇㅅ','ㅇㄱ','ㅈㅅ','ㅅㄱ','ㅎㄱ','ㄱㅇ','ㅂㅅ','ㅊㄱ','ㅅㅇ','ㅇㅈ','ㅈㅇ',
+  'ㄱㄷ','ㄷㅅ','ㅁㅅ','ㅂㄷ','ㅎㅅ','ㅈㄹ','ㄱㅁ','ㅇㄹ','ㅅㅁ','ㄴㄹ','ㄱㅂ','ㅎㄹ','ㅂㅈ','ㅊㅅ','ㅍㄷ','ㄷㄱ','ㅁㅈ','ㄴㅁ','ㅅㅂ','ㅇㅁ',
+  'ㅌㄱ','ㄱㅊ','ㅈㅁ','ㅇㅎ','ㄱㅎ','ㅂㅎ','ㅎㅈ','ㅅㅎ','ㅁㄱ','ㄷㅈ','ㅊㄹ','ㅍㅅ','ㄴㅅ','ㅈㄷ','ㅎㅂ','ㅊㅈ','ㅂㄱ','ㄱㄴ','ㅅㅊ','ㅁㅎ'];
+
+// AI가 쓰는 단어장 (초성별)
+const BOT_DICT = (() => {
+  const m = {};
+  'ㄱㅈ 가족 감자 고장 국자 가지 과자 기자 공주 경주 거절 가정 결정 기준 고집 금지 간장|ㅅㄹ 사랑 소리 사람 서랍 소란 실력 순례 선로 수량 시럽 세력 수리 사례|ㄱㅅ 기사 가수 감사 교수 고수 과속 검사 군사 가시 귀신 각시 공사 결승 기술|ㅂㄹ 바람 보리 별로 부리 비례 발레 벌레 분리 보류 반란 비리 법률 배려 바로|ㅅㅈ 사자 수집 사진 시장 선장 성적 상자 숙제 수정 신작 소주 시작 사장 성장|ㅈㄱ 자기 장갑 지구 주걱 자극 자갈 지갑 장기 전국 정각 주권 저금 직각 지금|ㄷㄹ 다리 도로 달력 대리 독립 단련 동료 도령 등록 대령 돌림|ㅁㄹ 머리 마루 미래 무리 매력 목록 마련 물론 만루 모래 명령 무료|ㄱㄹ 가루 고래 거리 기름 구름 그림 거래 고려 관리 결론 경력 기록|ㅇㅅ 우산 의사 의상 이사 여신 운석 약속 연습 입술 열쇠 안심 음식|ㅇㄱ 아기 연기 얼굴 악기 야구 인기 열기 용기 엽기 응급 아가 요가|ㅈㅅ 자석 정신 장소 조수 지식 주소 전설 자신 진실 접시 조식 정상|ㅅㄱ 소금 사과 시간 생각 세계 사고 성격 수건 시계 상금 선거 식구|ㅎㄱ 학교 한국 향기 휴가 호감 회계 합격 환경 해결 희극 효과 한계|ㄱㅇ 가위 거울 기억 가을 강의 공원 기업 경영 국어 경우 금요 고음|ㅂㅅ 버스 비수 보석 박수 반사 변신 봉사 불신 부상 빙수 배송 방송|ㅊㄱ 축구 친구 창고 최고 출근 참가 초급 추가 측근 체감 충격 출구|ㅅㅇ 소용 사이 수영 사용 시원 새우 서울 상어 시인 사업 성인 수입|ㅇㅈ 의자 이자 여자 안전 영재 우정 인정 아직 의지 음주 요즘 연주|ㅈㅇ 자연 장인 주인 장어 정원 중요 저울 지옥 자유 직원 조언 주의|ㄱㄷ 기둥 거대 기도 고독 가득 고등 공동 경도 기대 계단 군대 감독|ㄷㅅ 단식 대신 도시 동생 독서 당신 대사 단속 등산 대상 도서|ㅁㅅ 매수 미소 마술 문서 모습 마산 무시 명사 미션 매실 목수 망상|ㅂㄷ 반대 부두 바닥 반도 본드 보도 부담 배달 별도 분담 불도|ㅎㅅ 해수 회사 행사 화살 학생 혼술 허상 현실 호수 확신 한숨 희생|ㅈㄹ 자료 재래 정리 종류 지리 주로 자랑 저렴 조립 전략 질량 잔류|ㄱㅁ 가면 기미 고민 거미 개미 고모 가문 고목 공무 감명 기말|ㅇㄹ 요리 이론 오리 어른 우리 여름 이름 유리 연락 위로 열량 오락|ㅅㅁ 소문 사모 시민 수면 사막 산모 설명 생명 숙모 신문 세면 소멸|ㄴㄹ 노래 나라 놀람 내륙 논란 노력 능력 난리 누리 노란 나루|ㄱㅂ 가방 기법 김밥 공부 가발 고백 건배 구분 기분 개발 고비|ㅎㄹ 하루 허리 하락 화력 협력 활력 회로 효력 허락 화랑|ㅂㅈ 바지 부자 배지 보존 방지 부족 비자 본점 발전 비중 반죽 벌집|ㅊㅅ 처세 초상 청소 출산 축사 최선 추석 철새 침실 출석 착시 천사|ㅍㄷ 파도 포대 판단 평등 포도 파동 풍덩 편도 피디 폭동|ㄷㄱ 도구 대기 단골 동굴 대가 대구 두건 독감 등급 도감 동기 대금|ㅁㅈ 모자 매장 미지 문제 무지 명절 마주 모집 목장 민족 미정 매진|ㄴㅁ 나무 남매 내막 눈물 나물 농민 냉면 노망 누명 낭만 남미|ㅅㅂ 소비 수비 상복 시비 세배 수박 선배 신발 사방 설비 수법|ㅇㅁ 영문 이마 엄마 안마 의미 열매 운명 악마 오만 유명 일몰 얼마|ㅌㄱ 태극 탁구 투구 타격 통계 특급 퇴근 탐구 통과 투기 탈곡|ㄱㅊ 기차 가치 고추 김치 검찰 경찰 국채 관찰 구청 고층 감초 고체|ㅈㅁ 지문 장미 주먹 재미 조명 정말 제목 지명 전망 주말 자막|ㅇㅎ 운하 이해 영화 여행 은행 연휴 위험 오후 용해 약혼 의회 인형|ㄱㅎ 가해 기획 결혼 공항 경험 교회 기회 고향 국회 간호 경향 국화|ㅂㅎ 반환 보험 방학 변화 배합 복합 부활 불행 방해 보호 번호 비행|ㅎㅈ 회장 한자 효자 환자 혼자 화장 현재 행정 호주 협조 휴지 해적|ㅅㅎ 사회 수학 시험 서해 소화 실험 상황 선호 수확 수험 사형 산호|ㅁㄱ 무기 마감 미각 매각 목격 몸값 문구 명곡 미국 모기 만기|ㄷㅈ 도장 대중 단지 도전 동전 대장 독자 단점 대지 동정 다정 등장|ㅊㄹ 차량 추리 철로 체력 출력 치료 차례 처리 칠리 침략 초록|ㅍㅅ 피사 표시 폭설 포스 풍선 평생 패션 필수 피서 판사 폭식 평소|ㄴㅅ 내실 난세 농사 냉수 나사 남산 논술 녹색 내심 노선 남성 능숙|ㅈㄷ 전동 저당 제도 주도 진도 지도 정답 조달 장대 자동 전달 정도|ㅎㅂ 화분 학번 행복 홍보 호박 회복 활발 환불 합병 해변 허브 한복|ㅊㅈ 추진 차장 측정 청주 출장 친절 초점 체중 추정 철저 출전 차지|ㅂㄱ 번개 보고 방금 비교 반값 별개 부근 배경 본격 벌금 비결|ㄱㄴ 기능 가난 고뇌 기념 개념 가능 귀농 구내 기내 관념|ㅅㅊ 시청 수출 상처 세차 설치 순찰 상추 신청 사촌 생체 선출|ㅁㅎ 문화 모험 만화 명함 미혼 무효 매혹 문학 미화 민화 모함 묵화'.split('|').forEach(seg => { const [k, ...ws] = seg.split(' '); m[k] = ws; });
+  return m;
+})();
+const BOT_LEVELS = {
+  easy:   { label: '쉬움',   min: 2200, max: 5600, miss: 0.25 },
+  normal: { label: '보통',   min: 1300, max: 4000, miss: 0.12 },
+  hard:   { label: '어려움', min: 600,  max: 2300, miss: 0.04 },
+};
+const BOT_NAMES = ['봇순이', '알파냥', '챗돌이', '로봇킹', '삐약봇', '초성왕', '두뇌봇', '깡통이', '번개봇', '말랑봇'];
+const LOCAL_ID = 'local-host';
+
+function chosungOf(word) {
+  return [...word].map(ch => {
+    const c = ch.charCodeAt(0) - 0xAC00;
+    return (c < 0 || c > 11171) ? null : CHO[Math.floor(c / 588)];
+  });
+}
+
+/* ---------- 사운드 (WebAudio, 외부 파일 없음) ---------- */
+const SFX = {
+  ctx: null,
+  init() {
+    if (!this.ctx) { try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+  },
+  tone(freq, dur = .1, type = 'square', vol = .15, slide = 0) {
+    const c = this.ctx; if (!c) return;
+    const t = c.currentTime, o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, freq + slide), t + dur);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(c.destination); o.start(t); o.stop(t + dur + .02);
+  },
+  tick(high) { this.tone(high ? 1400 : 900, .05, 'square', .12); },
+  pass() { this.tone(500, .18, 'triangle', .2, 900); },
+  good() { this.tone(660, .08, 'triangle', .2); setTimeout(() => this.tone(990, .12, 'triangle', .2), 80); },
+  bad() { this.tone(180, .25, 'sawtooth', .18, -80); },
+  count(go) { this.tone(go ? 1046 : 523, go ? .4 : .15, 'triangle', .25); },
+  alarm() { this.tone(880, .12, 'square', .2); setTimeout(() => this.tone(1175, .16, 'square', .2), 120); },
+  boom() {
+    const c = this.ctx; if (!c) return;
+    const t = c.currentTime, len = c.sampleRate * 1.4;
+    const buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.2);
+    const src = c.createBufferSource(); src.buffer = buf;
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.setValueAtTime(2200, t); lp.frequency.exponentialRampToValueAtTime(60, t + 1.3);
+    const g = c.createGain(); g.gain.setValueAtTime(.9, t);
+    src.connect(lp).connect(g).connect(c.destination); src.start(t);
+    this.tone(90, .8, 'sine', .6, -50);
+  },
+  fanfare() { [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => this.tone(f, .22, 'triangle', .22), i * 140)); },
+};
+const vibrate = p => { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} };
+
+/* ---------- 일러스트 (SVG) ---------- */
+function bombSVG(cls = '') {
+  return `<svg class="bombSvg ${cls}" viewBox="0 0 120 120" aria-hidden="true">
+  <defs><radialGradient id="bgrad" cx="34%" cy="32%" r="75%"><stop offset="0" stop-color="#6a6188"/><stop offset=".4" stop-color="#2a2540"/><stop offset="1" stop-color="#0a0812"/></radialGradient></defs>
+  <path d="M80 30 C86 18 94 14 101 15" stroke="#e8c48a" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <rect x="66" y="24" width="22" height="17" rx="4" transform="rotate(38 77 32)" fill="#3c3552" stroke="#0a0812" stroke-width="3"/>
+  <circle cx="56" cy="70" r="40" fill="url(#bgrad)" stroke="#0a0812" stroke-width="3"/>
+  <ellipse cx="38" cy="50" rx="11" ry="6" fill="#fff" opacity=".28" transform="rotate(-38 38 50)"/>
+  <path d="M32 62 L52 71" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+  <path d="M80 62 L60 71" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+  <path d="M37 72 Q44 82 52 75 Z" fill="#fff"/><path d="M75 72 Q68 82 60 75 Z" fill="#fff"/>
+  <path d="M47 92 Q56 85 65 92" stroke="#fff" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+  <g class="spark"><polygon points="101,1 105,11 116,9 108,17 113,27 102,21 94,28 96,17 87,12 98,11" fill="#ffd23f"/><polygon points="101,8 103,13 108,13 104,16 106,21 101,18 97,21 98,16 94,13 99,13" fill="#fff6c2"/></g>
+</svg>`;
+}
+function watchSVG() {
+  return `<svg class="stopwatch" viewBox="0 0 64 64" aria-hidden="true"><rect x="26" y="2" width="12" height="7" rx="2" fill="#fff"/><rect x="47" y="10" width="7" height="7" rx="2" transform="rotate(45 50 13)" fill="#fff"/><circle cx="32" cy="37" r="23" fill="none" stroke="#fff" stroke-width="6"/><path d="M32 37 L32 24" stroke="#fff" stroke-width="5" stroke-linecap="round"/><path d="M32 37 L41 42" stroke="#ff2d55" stroke-width="4" stroke-linecap="round"/></svg>`;
+}
+function paintArt(root = document) {
+  root.querySelectorAll('[data-bomb]').forEach(el => { el.innerHTML = bombSVG(el.dataset.bomb); if (el.tagName === 'SPAN' && !el.id) el.replaceWith(el.firstElementChild); });
+  root.querySelectorAll('[data-watch]').forEach(el => el.replaceWith(Object.assign(document.createElement('div'), { innerHTML: watchSVG() }).firstElementChild));
+}
+function avatarHTML(name) {
+  let h = 0; for (const c of String(name)) h = (h * 31 + c.codePointAt(0)) % 360;
+  const ini = String(name).startsWith('🤖') ? '🤖' : [...String(name)][0] || '?';
+  return `<span class="av" style="--h:${h}">${esc(ini)}</span>`;
+}
+
+/* ---------- 리더보드 (FLIP 애니메이션) ---------- */
+function heartStr(lives, max) { return '❤️'.repeat(Math.max(0, lives)) + '🖤'.repeat(Math.max(0, max - lives)); }
+function animateNumber(el, from, to, ms = 900) {
+  if (from === to) { el.textContent = to; return; }
+  const t0 = now();
+  const step = () => {
+    const k = Math.min(1, (now() - t0) / ms), e = 1 - Math.pow(1 - k, 3);
+    el.textContent = Math.round(from + (to - from) * e);
+    if (k < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+/**
+ * rows: [{id, name, score, fromScore?, lives, maxLives, alive, holder, delta?, flash?}]
+ */
+function renderBoard(el, rows, opt = {}) {
+  const firstTop = new Map();
+  [...el.children].forEach(li => firstTop.set(li.dataset.id, li.getBoundingClientRect().top));
+  const existing = new Map([...el.children].map(li => [li.dataset.id, li]));
+  rows.forEach((r, i) => {
+    let li = existing.get(r.id);
+    if (!li) { li = document.createElement('li'); li.dataset.id = r.id; }
+    existing.delete(r.id);
+    li.className = (r.holder ? 'holder ' : '') + (r.alive ? '' : 'dead ');
+    let dl = '';
+    if (opt.showDelta && r.delta) dl = `<span class="dl ${r.delta > 0 ? 'up' : 'down'}">${r.delta > 0 ? '▲' : '▼'}${Math.abs(r.delta)}</span>`;
+    const badge = r.holder ? '<em class="hb">💣 폭탄 보유!</em>' : (r.alive ? '<span class="ok">✓</span>' : '');
+    li.innerHTML = `<span class="rk">${i + 1}</span>${avatarHTML(r.name)}<span class="nm"><span style="overflow:hidden;text-overflow:ellipsis">${esc(r.name.replace(/^🤖/, ''))}</span>${dl}${badge}</span><span class="lv">${r.alive ? heartStr(r.lives, r.maxLives) : '💀'}</span><span class="sc">${r.fromScore ?? r.score}</span>`;
+    el.appendChild(li);
+    if (r.fromScore != null && r.fromScore !== r.score) animateNumber(li.querySelector('.sc'), r.fromScore, r.score);
+  });
+  existing.forEach(li => li.remove());
+  [...el.children].forEach(li => {
+    const r = rows.find(x => x.id === li.dataset.id);
+    const f = firstTop.get(li.dataset.id);
+    if (f != null) {
+      const dy = f - li.getBoundingClientRect().top;
+      if (Math.abs(dy) > 1) li.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: opt.slow ? 1100 : 600, easing: 'cubic-bezier(.2,.8,.2,1)' });
+    }
+    if (r && r.flash) { li.classList.remove('flashUp', 'flashDown', 'flashBoom'); void li.offsetWidth; li.classList.add(r.flash); }
+  });
+}
+
+/* =========================================================
+   라우팅
+   ========================================================= */
+const params = new URLSearchParams(location.search);
+function startRole(role) {
+  show($('roleSelect'), false);
+  if (role === 'host') Host.start(); else Player.start();
+}
+document.querySelectorAll('.roleBtn').forEach(b => b.onclick = () => {
+  const role = b.dataset.role;
+  try { const u = new URL(location.href); u.searchParams.set('role', role); history.replaceState(null, '', u); } catch (e) {}
+  startRole(role);
+});
+
+function peerMissing() {
+  if (!IN_ARTIFACT && typeof Peer === 'undefined') {
+    document.body.innerHTML = '<div style="padding:40px;text-align:center;font-size:18px;line-height:1.6">⚠️ 실시간 연결 라이브러리(PeerJS)를 불러오지 못했어요.<br>인터넷 연결을 확인하고 새로고침해 주세요.</div>';
+    return true;
+  }
+  return false;
+}
+
+/* =========================================================
+   호스트 (권위 서버 역할: 모든 판정은 여기서)
+   ========================================================= */
+const Host = {
+  peer: null, code: '',
+  conns: new Map(),      // pid -> DataConnection (PeerJS)
+  rm: null,              // 아티팩트 실시간 룸
+  roomPeers: new Map(),  // room peer label -> pid
+  lastN: new Map(),      // pid -> 마지막으로 처리한 단어 번호 (룸 presence)
+  banned: new Set(),
+  players: new Map(),    // pid -> player
+  cfg: { rounds: 5, fuse: 30, turn: 5, lives: 3 },
+  phase: 'lobby',        // lobby | countdown | playing | roundEnd | final
+  round: 0,
+  holder: null, chosung: '', prevCho: '',
+  roundEnd: 0, turnEnd: 0, cdEnd: 0, nextAt: 0,
+  used: [], usedSet: new Set(),
+  lastResult: null,
+  timers: [],
+
+  start() {
+    if (peerMissing()) return;
+    show($('host'));
+    document.querySelectorAll('.seg').forEach(seg => {
+      const key = seg.dataset.key;
+      const paint = () => seg.querySelectorAll('button').forEach(b => b.classList.toggle('on', +b.dataset.v === this.cfg[key]));
+      seg.querySelectorAll('button').forEach(b => b.onclick = () => { this.cfg[key] = +b.dataset.v; paint(); });
+      paint();
+    });
+    $('hStart').onclick = () => { SFX.init(); this.startGame(); };
+    document.querySelectorAll('#hAddBot button').forEach(b => b.onclick = () => { SFX.init(); this.addBot(b.dataset.lv); });
+    $('hLocalJoin').onclick = () => { SFX.init(); this.toggleLocal(); };
+    $('hLocalName').onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) this.toggleLocal(); };
+    $('hPass').onclick = () => this.localSubmit();
+    $('hWord').onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); this.localSubmit(); } };
+    $('hAgain').onclick = () => { SFX.init(); this.backToLobby(); };
+    $('hNextNow').onclick = () => { SFX.init(); this.advance(); };
+    document.addEventListener('click', () => SFX.init(), { once: true });
+    this.openRoom();
+    setInterval(() => this.loop(), 50);
+    const raf = () => { this.paintTimers(); requestAnimationFrame(raf); };
+    requestAnimationFrame(raf);
+  },
+
+  openRoom() {
+    const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    this.code = Array.from({ length: 4 }, () => rand(A)).join('');
+    if (IN_ARTIFACT) { this.openClaudeRoom(); return; }
+    const peer = new Peer(PREFIX + this.code);
+    this.peer = peer;
+    peer.on('open', () => {
+      this.setNet(true, '연결됨');
+      this.showCode();
+    });
+    peer.on('error', err => {
+      if (err.type === 'unavailable-id') { peer.destroy(); this.openRoom(); return; }
+      if (err.type === 'peer-unavailable') return;
+      this.setNet(false, '오류: ' + err.type);
+    });
+    peer.on('disconnected', () => { this.setNet(false, '재연결 중…'); setTimeout(() => { if (!peer.destroyed) peer.reconnect(); }, 1000); });
+    peer.on('connection', conn => this.onConn(conn));
+  },
+  async openClaudeRoom() {
+    let room = null;
+    try { room = await window.claude.use('room'); } catch (e) {}
+    if (!room) { this.setNet(false, '실시간 룸에 연결할 수 없어요'); this.showCode(); return; }
+    try { this.rm = await room.join(roomName(this.code)); }
+    catch (e) { this.setNet(false, '룸 입장 실패: ' + (e && e.code || e)); return; }
+    this.rm.onConnection(c => this.setNet(c, c ? '연결됨' : '재연결 중…'));
+    this.rm.onPeers(ch => {
+      for (const pe of [...ch.joined, ...ch.updated]) this.onRoomPeer(pe);
+      for (const pe of ch.left) this.onRoomLeft(pe);
+    });
+    this.showCode();
+  },
+  onRoomPeer(pe) {
+    if (pe.sameTab) return;
+    const pr = pe.presence || {};
+    const pid = String(pr.pid || '').slice(0, 24);
+    if (!pid || pr.code !== this.code || this.banned.has(pid)) return;
+    const n = +pr.n || 0;
+    const p = this.players.get(pid);
+    if (!p || !p.connected || p.peerLabel !== pe.peer) {
+      this.roomPeers.set(pe.peer, pid);
+      if (!p) this.lastN.set(pid, n);  // 입장 전 남아 있던 단어는 무시
+      this.addPlayer(pid, pr.name, { via: 'room', peerLabel: pe.peer });
+    }
+    if (n > (this.lastN.get(pid) || 0)) {
+      this.lastN.set(pid, n);
+      if (pr.w) this.submit(pid, String(pr.w));
+    }
+  },
+  onRoomLeft(pe) {
+    const pid = this.roomPeers.get(pe.peer);
+    this.roomPeers.delete(pe.peer);
+    const p = pid && this.players.get(pid);
+    if (p && p.peerLabel === pe.peer) { p.connected = false; this.renderLobby(); }
+  },
+  emitRoom(topic, data) {
+    if (!this.rm) return;
+    this.rm.emit(topic, data).catch(e => {
+      if (e && e.code === 'not_permitted') this.setNet(false, '메인 화면은 이 아티팩트의 편집 권한이 있는 사람만 열 수 있어요');
+    });
+  },
+  setNet(on, txt) { $('hNet').classList.toggle('on', on); $('hNetTxt').textContent = txt; },
+  showCode() {
+    $('hCode').textContent = this.code; $('hCodeSmall').textContent = this.code;
+    const u = new URL(location.href); u.search = ''; u.hash = '';
+    u.searchParams.set('role', 'player'); u.searchParams.set('room', this.code);
+    let url = u.toString();
+    if (IN_ARTIFACT) url = ARTIFACT_URL ? ARTIFACT_URL + '#join-' + this.code : '';
+    $('hUrl').textContent = url || 'claude.ai에서 이 게임을 연 뒤 참가자 → 방 코드 입력';
+    if (url && typeof qrcode !== 'undefined') {
+      const q = qrcode(0, 'M'); q.addData(url); q.make();
+      $('qr').innerHTML = q.createSvgTag({ cellSize: 8, margin: 2, scalable: true });
+    } else {
+      $('qr').innerHTML = '<div style="font-size:14px;color:#666;padding:20px">QR 라이브러리를 불러오지 못했어요.<br>아래 방 코드로 입장하세요.</div>';
+    }
+    if (location.protocol === 'file:') $('hUrl').textContent = '⚠️ 파일로 열었어요. 폰에서 접속하려면 웹에 올린 주소로 열어 주세요.';
+  },
+
+  onConn(conn) {
+    conn.on('data', msg => this.onMsg(conn, msg));
+    conn.on('close', () => {
+      for (const [pid, c] of this.conns) if (c === conn) {
+        this.conns.delete(pid);
+        const p = this.players.get(pid);
+        if (p) { p.connected = false; this.renderLobby(); }
+      }
+    });
+  },
+  send(pid, msg) {
+    const p = this.players.get(pid);
+    if (p && p.via === 'bot') return;
+    if (p && p.via === 'local') { this.localFx(msg); return; }
+    if (p && p.via === 'room') { this.emitRoom('fx', { ...msg, to: pid }); return; }
+    const c = this.conns.get(pid); if (c && c.open) { try { c.send(msg); } catch (e) {} }
+  },
+
+  onMsg(conn, msg) {
+    if (!msg || typeof msg !== 'object') return;
+    if (msg.t === 'join') {
+      const pid = String(msg.pid || '').slice(0, 24);
+      if (!pid || this.banned.has(pid)) return;
+      const old = this.conns.get(pid);
+      if (old && old !== conn) { try { old.close(); } catch (e) {} }
+      this.conns.set(pid, conn);
+      this.addPlayer(pid, msg.name, { via: 'peer', peerLabel: null });
+    } else if (msg.t === 'word') {
+      const pid = [...this.conns].find(([, c]) => c === conn)?.[0];
+      if (pid) this.submit(pid, String(msg.w || ''));
+    }
+  },
+
+  addPlayer(pid, rawName, link) {
+      let name = String(rawName || '').trim().slice(0, 8) || '익명';
+      let p = this.players.get(pid);
+      if (!p) {
+        const names = new Set([...this.players.values()].map(x => x.name));
+        let base = name, n = 2; while (names.has(name)) name = base.slice(0, 7) + n++;
+        p = { id: pid, name, score: 0, lives: this.cfg.lives, alive: true, connected: true, joinedAt: Date.now(),
+              rank: 0, prevRank: 0, prevScore: 0, delta: 0, roundChange: 0, words: 0 };
+        this.players.set(pid, p);
+        if (this.phase !== 'lobby') { p.prevRank = this.players.size; }
+        SFX.init(); SFX.tone(880, .08, 'triangle', .15);
+      }
+      p.connected = true; p.via = link.via; p.peerLabel = link.peerLabel;
+      if (link.bot) p.bot = link.bot;
+      this.send(pid, { t: 'welcome', id: pid, name: p.name });
+      this.computeRanks();
+      this.renderLobby();
+      this.broadcast();
+  },
+
+  addBot(level) {
+    const used = new Set([...this.players.values()].map(p => p.name));
+    const base = BOT_NAMES.find(n => !used.has('🤖' + n)) || ('봇' + (this.players.size + 1));
+    const pid = 'bot-' + Math.random().toString(36).slice(2, 8);
+    this.addPlayer(pid, '🤖' + base, { via: 'bot', peerLabel: null, bot: level });
+  },
+  toggleLocal() {
+    if (this.players.has(LOCAL_ID)) { this.kick(LOCAL_ID); this.banned.delete(LOCAL_ID); $('hLocalJoin').textContent = '참가'; return; }
+    const name = $('hLocalName').value.trim() || '호스트';
+    this.addPlayer(LOCAL_ID, name, { via: 'local', peerLabel: null });
+    $('hLocalJoin').textContent = '빠지기';
+  },
+  localSubmit() {
+    const w = $('hWord').value.trim();
+    if (!w) { $('hWord').focus(); return; }
+    this.submit(LOCAL_ID, w);
+  },
+  localFx(m) {
+    const fb = $('hFb');
+    if (m.k === 'gotBomb') { fb.textContent = ''; $('hWord').value = ''; setTimeout(() => $('hWord').focus(), 30); SFX.alarm(); }
+    else if (m.k === 'accepted') { fb.className = 'pFeedback ok'; fb.textContent = '✅ "' + m.w + '" +' + m.pts; $('hWord').value = ''; }
+    else if (m.k === 'rejected') { fb.className = 'pFeedback no'; fb.textContent = '❌ ' + m.why; $('hWord').select(); SFX.bad(); }
+    else if (m.k === 'timeout') { fb.className = 'pFeedback no'; fb.textContent = '⏰ 시간 초과 −5'; $('hWord').value = ''; }
+  },
+  scheduleBot() {
+    const p = this.players.get(this.holder);
+    if (!p || !p.bot || this.phase !== 'playing') return;
+    const L = BOT_LEVELS[p.bot] || BOT_LEVELS.normal;
+    const seq = this.turnSeq;
+    const delay = (L.min + Math.random() * (L.max - L.min)) * (this.cfg.turn / 5);
+    setTimeout(() => {
+      if (this.phase !== 'playing' || this.holder !== p.id || this.turnSeq !== seq) return;
+      if (Math.random() < L.miss) return;  // 머리가 하얘짐 → 시간 초과
+      const cands = (BOT_DICT[this.chosung] || []).filter(w => !this.usedSet.has(w));
+      if (cands.length) this.submit(p.id, rand(cands));
+    }, delay);
+  },
+  kick(pid) {
+    this.send(pid, { t: 'kicked' });
+    const c = this.conns.get(pid); if (c) setTimeout(() => { try { c.close(); } catch (e) {} }, 200);
+    this.conns.delete(pid); this.players.delete(pid); this.banned.add(pid);
+    if (pid === LOCAL_ID) { this.banned.delete(pid); $('hLocalJoin').textContent = '참가'; }
+    this.renderLobby(); this.broadcast();
+  },
+
+  /* ----- 게임 흐름 ----- */
+  alive() { return [...this.players.values()].filter(p => p.alive); },
+  ranked() {
+    return [...this.players.values()].sort((a, b) => (b.alive - a.alive) || (b.score - a.score) || (a.joinedAt - b.joinedAt));
+  },
+  computeRanks() { this.ranked().forEach((p, i) => p.rank = i + 1); },
+
+  startGame() {
+    if (this.players.size < 2) return;
+    for (const p of this.players.values()) Object.assign(p, { score: 0, lives: this.cfg.lives, alive: true, delta: 0, roundChange: 0, words: 0 });
+    this.round = 0; this.used = []; this.usedSet = new Set(); this.lastResult = null;
+    $('hWords').innerHTML = ''; $('sideBoard').innerHTML = '';
+    $('hTotal').textContent = this.cfg.rounds;
+    this.computeRanks();
+    this.nextRound();
+  },
+  backToLobby() {
+    this.phase = 'lobby';
+    for (const p of this.players.values()) Object.assign(p, { score: 0, lives: this.cfg.lives, alive: true, delta: 0 });
+    this.render(); this.broadcast();
+  },
+  nextRound() {
+    this.round++;
+    this.computeRanks();
+    for (const p of this.players.values()) { p.prevRank = p.rank; p.prevScore = p.score; p.roundChange = 0; }
+    this.phase = 'countdown';
+    this.cdEnd = now() + 3000;
+    this.lastCdSec = 4;
+    this.holder = null;
+    this.addSys(`— 라운드 ${this.round} —`);
+    this.render(); this.broadcast();
+  },
+  beginRound() {
+    const alive = this.alive();
+    const pool = alive.filter(p => p.connected);
+    this.phase = 'playing';
+    this.roundEnd = now() + this.cfg.fuse * 1000;
+    this.nextTickAt = 0;
+    this.giveBomb(rand(pool.length ? pool : alive).id);
+    this.render(); this.broadcast();
+  },
+  pickChosung() {
+    let c; do { c = rand(CHOSUNG_POOL); } while (c === this.prevCho);
+    this.prevCho = c; return c;
+  },
+  giveBomb(pid) {
+    this.holder = pid;
+    this.chosung = this.pickChosung();
+    this.turnEnd = now() + this.cfg.turn * 1000;
+    this.turnSeq = (this.turnSeq || 0) + 1;
+    this.send(pid, { t: 'fx', k: 'gotBomb' });
+    this.scheduleBot();
+    const b = $('hBomb'); b.classList.remove('fly'); void b.offsetWidth; b.classList.add('fly');
+    const h = $('hHolder'); h.classList.remove('swap'); void h.offsetWidth; h.classList.add('swap');
+  },
+  validate(word) {
+    const w = word.replace(/\s+/g, '');
+    if (!w) return { ok: false, why: '단어를 입력하세요' };
+    const cs = chosungOf(w);
+    if (cs.some(x => x === null)) return { ok: false, why: '완성된 한글만 가능해요' };
+    if (cs.join('') !== this.chosung) return { ok: false, why: `초성이 달라요 (${cs.join('')})` };
+    if (this.usedSet.has(w)) return { ok: false, why: '이미 나온 단어예요!' };
+    return { ok: true, w };
+  },
+  submit(pid, word) {
+    if (this.phase !== 'playing') return;
+    if (pid !== this.holder) { this.send(pid, { t: 'fx', k: 'rejected', why: '폭탄이 없어요' }); return; }
+    const v = this.validate(word);
+    const p = this.players.get(pid);
+    if (!v.ok) { this.send(pid, { t: 'fx', k: 'rejected', why: v.why }); return; }
+    const left = Math.max(0, this.turnEnd - now()) / 1000;
+    const pts = 10 + Math.round(left * 2);
+    p.score += pts; p.roundChange += pts; p.words++;
+    this.usedSet.add(v.w);
+    const entry = { id: Math.random().toString(36).slice(2), w: v.w, cho: this.chosung, by: p.name, pid, pts, veto: false };
+    this.used.unshift(entry);
+    this.addWord(entry);
+    this.lastWord = entry;
+    this.send(pid, { t: 'fx', k: 'accepted', pts, w: v.w });
+    // 무작위 다른 생존자에게
+    const others = this.alive().filter(x => x.id !== pid);
+    const online = others.filter(x => x.connected);
+    const target = rand(online.length ? online : others.length ? others : [p]);
+    SFX.pass();
+    this.giveBomb(target.id);
+    this.render(); this.broadcast();
+  },
+  veto(entryId) {
+    const e = this.used.find(x => x.id === entryId);
+    if (!e || e.veto) return;
+    e.veto = true;
+    const p = this.players.get(e.pid);
+    if (p) { p.score -= e.pts + 5; p.roundChange -= e.pts + 5; this.send(p.id, { t: 'fx', k: 'vetoed', w: e.w, pts: e.pts + 5 }); }
+    const li = document.querySelector(`#hWords li[data-id="${e.id}"]`); if (li) li.classList.add('veto');
+    SFX.bad();
+    this.computeRanks(); this.render(); this.broadcast();
+  },
+  timeout() {
+    const p = this.players.get(this.holder);
+    if (p) { p.score -= 5; p.roundChange -= 5; }
+    this.send(this.holder, { t: 'fx', k: 'timeout' });
+    this.addSys(`⏰ ${p ? p.name : '?'} 시간 초과 −5`);
+    SFX.bad();
+    this.chosung = this.pickChosung();
+    this.turnEnd = now() + this.cfg.turn * 1000;
+    this.turnSeq = (this.turnSeq || 0) + 1;
+    this.scheduleBot();
+    this.render(); this.broadcast();
+  },
+  explode() {
+    const loser = this.players.get(this.holder);
+    this.phase = 'roundEnd';
+    if (loser) {
+      loser.score -= 30; loser.roundChange -= 30; loser.lives--;
+      if (loser.lives <= 0) { loser.alive = false; loser.lives = 0; }
+    }
+    for (const p of this.alive()) if (p !== loser) { p.score += 20; p.roundChange += 20; }
+    this.computeRanks();
+    for (const p of this.players.values()) p.delta = (this.round > 1 && p.prevRank) ? p.prevRank - p.rank : 0;
+    const aliveLeft = this.alive().length;
+    const isLast = this.round >= this.cfg.rounds || aliveLeft <= 1;
+    this.lastResult = { loserId: loser?.id, loserName: loser?.name || '?', eliminated: loser && !loser.alive, isLast };
+    this.nextAt = now() + (isLast ? 7000 : 10000);
+    for (const p of this.players.values()) {
+      this.send(p.id, { t: 'fx', k: p === loser ? 'exploded' : 'survived', pts: p.roundChange });
+    }
+    this.addSys(`💥 ${this.lastResult.loserName} 폭발!${this.lastResult.eliminated ? ' (탈락)' : ''}`);
+    SFX.boom();
+    document.body.insertAdjacentHTML('beforeend', '<div class="flashScreen"></div>');
+    setTimeout(() => document.querySelector('.flashScreen')?.remove(), 700);
+    $('host').classList.remove('shake'); void $('host').offsetWidth; $('host').classList.add('shake');
+    this.holder = null;
+    this.render(true); this.broadcast();
+  },
+  advance() {
+    if (this.phase !== 'roundEnd') return;
+    if (this.lastResult?.isLast) this.finish(); else this.nextRound();
+  },
+  finish() {
+    this.phase = 'final';
+    this.computeRanks();
+    SFX.fanfare();
+    this.render(); this.broadcast();
+  },
+
+  loop() {
+    const t = now();
+    if (this.phase === 'countdown') {
+      const s = Math.ceil((this.cdEnd - t) / 1000);
+      if (s !== this.lastCdSec && s >= 1) { this.lastCdSec = s; SFX.count(false); }
+      if (t >= this.cdEnd) { SFX.count(true); this.beginRound(); }
+    } else if (this.phase === 'playing') {
+      if (t >= this.roundEnd) return this.explode();
+      if (t >= this.turnEnd) return this.timeout();
+      // 남은 시간이 적을수록 빨라지는 째깍 소리
+      const left = (this.roundEnd - t) / 1000;
+      const iv = left > 15 ? 1000 : left > 8 ? 500 : left > 3 ? 250 : 120;
+      if (t >= this.nextTickAt) { SFX.tick(left <= 8); this.nextTickAt = t + iv; }
+    } else if (this.phase === 'roundEnd') {
+      if (t >= this.nextAt) this.advance();
+    }
+    // 주기적 동기화 (타이머 보정)
+    if (!this.lastSync || t - this.lastSync > 1500) { this.lastSync = t; if (this.phase !== 'lobby') this.broadcast(); }
+  },
+
+  /* ----- 플레이어별 상태 전송 ----- */
+  // 모든 참가자에게 같은 상태를 보냄 (각 폰이 자기 항목을 골라 씀). 4KiB 이내로 압축.
+  stateMsg() {
+    const t = now();
+    return {
+      t: 'state', phase: this.phase, code: this.code,
+      round: this.round, total: this.cfg.rounds, maxLives: this.cfg.lives,
+      holderId: this.holder, chosung: this.phase === 'playing' ? this.chosung : null,
+      turnLeft: Math.max(0, this.turnEnd - t), turnMs: this.cfg.turn * 1000,
+      roundLeft: Math.max(0, this.roundEnd - t), roundMs: this.cfg.fuse * 1000,
+      cdLeft: Math.max(0, this.cdEnd - t), nextLeft: Math.max(0, this.nextAt - t),
+      result: this.lastResult,
+      players: this.ranked().map(p => [p.id, p.name, p.score, p.lives, p.alive ? 1 : 0, p.rank, p.delta, p.roundChange]),
+    };
+  },
+  broadcast() {
+    const msg = this.stateMsg();
+    for (const [pid, c] of this.conns) if (c.open) { try { c.send(msg); } catch (e) {} }
+    this.emitRoom('state', msg);
+  },
+
+  /* ----- 화면 ----- */
+  renderLobby() {
+    const ps = [...this.players.values()];
+    $('hCount').textContent = ps.length + '명';
+    const wrap = $('hPlayers');
+    const have = new Set([...wrap.querySelectorAll('.chip')].map(c => c.dataset.id));
+    show($('hEmpty'), ps.length === 0);
+    ps.forEach(p => {
+      let c = wrap.querySelector(`.chip[data-id="${CSS.escape(p.id)}"]`);
+      if (!c) {
+        c = document.createElement('span'); c.className = 'chip'; c.dataset.id = p.id;
+        c.innerHTML = `${avatarHTML(p.name)}<span class="cn"></span><button title="내보내기">✕</button>`;
+        c.querySelector('button').onclick = () => this.kick(p.id);
+        wrap.appendChild(c);
+      }
+      have.delete(p.id);
+      c.querySelector('.cn').textContent = p.name.replace(/^🤖/, '') + (p.bot ? ' · ' + BOT_LEVELS[p.bot].label : '') + (p.id === LOCAL_ID ? ' (이 화면)' : '');
+      c.classList.toggle('off', !p.connected);
+      c.classList.toggle('bot', !!p.bot);
+      c.classList.toggle('local', p.id === LOCAL_ID);
+    });
+    have.forEach(id => wrap.querySelector(`.chip[data-id="${CSS.escape(id)}"]`)?.remove());
+    $('hStart').disabled = ps.length < 2;
+    $('hStartHint').textContent = ps.length < 2 ? '2명 이상 모이면 시작할 수 있어요 · 혼자라면 나도 참가 + AI 추가' : `${ps.length}명 준비 완료!`;
+    if (this.phase !== 'lobby') this.renderSide();
+  },
+  addWord(e) {
+    const li = document.createElement('li'); li.dataset.id = e.id;
+    li.innerHTML = `<span class="ck">✓</span><span class="w">${esc(e.w)}</span><span class="by">${esc(e.by)} +${e.pts}</span><button class="x" title="무효">✕</button>`;
+    li.querySelector('.x').onclick = () => this.veto(e.id);
+    $('hWords').prepend(li);
+    $('hWordCount').textContent = this.used.length;
+  },
+  addSys(txt) {
+    const li = document.createElement('li'); li.className = 'sys'; li.textContent = txt;
+    $('hWords').prepend(li);
+  },
+  boardRows(useFrom) {
+    return this.ranked().map(p => ({
+      id: p.id, name: p.name, score: p.score, lives: p.lives, maxLives: this.cfg.lives, alive: p.alive,
+      holder: p.id === this.holder, delta: p.delta,
+      fromScore: useFrom ? p.prevScore : undefined,
+    }));
+  },
+  renderSide() { renderBoard($('sideBoard'), this.boardRows(false)); $('hAlive').textContent = `생존 ${this.alive().length}/${this.players.size}`; },
+
+  render(justExploded) {
+    const ph = this.phase;
+    show($('hLobby'), ph === 'lobby');
+    show($('hGame'), ph === 'countdown' || ph === 'playing' || ph === 'roundEnd');
+    show($('hFinal'), ph === 'final');
+    show($('hRoundPill'), ph !== 'lobby');
+    $('hRound').textContent = this.round;
+    $('host').classList.toggle('compact', this.players.has(LOCAL_ID));
+    if (ph === 'lobby') { this.renderLobby(); return; }
+    show($('hCountdown'), ph === 'countdown');
+    $('hPlay').classList.toggle('hidden', ph !== 'playing');
+    show($('hResult'), ph === 'roundEnd');
+    $('stage').classList.remove('danger');
+
+    if (ph === 'playing') {
+      const h = this.players.get(this.holder);
+      $('hHolder').textContent = h ? h.name : '-';
+      const mine = this.holder === LOCAL_ID;
+      show($('hLocal'), mine);
+      if (!mine) $('hFb').textContent = '';
+      const cho = $('hCho');
+      if (cho.dataset.v !== this.chosung) {
+        cho.dataset.v = this.chosung;
+        cho.innerHTML = [...this.chosung].map(c => `<div class="cho flip">${c}</div>`).join('');
+      }
+      $('hLast').innerHTML = this.lastWord ? `방금: <b>${esc(this.lastWord.w)}</b> — ${esc(this.lastWord.by)}` : '&nbsp;';
+    }
+    if (ph === 'countdown') { this.lastWord = null; $('hLast').innerHTML = '&nbsp;'; }
+
+    if (ph === 'roundEnd' && justExploded) {
+      const r = this.lastResult;
+      $('hBoomTitle').innerHTML = `💥 ${esc(r.loserName)} 펑!<small>${r.eliminated ? '💀 탈락했습니다' : '−30점 · 목숨 −1'} / 생존자 전원 +20</small>`;
+      // 1) 이전 순위·점수로 깔고  2) 잠시 후 새 순위로 FLIP
+      const big = $('bigBoard'); big.innerHTML = '';
+      const prev = [...this.players.values()].sort((a, b) => (a.prevRank || 99) - (b.prevRank || 99));
+      renderBoard(big, prev.map(p => ({ id: p.id, name: p.name, score: p.prevScore, lives: p.lives, maxLives: this.cfg.lives, alive: true, holder: p.id === r.loserId })));
+      setTimeout(() => {
+        if (this.phase !== 'roundEnd') return;
+        const rows = this.boardRows(true).map(x => ({
+          ...x, holder: false,
+          flash: x.id === r.loserId ? 'flashBoom' : x.delta > 0 ? 'flashUp' : x.delta < 0 ? 'flashDown' : null,
+        }));
+        renderBoard(big, rows, { showDelta: true, slow: true });
+        if (rows.some(x => x.delta > 0)) SFX.good();
+      }, 1400);
+      $('hNextNow').textContent = r.isLast ? '최종 결과 보기 🏁' : '바로 시작 ▶';
+    }
+    if (ph === 'final') this.renderFinal();
+    this.renderSide();
+  },
+  renderFinal() {
+    const r = this.ranked();
+    const pod = $('hPodium');
+    const order = [1, 0, 2];
+    pod.innerHTML = order.filter(i => r[i]).map(i => `<div class="pod p${i + 1}"><div style="font-size:40px">${['👑', '🥈', '🥉'][i]}</div><div class="nm">${esc(r[i].name)}</div><div class="sc">${r[i].score}점</div><div class="blk">${i + 1}</div></div>`).join('');
+    $('finalBoard').innerHTML = '';
+    renderBoard($('finalBoard'), r.slice(3).map(p => ({ id: p.id, name: p.name, score: p.score, lives: p.lives, maxLives: this.cfg.lives, alive: p.alive })));
+    [...$('finalBoard').children].forEach((li, i) => li.querySelector('.rk').textContent = i + 4);
+  },
+  paintTimers() {
+    const t = now();
+    if (this.phase === 'countdown') {
+      $('hCountdown').textContent = Math.max(1, Math.ceil((this.cdEnd - t) / 1000));
+    } else if (this.phase === 'playing') {
+      const left = Math.max(0, this.roundEnd - t) / 1000;
+      const f = $('hFuse');
+      f.textContent = left.toFixed(1);
+      f.classList.toggle('low', left <= 8);
+      $('stage').classList.toggle('danger', left <= 5);
+      $('hFuseBar').style.width = (left / this.cfg.fuse * 100) + '%';
+      const tl = Math.max(0, this.turnEnd - t) / (this.cfg.turn * 1000);
+      $('hTurnBar').style.width = (tl * 100) + '%';
+      $('hTurnBar').style.background = tl < .35 ? 'var(--hot)' : 'var(--accent2)';
+    } else if (this.phase === 'roundEnd') {
+      const s = Math.max(0, Math.ceil((this.nextAt - t) / 1000));
+      $('hNextTxt').textContent = this.lastResult?.isLast ? `최종 결과까지 ${s}초` : `다음 라운드까지 ${s}초`;
+    }
+  },
+};
+
+/* =========================================================
+   플레이어 (모바일 컨트롤러)
+   ========================================================= */
+const Player = {
+  peer: null, conn: null, pid: '', code: '', name: '',
+  via: 'peer', rm: null, n: 0, joinTimer: null,
+  st: null, recvAt: 0, joined: false, wakeLock: null,
+  lastHolding: false, lastPhase: '', nextTickAt: 0, reconnTimer: null,
+
+  start() {
+    if (peerMissing()) return;
+    show($('player'));
+    try { this.pid = sessionStorage.getItem('bombrelay-pid') || ''; } catch (e) {}
+    if (!this.pid) { this.pid = 'p' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); try { sessionStorage.setItem('bombrelay-pid', this.pid); } catch (e) {} }
+    const hm = location.hash.match(/^#join-([A-Za-z]{4})$/);
+    const room = (params.get('room') || (hm ? hm[1] : '')).toUpperCase();
+    $('pCode').value = room;
+    try { $('pName').value = localStorage.getItem('bombrelay-name') || ''; } catch (e) {}
+    (room ? $('pName') : $('pCode')).focus();
+    $('pJoinBtn').onclick = () => this.join();
+    $('pName').onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) this.join(); };
+    $('pCode').oninput = () => { $('pCode').value = $('pCode').value.toUpperCase().replace(/[^A-Z]/g, ''); };
+    $('pPass').onclick = () => this.sendWord();
+    $('pWord').onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); this.sendWord(); } };
+    const raf = () => { this.paint(); requestAnimationFrame(raf); };
+    requestAnimationFrame(raf);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && this.joined) this.requestWake(); });
+  },
+
+  join() {
+    SFX.init();
+    vibrate(30);
+    const code = $('pCode').value.trim().toUpperCase();
+    const name = $('pName').value.trim();
+    if (code.length !== 4) return this.err('방 코드 4자리를 입력하세요');
+    if (!name) return this.err('닉네임을 입력하세요');
+    this.code = code; this.name = name.slice(0, 8);
+    try { localStorage.setItem('bombrelay-name', this.name); } catch (e) {}
+    $('pJoinBtn').disabled = true; $('pJoinBtn').textContent = '연결 중…'; this.err('');
+    if (IN_ARTIFACT) this.connectRoom(); else this.connect();
+  },
+
+  async connectRoom() {
+    this.via = 'room';
+    let room = null;
+    try { room = await window.claude.use('room'); } catch (e) {}
+    if (!room) { this.err('실시간 연결에 들어갈 수 없어요. claude.ai에 로그인하고, 호스트에게 이 게임에 초대받았는지 확인하세요.'); this.resetJoinBtn(); return; }
+    try {
+      if (this.rm) { try { await this.rm.leave(); } catch (e) {} }
+      this.rm = await room.join(roomName(this.code));
+    } catch (e) { this.err('입장 실패: ' + (e && e.code || e)); this.resetJoinBtn(); return; }
+    this.rm.on('state', m => { if (m.data && m.data.code === this.code) this.onMsg(m.data); });
+    this.rm.on('fx', m => { if (m.data && m.data.to === this.pid) this.onMsg(m.data); });
+    this.rm.onConnection(c => { if (this.joined) this.setStatusSub(c ? '' : '⚠️ 연결이 끊겼어요. 재연결 중…'); });
+    this.n = Date.now();
+    try { await this.rm.presence({ pid: this.pid, name: this.name, code: this.code, n: this.n, w: '' }); }
+    catch (e) { this.err('입장 실패: ' + (e && e.code || e)); this.resetJoinBtn(); return; }
+    clearTimeout(this.joinTimer);
+    this.joinTimer = setTimeout(() => {
+      if (this.joined) return;
+      this.err('방을 찾을 수 없어요. 코드를 확인하고, 메인 화면이 켜져 있는지 보세요.');
+      this.resetJoinBtn();
+      try { this.rm.leave(); } catch (e) {} this.rm = null;
+    }, 7000);
+  },
+  err(t) { $('pErr').textContent = t; },
+
+  connect() {
+    if (!this.peer || this.peer.destroyed) {
+      this.peer = new Peer();
+      this.peer.on('open', () => this.dial());
+      this.peer.on('error', e => {
+        if (e.type === 'peer-unavailable') {
+          if (!this.joined) { this.err('방을 찾을 수 없어요. 코드를 확인하세요.'); this.resetJoinBtn(); }
+          else this.scheduleReconnect();
+        } else if (!this.joined) { this.err('연결 오류: ' + e.type); this.resetJoinBtn(); }
+        else this.scheduleReconnect();
+      });
+      this.peer.on('disconnected', () => { if (!this.peer.destroyed) this.peer.reconnect(); });
+    } else if (this.peer.open) this.dial();
+  },
+  dial() {
+    const conn = this.peer.connect(PREFIX + this.code, { reliable: true });
+    this.conn = conn;
+    const timeout = setTimeout(() => { if (!conn.open) { if (!this.joined) { this.err('응답이 없어요. 다시 시도해 주세요.'); this.resetJoinBtn(); } else this.scheduleReconnect(); } }, 10000);
+    conn.on('open', () => { clearTimeout(timeout); conn.send({ t: 'join', pid: this.pid, name: this.name }); });
+    conn.on('data', m => this.onMsg(m));
+    conn.on('close', () => { if (this.conn === conn && this.joined) { this.setStatusSub('⚠️ 연결이 끊겼어요. 재연결 중…'); this.scheduleReconnect(); } });
+  },
+  scheduleReconnect() {
+    if (this.reconnTimer) return;
+    this.reconnTimer = setTimeout(() => { this.reconnTimer = null; this.connect(); }, 2000);
+  },
+  resetJoinBtn() { $('pJoinBtn').disabled = false; $('pJoinBtn').textContent = '입장하기'; },
+  async requestWake() { try { if ('wakeLock' in navigator) this.wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} },
+
+  onMsg(m) {
+    if (!m || typeof m !== 'object') return;
+    if (m.t === 'welcome') {
+      this.joined = true; this.name = m.name;
+      this.requestWake();
+      SFX.good();
+    } else if (m.t === 'kicked') {
+      this.joined = false; this.st = null;
+      try { this.conn && this.conn.close(); } catch (e) {}
+      try { this.rm && this.rm.leave(); } catch (e) {} this.rm = null;
+      this.screen('pJoin'); this.resetJoinBtn(); this.err('호스트가 내보냈어요');
+    } else if (m.t === 'state') {
+      const list = (m.players || []).map(a => ({ id: a[0], name: a[1], score: a[2], lives: a[3], alive: !!a[4], rank: a[5], delta: a[6], roundChange: a[7] }));
+      const you = list.find(x => x.id === this.pid);
+      if (!you) return;  // 아직 등록 전이거나 내보내짐
+      if (!this.joined) { this.joined = true; clearTimeout(this.joinTimer); this.requestWake(); SFX.good(); }
+      m.you = you;
+      m.count = list.length;
+      m.holderName = (list.find(x => x.id === m.holderId) || {}).name || '';
+      m.top = list.slice(0, 3);
+      this.st = m; this.recvAt = now();
+      this.render();
+    } else if (m.t === 'fx') this.fx(m);
+  },
+
+  fx(m) {
+    const fb = $('pFb');
+    if (m.k === 'gotBomb') {
+      vibrate([300, 100, 300, 100, 300]); SFX.alarm();
+      fb.className = 'pFeedback'; fb.textContent = '';
+      $('pWord').value = '';
+      setTimeout(() => $('pWord').focus(), 50);
+    } else if (m.k === 'accepted') {
+      vibrate(40); SFX.good();
+      fb.className = 'pFeedback ok'; fb.textContent = `✅ "${m.w}" +${m.pts}점! 폭탄 넘김`;
+      $('pWord').value = '';
+    } else if (m.k === 'rejected') {
+      vibrate([80, 50, 80]); SFX.bad();
+      fb.className = 'pFeedback no'; fb.textContent = '❌ ' + m.why;
+      const w = $('pWord'); w.classList.remove('shake'); void w.offsetWidth; w.classList.add('shake');
+      w.select();
+    } else if (m.k === 'timeout') {
+      vibrate([200, 80, 200]); SFX.bad();
+      fb.className = 'pFeedback no'; fb.textContent = '⏰ 시간 초과 −5점! 새 초성이에요';
+      $('pWord').value = '';
+    } else if (m.k === 'vetoed') {
+      vibrate([80, 50, 80]); SFX.bad();
+      fb.className = 'pFeedback no'; fb.textContent = `🚫 "${m.w}" 무효 처리 −${m.pts}점`;
+    } else if (m.k === 'exploded') {
+      vibrate([900, 100, 400]); SFX.boom();
+    } else if (m.k === 'survived') {
+      vibrate(60); SFX.good();
+    }
+  },
+
+  sendWord() {
+    const s = this.st;
+    const w = $('pWord').value.trim();
+    if (!s || s.phase !== 'playing' || s.holderId !== this.pid) {
+      $('pFb').className = 'pFeedback no'; $('pFb').textContent = '지금은 폭탄이 없어요'; return;
+    }
+    if (!w) { $('pWord').focus(); return; }
+    if (this.via === 'room' && this.rm) {
+      this.n = Math.max(this.n + 1, Date.now());
+      this.rm.presence({ w: w.slice(0, 40), n: this.n }).catch(() => {});
+    } else if (this.conn && this.conn.open) this.conn.send({ t: 'word', w });
+    $('pWord').focus();
+  },
+  setStatusSub(t) { $('pStatusSub').textContent = t; $('pWaitSub').textContent = t; },
+
+  screen(id) {
+    ['pJoin', 'pWait', 'pCount', 'pGame', 'pRes', 'pFin'].forEach(s => show($(s), s === id));
+  },
+  render() {
+    const s = this.st; if (!s) return;
+    const me = s.you;
+    const holding = s.phase === 'playing' && s.holderId === this.pid;
+    $('player').classList.toggle('hot', holding);
+    if (s.phase === 'lobby') {
+      this.screen('pWait');
+      $('pWaitEmoji').textContent = '✅'; $('pWaitTitle').textContent = '입장 완료!';
+      $('pWaitSub').textContent = '메인 화면에서 시작하면 바로 시작돼요';
+      $('pMeName').textContent = me.name; $('pWaitCount').textContent = `${s.count}명 대기 중`;
+    } else if (s.phase === 'countdown') {
+      this.screen('pCount');
+      $('pCountRound').textContent = `라운드 ${s.round} / ${s.total}`;
+    } else if (s.phase === 'playing') {
+      this.screen('pGame');
+      $('pRound').textContent = s.round; $('pTotal').textContent = s.total;
+      $('pScore').textContent = me.score;
+      $('pPeople').textContent = s.count;
+      $('pHearts').textContent = me.alive ? heartStr(me.lives, s.maxLives) : '💀';
+      show($('pDead'), !me.alive);
+      if (holding) {
+        $('pStatus').innerHTML = '지금이 <b>너의 차례야!</b>';
+        $('pStatusSub').textContent = `${Math.round(s.turnMs / 1000)}초 안에 단어를 입력하세요!`;
+        $('pChoCard').classList.remove('wait');
+        $('pChoCard').querySelector('.lbl').textContent = '초성';
+        $('pCho').textContent = s.chosung;
+      } else {
+        $('pStatus').textContent = me.alive ? '😮‍💨 안전' : '👀 관전 중';
+        $('pStatusSub').textContent = `폭탄은 지금 「${s.holderName}」에게`;
+        $('pChoCard').classList.add('wait');
+        $('pChoCard').querySelector('.lbl').textContent = '대기 중';
+        $('pCho').textContent = '폭탄을 받으면 초성이 공개돼요';
+      }
+      show($('pTurnWrap'), holding);
+      $('pPass').disabled = !holding;
+      $('pWord').disabled = !me.alive;
+      if (!holding && this.lastHolding === false && this.lastPhase !== 'playing') { $('pFb').textContent = ''; }
+    } else if (s.phase === 'roundEnd') {
+      this.screen('pRes');
+      const boom = s.result && s.result.loserId === this.pid;
+      $('pResEmoji').textContent = boom ? (me.alive ? '💥' : '💀') : (me.alive ? '😎' : '👻');
+      $('pResTitle').textContent = boom ? (me.alive ? '펑! 폭발했어요' : '펑! 탈락…') : (me.alive ? '생존!' : `${s.result.loserName} 폭발`);
+      const rc = me.roundChange;
+      $('pResSub').textContent = boom ? `이번 라운드 ${rc >= 0 ? '+' : ''}${rc}점 · 목숨 ${me.lives}` : `${s.result?.loserName || ''} 폭발 · 이번 라운드 ${rc >= 0 ? '+' : ''}${rc}점`;
+      const dl = me.delta ? `<span class="dl ${me.delta > 0 ? 'up' : 'down'}">${me.delta > 0 ? '▲' : '▼'}${Math.abs(me.delta)}</span>` : '';
+      $('pResRank').innerHTML = `${me.rank}위${dl}`;
+    } else if (s.phase === 'final') {
+      this.screen('pFin');
+      $('pFinEmoji').textContent = me.rank === 1 ? '🏆' : me.rank <= 3 ? '🎉' : '🍻';
+      $('pFinRank').textContent = `${me.rank}위`;
+      $('pFinScore').textContent = `${me.score}점`;
+      $('pFinTop').innerHTML = s.top.map((x, i) => `<div style="font-size:18px;font-weight:800;padding:3px 0">${['🥇', '🥈', '🥉'][i]} ${esc(x.name)} <span class="muted">${x.score}점</span></div>`).join('');
+      if (this.lastPhase !== 'final' && me.rank === 1) { SFX.fanfare(); vibrate([100, 50, 100, 50, 300]); }
+    }
+    if (this.lastPhase === 'countdown' && s.phase !== 'countdown') this.lastCd = 0;
+    this.lastHolding = holding; this.lastPhase = s.phase;
+  },
+  paint() {
+    const s = this.st; if (!s) return;
+    const el = now() - this.recvAt;
+    if (s.phase === 'countdown') {
+      const sec = Math.max(1, Math.ceil((s.cdLeft - el) / 1000));
+      if ($('pCountNum').textContent !== String(sec)) { $('pCountNum').textContent = sec; SFX.count(false); vibrate(40); }
+    } else if (s.phase === 'playing') {
+      const rl = Math.max(0, s.roundLeft - el);
+      $('pFuseBar').style.width = (rl / s.roundMs * 100) + '%';
+      $('pSec').firstChild.textContent = Math.ceil(rl / 1000);
+      if (s.holderId === this.pid) {
+        const tl = Math.max(0, s.turnLeft - el) / s.turnMs;
+        $('pTurnBar').style.width = (tl * 100) + '%';
+        const t = now();
+        if (t >= this.nextTickAt) { SFX.tick(tl < .4); vibrate(tl < .4 ? 120 : 50); this.nextTickAt = t + (tl < .4 ? 400 : 1000); }
+      }
+    } else if (s.phase === 'roundEnd') {
+      const sec = Math.max(0, Math.ceil((s.nextLeft - el) / 1000));
+      $('pResNext').textContent = s.result?.isLast ? `최종 결과 발표까지 ${sec}초` : `다음 라운드까지 ${sec}초`;
+    }
+  },
+};
+
+/* ---------- 진입 ---------- */
+paintArt();
+const initialRole = params.get('role');
+if (initialRole === 'host' || initialRole === 'player') startRole(initialRole);
+else if (params.get('room') || /^#join-/.test(location.hash)) startRole('player');
+else show($('roleSelect'));
+</script>
+</body>
+</html>
