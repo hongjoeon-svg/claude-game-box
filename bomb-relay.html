@@ -153,6 +153,10 @@
   .qrCard #qr svg, .qrCard #qr img { width: 100%; height: 100%; }
   .qrCard .code { font-family: var(--display); font-size: 68px; letter-spacing: .14em; margin-top: 6px; color: var(--ink); }
   .qrCard .url { font-size: 12px; color: #666; word-break: break-all; margin-top: 2px; }
+  .shareRow { display: flex; gap: 8px; margin-top: 12px; }
+  .shareRow .btn { font-size: 16px; padding: 11px 14px; }
+  .shareRow #hShare { flex: 1; }
+  .shareRow #hCopy { background: #ece8fb; color: var(--ink); border: 0; box-shadow: 0 4px 0 #b9b0dc; }
   .qrCard .hint { font-size: 15px; color: #333; margin-top: 10px; line-height: 1.5; }
   .lobbyRight { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
   .lobbyHead { display: flex; align-items: center; gap: 18px; }
@@ -446,7 +450,8 @@
       <div id="qr"></div>
       <div class="code" id="hCode">----</div>
       <div class="url" id="hUrl"></div>
-      <div class="hint">📱 카메라로 QR을 찍거나<br>같은 주소에서 <b>참가자</b> → 방 코드 입력</div>
+      <div class="shareRow"><button class="btn danger" id="hShare">🔗 참가 링크 보내기</button><button class="btn ghost" id="hCopy">복사</button></div>
+      <div class="hint">📱 QR을 찍거나, 카톡 등으로 받은 링크를 누르면 바로 입장</div>
     </div>
     <div class="lobbyRight">
       <div class="pubNote glass hidden" data-pubnote="lobby">
@@ -586,6 +591,7 @@
   </div>
 </section>
 
+<script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js"></script>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script>
@@ -599,6 +605,12 @@ const PREFIX = 'bombrelay-v1-';
 const IN_ARTIFACT = !!(window.claude && typeof window.claude.use === 'function');
 const ARTIFACT_URL = 'https://claude.ai/artifact/UUXh8H2xbnuPNoKUUBuzKV';  // 게시 후 채움: QR이 가리킬 아티팩트 주소
 const roomName = code => 'bomb-' + code.toLowerCase();
+// 일반 웹(GitHub Pages)에서의 기본 연결: 공개 MQTT 중계 서버(WebSocket).
+// 폰끼리 직접 잇는 WebRTC가 막히는 환경(카톡 인앱 브라우저, 통신사 망 등)에서도 동작.
+// 호스트는 두 서버에 동시에 붙어 있고, 참가자는 먼저 연결되는 쪽을 씀. PeerJS는 예비용.
+const BROKERS = ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt'];
+const topicOf = (code, dir) => 'bombrelay-v2/' + code + '/' + dir;
+const rid = () => Math.random().toString(36).slice(2, 10);
 // 로그인 없이 누구나 들어오는 공개 주소 (GitHub Pages)
 const PUBLIC_URL = 'https://hongjoeon-svg.github.io/claude-game-box/bomb-relay.html';
 const $ = id => document.getElementById(id);
@@ -756,7 +768,7 @@ document.querySelectorAll('.roleBtn').forEach(b => b.onclick = () => {
 });
 
 function peerMissing() {
-  if (!IN_ARTIFACT && typeof Peer === 'undefined') {
+  if (!IN_ARTIFACT && typeof Peer === 'undefined' && typeof mqtt === 'undefined') {
     document.body.innerHTML = '<div style="padding:40px;text-align:center;font-size:18px;line-height:1.6">⚠️ 실시간 연결 라이브러리(PeerJS)를 불러오지 못했어요.<br>인터넷 연결을 확인하고 새로고침해 주세요.</div>';
     return true;
   }
@@ -793,6 +805,18 @@ const Host = {
       paint();
     });
     $('hStart').onclick = () => { SFX.init(); this.startGame(); };
+    const copyLink = btn => {
+      const url = this.joinUrl; if (!url) return;
+      const done = t => { const o = btn.textContent; btn.textContent = t; setTimeout(() => btn.textContent = o, 1600); };
+      try { navigator.clipboard.writeText(url).then(() => done('복사됨 ✓'), () => done('주소를 길게 눌러 복사')); } catch (e) { done('주소를 길게 눌러 복사'); }
+    };
+    $('hCopy').onclick = () => copyLink($('hCopy'));
+    $('hShare').onclick = () => {
+      const url = this.joinUrl; if (!url) return;
+      const text = `💣 시한폭탄 릴레이 같이 해요! 방 코드 ${this.code}`;
+      if (navigator.share) navigator.share({ title: '시한폭탄 릴레이', text, url }).catch(() => {});
+      else copyLink($('hShare'));
+    };
     document.querySelectorAll('#hAddBot button').forEach(b => b.onclick = () => { SFX.init(); this.addBot(b.dataset.lv); });
     $('hLocalJoin').onclick = () => { SFX.init(); this.toggleLocal(); };
     $('hLocalName').onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) this.toggleLocal(); };
@@ -811,19 +835,81 @@ const Host = {
     const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
     this.code = Array.from({ length: 4 }, () => rand(A)).join('');
     if (IN_ARTIFACT) { this.openClaudeRoom(); return; }
-    const peer = new Peer(PREFIX + this.code);
+    this.showCode();
+    this.openRelay();
+    this.openPeer();
+  },
+  openPeer() {
+    if (typeof Peer === 'undefined') return;
+    let peer;
+    try { peer = new Peer(PREFIX + this.code); } catch (e) { return; }
     this.peer = peer;
-    peer.on('open', () => {
-      this.setNet(true, '연결됨');
-      this.showCode();
-    });
+    peer.on('open', () => { this.peerOk = true; this.updateNet(); });
     peer.on('error', err => {
-      if (err.type === 'unavailable-id') { peer.destroy(); this.openRoom(); return; }
+      // 예비 연결이라 실패해도 게임은 중계 서버로 계속됨
       if (err.type === 'peer-unavailable') return;
-      this.setNet(false, '오류: ' + err.type);
+      if (err.type === 'unavailable-id') { try { peer.destroy(); } catch (e) {} }
+      this.peerOk = false; this.updateNet();
     });
-    peer.on('disconnected', () => { this.setNet(false, '재연결 중…'); setTimeout(() => { if (!peer.destroyed) peer.reconnect(); }, 1000); });
+    peer.on('disconnected', () => { this.peerOk = false; this.updateNet(); setTimeout(() => { if (!peer.destroyed) peer.reconnect(); }, 1500); });
     peer.on('connection', conn => this.onConn(conn));
+  },
+  openRelay() {
+    this.mq = [];
+    if (typeof mqtt === 'undefined') { this.updateNet(); return; }
+    BROKERS.forEach(url => {
+      let c;
+      try { c = mqtt.connect(url, { clientId: 'bh-' + rid(), keepalive: 30, reconnectPeriod: 2000, connectTimeout: 8000, clean: true }); }
+      catch (e) { return; }
+      c.on('connect', () => {
+        c.subscribe(topicOf(this.code, 'up'), { qos: 0 });
+        this.updateNet();
+        this.broadcast();
+      });
+      c.on('message', (t, buf) => {
+        let m; try { m = JSON.parse(buf.toString()); } catch (e) { return; }
+        this.onRelayMsg(m);
+      });
+      c.on('close', () => this.updateNet());
+      c.on('error', () => {});
+      this.mq.push(c);
+    });
+  },
+  relayUp() { return (this.mq || []).filter(c => c.connected).length; },
+  publishDown(msg) {
+    const txt = JSON.stringify(msg);
+    for (const c of this.mq || []) if (c.connected) { try { c.publish(topicOf(this.code, 'down'), txt, { qos: 0 }); } catch (e) {} }
+  },
+  onRelayMsg(m) {
+    if (!m || typeof m !== 'object') return;
+    const pid = String(m.pid || '').slice(0, 24);
+    if (!pid || this.banned.has(pid)) return;
+    let p = this.players.get(pid);
+    if (m.t === 'join' || m.t === 'hb') {
+      if (!p || !p.connected || p.via !== 'relay') {
+        if (!p) this.lastN.set(pid, +m.n || 0);
+        this.addPlayer(pid, m.name, { via: 'relay', peerLabel: null });
+        p = this.players.get(pid);
+      } else if (m.t === 'join') {
+        this.send(pid, { t: 'welcome', id: pid, name: p.name });
+        this.broadcast();
+      }
+      if (p) p.lastSeen = now();
+    } else if (m.t === 'word') {
+      if (!p) return;
+      p.lastSeen = now();
+      const n = +m.n || 0;
+      if (n > (this.lastN.get(pid) || 0)) { this.lastN.set(pid, n); this.submit(pid, String(m.w || '')); }
+    } else if (m.t === 'bye') {
+      if (p && p.via === 'relay') { p.connected = false; this.renderLobby(); }
+    }
+  },
+  updateNet() {
+    if (IN_ARTIFACT) return;
+    const r = this.relayUp();
+    if (r) this.setNet(true, '연결됨');
+    else if (this.peerOk) this.setNet(true, '연결됨 (P2P)');
+    else this.setNet(false, '서버 연결 중…');
   },
   async openClaudeRoom() {
     let room = null;
@@ -875,6 +961,7 @@ const Host = {
     let url = u.toString();
     if (IN_ARTIFACT) url = ARTIFACT_URL ? ARTIFACT_URL + '#join-' + this.code : '';
     $('hUrl').textContent = url || 'claude.ai에서 이 게임을 연 뒤 참가자 → 방 코드 입력';
+    this.joinUrl = url;
     if (url && typeof qrcode !== 'undefined') {
       const q = qrcode(0, 'M'); q.addData(url); q.make();
       $('qr').innerHTML = q.createSvgTag({ cellSize: 8, margin: 2, scalable: true });
@@ -899,6 +986,7 @@ const Host = {
     if (p && p.via === 'bot') return;
     if (p && p.via === 'local') { this.localFx(msg); return; }
     if (p && p.via === 'room') { this.emitRoom('fx', { ...msg, to: pid }); return; }
+    if (p && p.via === 'relay') { this.publishDown({ ...msg, to: pid }); return; }
     const c = this.conns.get(pid); if (c && c.open) { try { c.send(msg); } catch (e) {} }
   },
 
@@ -1129,6 +1217,10 @@ const Host = {
 
   loop() {
     const t = now();
+    if (!this.lastSeenCheck || t - this.lastSeenCheck > 2000) {
+      this.lastSeenCheck = t;
+      for (const p of this.players.values()) if (p.via === 'relay' && p.connected && t - (p.lastSeen || 0) > 12000) { p.connected = false; this.renderLobby(); }
+    }
     if (this.phase === 'countdown') {
       const s = Math.ceil((this.cdEnd - t) / 1000);
       if (s !== this.lastCdSec && s >= 1) { this.lastCdSec = s; SFX.count(false); }
@@ -1166,6 +1258,7 @@ const Host = {
     const msg = this.stateMsg();
     for (const [pid, c] of this.conns) if (c.open) { try { c.send(msg); } catch (e) {} }
     this.emitRoom('state', msg);
+    this.publishDown(msg);
   },
 
   /* ----- 화면 ----- */
@@ -1299,7 +1392,7 @@ const Host = {
    ========================================================= */
 const Player = {
   peer: null, conn: null, pid: '', code: '', name: '',
-  via: 'peer', rm: null, n: 0, joinTimer: null,
+  via: 'peer', rm: null, n: 0, joinTimer: null, mq: null, hbTimer: null,
   st: null, recvAt: 0, joined: false, wakeLock: null,
   lastHolding: false, lastPhase: '', nextTickAt: 0, reconnTimer: null,
 
@@ -1333,7 +1426,70 @@ const Player = {
     this.code = code; this.name = name.slice(0, 8);
     try { localStorage.setItem('bombrelay-name', this.name); } catch (e) {}
     $('pJoinBtn').disabled = true; $('pJoinBtn').textContent = '연결 중…'; this.err('');
-    if (IN_ARTIFACT) this.connectRoom(); else this.connect();
+    if (IN_ARTIFACT) this.connectRoom(); else this.connectRelay();
+  },
+
+  // 공개 중계 서버로 접속 (두 서버 중 먼저 연결되는 쪽). 둘 다 안 되면 PeerJS로.
+  connectRelay() {
+    if (typeof mqtt === 'undefined') { this.connect(); return; }
+    this.via = 'relay';
+    this.closeRelay();
+    let picked = null; const tried = [];
+    const fail = setTimeout(() => {
+      if (picked) return;
+      tried.forEach(c => { try { c.end(true); } catch (e) {} });
+      this.via = 'peer';
+      if (typeof Peer !== 'undefined') this.connect();
+      else { this.err('서버에 연결할 수 없어요. 와이파이/데이터를 바꿔서 다시 시도해 주세요.'); this.resetJoinBtn(); }
+    }, 9000);
+    BROKERS.forEach(url => {
+      let c;
+      try { c = mqtt.connect(url, { clientId: 'bp-' + rid(), keepalive: 30, reconnectPeriod: 2000, connectTimeout: 8000, clean: true }); }
+      catch (e) { return; }
+      tried.push(c);
+      c.on('error', () => {});
+      c.on('connect', () => {
+        if (picked && picked !== c) return;
+        if (!picked) {
+          picked = c; clearTimeout(fail);
+          tried.filter(x => x !== c).forEach(x => { try { x.end(true); } catch (e) {} });
+          this.mq = c;
+          c.on('message', (t, buf) => {
+            let m; try { m = JSON.parse(buf.toString()); } catch (e) { return; }
+            if (m.t === 'state' && m.code === this.code) this.onMsg(m);
+            else if (m.t === 'fx' && m.to === this.pid) this.onMsg(m);
+          });
+          c.on('offline', () => { if (this.joined) this.setStatusSub('⚠️ 연결이 끊겼어요. 재연결 중…'); });
+          this.startRelayJoin();
+        }
+        c.subscribe(topicOf(this.code, 'down'), { qos: 0 }, () => this.relayPub({ t: 'join', pid: this.pid, name: this.name, n: this.n }));
+      });
+    });
+  },
+  relayPub(m) {
+    if (this.mq && this.mq.connected) { try { this.mq.publish(topicOf(this.code, 'up'), JSON.stringify(m), { qos: 0 }); } catch (e) {} }
+  },
+  startRelayJoin() {
+    this.n = Date.now();
+    clearInterval(this.hbTimer);
+    // 입장 전에는 1초마다 join, 입장 후에는 3초마다 생존 신호
+    let ticks = 0;
+    this.hbTimer = setInterval(() => {
+      ticks++;
+      if (!this.joined) { this.relayPub({ t: 'join', pid: this.pid, name: this.name, n: this.n }); }
+      else if (ticks % 3 === 0) this.relayPub({ t: 'hb', pid: this.pid, name: this.name });
+    }, 1000);
+    clearTimeout(this.joinTimer);
+    this.joinTimer = setTimeout(() => {
+      if (this.joined) return;
+      this.closeRelay();
+      this.err('방을 찾을 수 없어요. 방 코드를 확인하고, 메인 화면이 켜져 있는지 보세요.');
+      this.resetJoinBtn();
+    }, 8000);
+  },
+  closeRelay() {
+    clearInterval(this.hbTimer); this.hbTimer = null;
+    if (this.mq) { try { this.mq.end(true); } catch (e) {} this.mq = null; }
   },
 
   async connectRoom() {
@@ -1403,6 +1559,7 @@ const Player = {
       this.joined = false; this.st = null;
       try { this.conn && this.conn.close(); } catch (e) {}
       try { this.rm && this.rm.leave(); } catch (e) {} this.rm = null;
+      this.closeRelay();
       this.screen('pJoin'); this.resetJoinBtn(); this.err('호스트가 내보냈어요');
     } else if (m.t === 'state') {
       const list = (m.players || []).map(a => ({ id: a[0], name: a[1], score: a[2], lives: a[3], alive: !!a[4], rank: a[5], delta: a[6], roundChange: a[7] }));
@@ -1455,7 +1612,10 @@ const Player = {
       $('pFb').className = 'pFeedback no'; $('pFb').textContent = '지금은 폭탄이 없어요'; return;
     }
     if (!w) { $('pWord').focus(); return; }
-    if (this.via === 'room' && this.rm) {
+    if (this.via === 'relay' && this.mq) {
+      this.n = Math.max(this.n + 1, Date.now());
+      this.relayPub({ t: 'word', pid: this.pid, w: w.slice(0, 40), n: this.n });
+    } else if (this.via === 'room' && this.rm) {
       this.n = Math.max(this.n + 1, Date.now());
       this.rm.presence({ w: w.slice(0, 40), n: this.n }).catch(() => {});
     } else if (this.conn && this.conn.open) this.conn.send({ t: 'word', w });
