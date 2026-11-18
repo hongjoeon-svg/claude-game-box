@@ -92,6 +92,15 @@
   .bombSvg.shake { animation: wobble .5s infinite; }
   @keyframes wobble { 25% { transform: rotate(-7deg); } 75% { transform: rotate(7deg); } }
 
+  /* claude.ai에서 열었을 때: 공개 주소 안내 */
+  .pubNote { width: min(620px, 100%); padding: 14px 18px; border-color: var(--gold); text-align: left; display: flex; flex-direction: column; gap: 10px; }
+  .pubNote b { color: var(--gold); }
+  .pubNote p { font-size: 14px; line-height: 1.55; color: #e4dcff; }
+  .pubRow { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .pubRow .btn { font-size: 16px; padding: 10px 18px; text-decoration: none; display: inline-block; }
+  .pubUrl { font-size: 12px; color: var(--muted); word-break: break-all; user-select: all; }
+  #hLobby .pubNote { width: 100%; }
+
   /* ================= 역할 선택 ================= */
   #roleSelect {
     min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -400,6 +409,11 @@
     <span data-bomb="shake"></span>
     <p class="tagline">초성에 맞는 단어를 써서 <b>폭탄을 넘겨라!</b></p>
   </div>
+<div class="pubNote glass hidden" data-pubnote="role">
+    <p><b>친구들과 하려면 이 주소를 쓰세요.</b> 지금 연 claude.ai 링크는 초대받고 로그인한 사람만 들어올 수 있어요. 아래 주소는 로그인 없이 누구나 QR·링크로 바로 들어와요.</p>
+    <div class="pubRow"><a class="btn" target="_blank" rel="noopener" data-publink="host">로그인 없이 하는 주소로 열기 ↗</a><button class="btn ghost" data-pubcopy>주소 복사</button></div>
+    <div class="pubUrl" data-puburl></div>
+  </div>
   <div class="roleBtns">
     <button class="roleBtn glass main" data-role="host"><span class="ico">📺</span><b>메인 화면 (호스트)</b><small>TV·노트북에 띄우세요<br>QR과 리더보드가 나와요 · AI와 혼자 하기도 여기서</small></button>
     <button class="roleBtn glass" data-role="player"><span class="ico">📱</span><b>참가자 (폰)</b><small>방 코드와 닉네임만<br>입력하면 바로 입장</small></button>
@@ -435,6 +449,11 @@
       <div class="hint">📱 카메라로 QR을 찍거나<br>같은 주소에서 <b>참가자</b> → 방 코드 입력</div>
     </div>
     <div class="lobbyRight">
+      <div class="pubNote glass hidden" data-pubnote="lobby">
+    <p><b>친구들과 하려면 이 주소를 쓰세요.</b> 지금 연 claude.ai 링크는 초대받고 로그인한 사람만 들어올 수 있어요. 아래 주소는 로그인 없이 누구나 QR·링크로 바로 들어와요.</p>
+    <div class="pubRow"><a class="btn" target="_blank" rel="noopener" data-publink="host">로그인 없이 하는 주소로 열기 ↗</a><button class="btn ghost" data-pubcopy>주소 복사</button></div>
+    <div class="pubUrl" data-puburl></div>
+  </div>
       <div class="lobbyHead"><span data-bomb="shake"></span><h1 class="title">30초 시한폭탄 <span class="red">릴레이</span></h1></div>
       <h2>참가자 <small id="hCount">0명</small></h2>
       <div id="hPlayers"><span class="muted" id="hEmpty">아직 아무도 없어요. QR을 찍어 입장하세요!</span></div>
@@ -580,6 +599,8 @@ const PREFIX = 'bombrelay-v1-';
 const IN_ARTIFACT = !!(window.claude && typeof window.claude.use === 'function');
 const ARTIFACT_URL = 'https://claude.ai/artifact/UUXh8H2xbnuPNoKUUBuzKV';  // 게시 후 채움: QR이 가리킬 아티팩트 주소
 const roomName = code => 'bomb-' + code.toLowerCase();
+// 로그인 없이 누구나 들어오는 공개 주소 (GitHub Pages)
+const PUBLIC_URL = 'https://hongjoeon-svg.github.io/claude-game-box/bomb-relay.html';
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const now = () => performance.now();
@@ -1319,7 +1340,10 @@ const Player = {
     this.via = 'room';
     let room = null;
     try { room = await window.claude.use('room'); } catch (e) {}
-    if (!room) { this.err('실시간 연결에 들어갈 수 없어요. claude.ai에 로그인하고, 호스트에게 이 게임에 초대받았는지 확인하세요.'); this.resetJoinBtn(); return; }
+    if (!room) {
+      $('pErr').innerHTML = '이 claude.ai 링크로는 들어올 수 없어요.<br>호스트에게 <b>로그인 없이 하는 주소</b>로 다시 열어 달라고 하세요.<br><a style="color:var(--gold)" target="_blank" rel="noopener" href="' + PUBLIC_URL + '?role=player">공개 주소로 가기 ↗</a>';
+      this.resetJoinBtn(); return;
+    }
     try {
       if (this.rm) { try { await this.rm.leave(); } catch (e) {} }
       this.rm = await room.join(roomName(this.code));
@@ -1524,6 +1548,16 @@ const Player = {
 
 /* ---------- 진입 ---------- */
 paintArt();
+if (IN_ARTIFACT) {
+  document.querySelectorAll('[data-pubnote]').forEach(n => n.classList.remove('hidden'));
+  document.querySelectorAll('[data-publink]').forEach(a => a.href = PUBLIC_URL + '?role=' + a.dataset.publink);
+  document.querySelectorAll('[data-puburl]').forEach(d => d.textContent = PUBLIC_URL + '?role=host');
+  document.querySelectorAll('[data-pubcopy]').forEach(b => b.onclick = () => {
+    const url = PUBLIC_URL + '?role=host';
+    const done = () => { b.textContent = '복사됨 ✓'; setTimeout(() => b.textContent = '주소 복사', 1500); };
+    try { navigator.clipboard.writeText(url).then(done, () => { b.textContent = '아래 주소를 길게 눌러 복사'; }); } catch (e) { b.textContent = '아래 주소를 길게 눌러 복사'; }
+  });
+}
 const initialRole = params.get('role');
 if (initialRole === 'host' || initialRole === 'player') startRole(initialRole);
 else if (params.get('room') || /^#join-/.test(location.hash)) startRole('player');
