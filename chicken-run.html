@@ -99,6 +99,14 @@
   #qr { background: #fff; border-radius: 16px; padding: 12px; width: 100%; max-width: 300px; aspect-ratio: 1; margin: 0 auto; display: grid; place-items: center; color: #333; font-size: 14px; }
   #qr svg { width: 100%; height: 100%; }
   .joinUrl { font-size: 12px; color: var(--muted); word-break: break-all; }
+  .pubNote { margin: 0 auto 22px; max-width: 760px; padding: 14px 18px; border: 1.5px solid var(--yellow); border-radius: 16px; background: #ffe60012; text-align: left; display: flex; flex-direction: column; gap: 10px; font-size: 15px; line-height: 1.55; }
+  .pubNote b { color: var(--yellow); }
+  .pubNote .lobbyBtns a { text-decoration: none; }
+  .pubUrl { font-size: 12px; color: var(--muted); word-break: break-all; user-select: all; }
+  #hLobby .pubNote { margin: 0; max-width: none; }
+  .netErr { font-size: 14px; line-height: 1.6; color: #ffd0d5; background: #ff2a3d1a; border: 1px solid #ff2a3d66; border-radius: 14px; padding: 12px 14px; text-align: left; }
+  .netErr a { color: var(--yellow); }
+  .shareRow { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
   .localBox { font-size: 14px; color: var(--muted); line-height: 1.6; background: #0006; border: 1px dashed var(--line); border-radius: 14px; padding: 14px; }
   .playersCard { padding: 22px; display: flex; flex-direction: column; gap: 16px; min-height: 320px; }
   .playersCard h2 { font-family: var(--display); font-weight: 400; font-size: 30px; display: flex; align-items: baseline; gap: 10px; }
@@ -295,6 +303,11 @@
     <div class="chickHero" aria-hidden="true">🐔</div>
     <h1 class="bigTitle"><span class="g">치킨 런</span><br><span class="r">멈춰야 산다!</span></h1>
     <p class="tagline">배수는 미친 듯이 오르고, 닭은 언제 터질지 모른다.<br>터지기 전에 탈출하면 <b>배수 × 100점</b>. 욕심내면 0점.</p>
+    <div class="pubNote hidden" data-pubnote>
+      <span><b>친구들과 하려면 이 주소로 여세요.</b> 지금 연 주소는 다른 사람이 들어올 수 없는 주소예요. 아래 주소는 로그인 없이 누구나 링크·QR로 바로 들어와요.</span>
+      <div class="lobbyBtns"><a class="btn small" target="_blank" rel="noopener" data-publink>공개 주소로 열기 ↗</a><button class="btn ghost small" data-pubcopy>주소 복사</button></div>
+      <div class="pubUrl" data-puburl></div>
+    </div>
     <div class="roleGrid">
       <button class="roleBtn card host" data-role="host"><span class="ico">📺</span><b>호스트로 시작</b><small>프로젝터·TV에 띄우는 메인 전광판<br>방 코드와 QR, 그래프, 리더보드</small></button>
       <button class="roleBtn card player" data-role="player"><span class="ico">📱</span><b>참가자로 입장</b><small>내 폰이 탈출 버튼이 돼요<br>방 코드 4자리만 있으면 OK</small></button>
@@ -322,8 +335,14 @@
       <h1 class="bigTitle"><span class="g">치킨 런</span> <span class="r">멈춰야 산다!</span></h1>
       <span class="netBadge" id="hNet"><i></i><span id="hNetTxt">연결 준비 중…</span></span>
     </div>
+    <div class="pubNote hidden" data-pubnote>
+      <span><b>⚠️ 지금 주소로는 다른 사람이 들어올 수 없어요.</b> 아래 공개 주소로 메인 화면을 다시 열면, 참가자는 링크·QR만으로 로그인 없이 들어와요.</span>
+      <div class="lobbyBtns"><a class="btn small" target="_blank" rel="noopener" data-publink>공개 주소로 다시 열기 ↗</a><button class="btn ghost small" data-pubcopy>주소 복사</button></div>
+      <div class="pubUrl" data-puburl></div>
+    </div>
     <div class="lobbyGrid">
       <div class="card joinCard">
+        <div class="netErr hidden" id="hNetErr"></div>
         <div class="lbl">📱 폰 카메라로 QR을 찍거나, 방 코드를 입력하세요</div>
         <div id="qr">QR 준비 중…</div>
         <div class="lbl">방 코드</div>
@@ -336,7 +355,10 @@
             <button class="btn ghost small" id="hTogglePhone">📱 폰 미리보기</button>
           </div>
         </div>
-        <button class="btn ghost small" id="hCopy">🔗 참가 링크 복사</button>
+        <div class="shareRow">
+          <button class="btn small" id="hShare">📤 참가 링크 공유</button>
+          <button class="btn ghost small" id="hCopy">🔗 링크 복사</button>
+        </div>
       </div>
       <div class="card playersCard">
         <h2>참가자 <span id="hCount">0</span><small class="muted" style="font-family:var(--body);font-size:15px">명</small></h2>
@@ -415,7 +437,9 @@
 </section>
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>if (typeof Peer === 'undefined') document.write('<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"><\/script>');</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>if (typeof qrcode === 'undefined') document.write('<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"><\/script>');</script>
 <script>
 'use strict';
 /* =========================================================
@@ -453,6 +477,21 @@ const fmtX = m => floor2(m).toFixed(2) + 'x';
 const ptsOf = m => Math.floor(floor2(m) * 100 + 1e-6);
 
 const PREFIX = 'chickenrun-v1-';
+// 로그인 없이 누구나 들어오는 공개 주소 (GitHub Pages). 참가 링크·QR은 항상 공개된 주소를 가리켜야 함
+const PUBLIC_URL = 'https://hongjoeon-svg.github.io/claude-game-box/chicken-run.html';
+// 지금 연 주소를 다른 기기에서도 열 수 있는지: claude.ai·미리보기·로컬 파일·localhost는 남이 못 들어옴
+const IS_PUBLIC_PAGE = /^https?:$/.test(location.protocol)
+  && !/(^|\.)(claude\.ai|claudeusercontent\.com|anthropic\.com)$/.test(location.hostname)
+  && !/^(localhost|127\.|0\.0\.0\.0|\[::1\])/.test(location.hostname)
+  && window.top === window.self;
+const shareBase = () => IS_PUBLIC_PAGE ? location.origin + location.pathname : PUBLIC_URL;
+async function copyText(t) {
+  try { await navigator.clipboard.writeText(t); return true; } catch (e) {}
+  try {
+    const ta = document.createElement('textarea'); ta.value = t; ta.style.cssText = 'position:fixed;opacity:0';
+    document.body.appendChild(ta); ta.select(); const ok = document.execCommand('copy'); ta.remove(); return ok;
+  } catch (e) { return false; }
+}
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const now = () => performance.now();
@@ -551,12 +590,14 @@ const NET_LABEL = { peer: 'PeerJS (WebRTC)', firebase: 'Firebase Realtime DB', l
 function pickNet() {
   const q = params.get('net');
   if (q === 'local') return 'local';
-  if (q === 'firebase' && firebaseReady()) return 'firebase';
-  if (q === 'peer' && typeof Peer !== 'undefined') return 'peer';
-  if (firebaseReady()) return 'firebase';
-  if (typeof Peer !== 'undefined') return 'peer';
-  return 'local';
+  if (q !== 'peer' && firebaseReady()) return 'firebase';
+  return 'peer';   // PeerJS를 못 불러와도 몰래 로컬로 바꾸지 않음 (링크를 받은 사람이 못 들어오게 되므로)
 }
+// STUN + PeerJS 공개 TURN: 호스트(와이파이)와 참가자(LTE)가 다른 네트워크여도 연결되도록
+const PEER_OPTS = { config: { iceServers: [
+  { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
+  { urls: ['turn:eu-0.turn.peerjs.com:3478', 'turn:us-0.turn.peerjs.com:3478'], username: 'peerjs', credential: 'peerjsp' },
+] } };
 const clean = m => JSON.parse(JSON.stringify(m));
 
 const NET = {
@@ -578,11 +619,13 @@ const NET = {
   peer: {
     host(code, onMsg) {
       return new Promise((res, rej) => {
-        const peer = new Peer(PREFIX + code);
+        if (typeof Peer === 'undefined') return rej({ type: 'nolib' });
+        const peer = new Peer(PREFIX + code, PEER_OPTS);
+        const to = setTimeout(() => { if (!opened) { peer.destroy(); rej({ type: 'timeout' }); } }, 15000);
         const conns = new Set();
         let opened = false, last = null;
         peer.on('open', () => {
-          opened = true;
+          opened = true; clearTimeout(to);
           res({
             broadcast(m) { last = m; for (const c of conns) if (c.open) { try { c.send(m); } catch (e) {} } },
             close() { peer.destroy(); },
@@ -594,12 +637,13 @@ const NET = {
           c.on('close', () => conns.delete(c));
           c.on('error', () => conns.delete(c));
         });
-        peer.on('error', err => { if (!opened) { peer.destroy(); rej(err); } });
+        peer.on('error', err => { if (!opened) { clearTimeout(to); peer.destroy(); rej(err); } });
         peer.on('disconnected', () => setTimeout(() => { if (!peer.destroyed) peer.reconnect(); }, 1000));
       });
     },
     join(code, onMsg, onStatus) {
-      const self = { peer: new Peer(), conn: null, retry: null };
+      if (typeof Peer === 'undefined') { setTimeout(() => onStatus(false, 'nolib'), 0); return { send() {}, close() {} }; }
+      const self = { peer: new Peer(PEER_OPTS), conn: null, retry: null };
       const again = (ms = 2000) => { clearTimeout(self.retry); self.retry = setTimeout(dial, ms); };
       function dial() {
         if (!self.peer.open) return;
@@ -700,7 +744,17 @@ const Host = {
     $('hStart').onclick = () => this.startGame();
     $('hBot1').onclick = () => this.addBots(1);
     $('hBot5').onclick = () => this.addBots(5);
-    $('hCopy').onclick = () => { const u = this.joinUrl(); try { navigator.clipboard.writeText(u); $('hCopy').textContent = '✅ 복사했어요'; } catch (e) { prompt('참가 링크', u); } setTimeout(() => $('hCopy').textContent = '🔗 참가 링크 복사', 1500); };
+    $('hCopy').onclick = async () => {
+      const u = this.joinUrl();
+      if (await copyText(u)) { $('hCopy').textContent = '✅ 복사했어요'; setTimeout(() => $('hCopy').textContent = '🔗 링크 복사', 1500); }
+      else prompt('참가 링크를 복사하세요', u);
+    };
+    $('hShare').onclick = async () => {
+      const url = this.joinUrl(), text = `🐔 치킨 런: 멈춰야 산다! 방 코드 ${this.code} — 링크 누르고 닉네임만 넣으면 입장`;
+      if (navigator.share) { try { await navigator.share({ title: '치킨 런 초대', text, url }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+      if (await copyText(text + '\n' + url)) { $('hShare').textContent = '✅ 초대 문구 복사됨'; setTimeout(() => $('hShare').textContent = '📤 참가 링크 공유', 1800); }
+      else prompt('참가 링크를 복사하세요', url);
+    };
     $('hOpenTab').onclick = () => window.open(this.joinUrl(), '_blank', 'noopener');
     $('hTogglePhone').onclick = () => this.togglePhone();
     $('phClose').onclick = () => this.togglePhone(false);
@@ -736,8 +790,7 @@ const Host = {
       } catch (e) {
         if (e && e.type === 'unavailable-id') continue;
         console.warn('net error', e);
-        if (this.netMode !== 'local') { this.netMode = 'local'; i = -1; code = ''; continue; }
-        this.setNet(false, '실시간 연결을 열 수 없어요', true);
+        this.netFail(e);
         return;
       }
     }
@@ -746,9 +799,24 @@ const Host = {
     this.setNet(true, `${NET_LABEL[this.netMode]} · 연결됨`);
     this.showCode();
   },
+  netFail(e) {
+    const why = e && e.type === 'nolib' ? '실시간 연결 라이브러리(PeerJS)를 불러오지 못했어요.'
+      : e && (e.type === 'timeout' || e.type === 'network' || e.type === 'server-error') ? '실시간 연결 서버에 닿지 않아요 (회사·학교 와이파이가 막았을 수 있어요).'
+      : `실시간 연결을 열 수 없어요 (${esc(e && (e.type || e.message) || e)}).`;
+    this.setNet(false, '연결 실패', true);
+    const el = $('hNetErr');
+    el.innerHTML = `⚠️ ${why}<br>• 인터넷 연결을 확인하고 <a href="#" id="hRetry">다시 시도</a>하세요.<br>• 다른 와이파이나 폰 핫스팟으로 바꿔 보세요.`
+      + (IS_PUBLIC_PAGE ? '' : `<br>• <a target="_blank" rel="noopener" href="${PUBLIC_URL}?role=host">공개 주소로 열기 ↗</a>`)
+      + `<br>• 혼자 테스트만 할 거면 <a href="?role=host&net=local">로컬 모드</a>`;
+    show(el);
+    $('hRetry').onclick = ev => { ev.preventDefault(); location.reload(); };
+    $('hCode').textContent = '····'; show($('qr'), false);
+  },
   setNet(on, txt, err) { $('hNet').classList.toggle('on', on); $('hNet').classList.toggle('err', !!err); $('hNetTxt').textContent = txt; },
   joinUrl() {
-    const u = new URL(location.href); u.search = ''; u.hash = '';
+    let u;
+    if (this.netMode === 'local') { u = new URL(location.href); u.search = ''; u.hash = ''; }
+    else u = new URL(shareBase());
     u.searchParams.set('role', 'player'); u.searchParams.set('room', this.code);
     if (this.netMode === 'local' || params.get('net')) u.searchParams.set('net', this.netMode);
     return u.toString();
@@ -759,7 +827,9 @@ const Host = {
     $('hUrl').textContent = url;
     show($('hLocalBox'), this.netMode === 'local');
     show($('qr'), this.netMode !== 'local');
-    if (location.protocol === 'file:' && this.netMode !== 'local') $('hUrl').textContent = '⚠️ 파일로 열었어요. 폰에서 접속하려면 웹에 올린 주소(GitHub Pages 등)로 열어 주세요.';
+    show($('hNetErr'), false);
+    // 로컬 모드는 원래 같은 브라우저 전용이라 공개 주소 경고를 띄우지 않음
+    if (this.netMode === 'local') $('hLobby').querySelectorAll('[data-pubnote]').forEach(n => n.classList.add('hidden'));
     if (typeof qrcode !== 'undefined') {
       const q = qrcode(0, 'M'); q.addData(url); q.make();
       $('qr').innerHTML = q.createSvgTag({ cellSize: 8, margin: 2, scalable: true });
@@ -828,6 +898,7 @@ const Host = {
       setHTML(c, `${p.bot ? '' : '🐥 '}${esc(p.name)}<button data-kick="${esc(p.id)}" title="내보내기" aria-label="${esc(p.name)} 내보내기">✕</button>`);
     }
     $('hStart').disabled = list.length === 0 || !this.net;
+    if (!this.code) $('hShare').disabled = $('hCopy').disabled = true; else $('hShare').disabled = $('hCopy').disabled = false;
   },
 
   /* ---------- 메시지 ---------- */
@@ -1266,13 +1337,22 @@ const Player = {
     clearTimeout(this.joinTimer);
     this.joinTimer = setTimeout(() => {
       if (this.joined) return;
-      this.err(mode === 'local' ? '방을 찾을 수 없어요. 같은 브라우저에 호스트 탭이 열려 있는지 확인하세요.' : '방을 찾을 수 없어요. 코드를 확인하고, 메인 화면이 켜져 있는지 보세요.');
-      this.resetJoin();
-    }, 10000);
+      this.joinFail(mode);
+    }, 15000);
+  },
+  joinFail(mode, why) {
+    this.resetJoin();
+    let h;
+    if (mode === 'local') h = '방을 찾을 수 없어요. 로컬 모드는 같은 브라우저에 호스트 탭이 열려 있어야 해요.';
+    else if (why === 'nolib') h = '실시간 연결 라이브러리를 불러오지 못했어요. 인터넷을 확인하고 새로고침해 주세요.';
+    else h = `방 <b>${esc(this.code)}</b>을(를) 찾을 수 없어요.<br>• 방 코드가 메인 화면과 같은지 확인하세요.<br>• 메인 화면이 켜져 있고 '연결됨'인지 확인하세요.<br>• 와이파이 ↔ LTE를 바꿔서 다시 시도해 보세요.`;
+    if (!IS_PUBLIC_PAGE && mode !== 'local') h += `<br>• <a style="color:var(--yellow)" href="${PUBLIC_URL}?role=player&room=${encodeURIComponent(this.code)}">공개 주소로 다시 입장 ↗</a>`;
+    $('pErr').innerHTML = h;
   },
   hi() { if (this.net && this.connected) this.net.send({ t: 'hi', pid: this.pid, name: this.name }); },
   onStatus(ok, why) {
     this.connected = ok;
+    if (!ok && why === 'nolib' && !this.joined) { this.joinFail('peer', 'nolib'); return; }
     if (ok) this.hi();
     if (this.joined) setText($('pNet'), ok ? '' : '⚠️ 연결이 끊겼어요. 다시 연결 중…');
   },
@@ -1381,6 +1461,16 @@ const Player = {
 };
 
 /* ---------- 진입 ---------- */
+if (!IS_PUBLIC_PAGE) {
+  const url = PUBLIC_URL + '?role=host';
+  document.querySelectorAll('[data-pubnote]').forEach(n => n.classList.remove('hidden'));
+  document.querySelectorAll('[data-publink]').forEach(a => a.href = url);
+  document.querySelectorAll('[data-puburl]').forEach(d => d.textContent = url);
+  document.querySelectorAll('[data-pubcopy]').forEach(b => b.onclick = async () => {
+    b.textContent = (await copyText(url)) ? '복사됨 ✓' : '위 주소를 길게 눌러 복사';
+    setTimeout(() => b.textContent = '주소 복사', 1600);
+  });
+}
 const initialRole = params.get('role');
 if (initialRole === 'host') startRole('host');
 else if (initialRole === 'player' || params.get('room')) startRole('player');
