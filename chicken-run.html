@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#06050d">
+<title>치킨 런: 멈춰야 산다</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Orbitron:wght@700;900&family=Noto+Sans+KR:wght@500;700;900&display=swap">
+<style>
+  /* 다크 네온 전광판: 거의 검은 남색 바탕 + 형광 초록(생존)·시안(탈출)·빨강(폭발) */
+  :root {
+    color-scheme: dark;
+    --bg: #06050d;
+    --panel: rgba(16, 15, 34, .82);
+    --panel2: rgba(30, 28, 60, .9);
+    --line: #2a2752;
+    --text: #f3f2ff;
+    --muted: #8f8cb8;
+    --neon: #39ff14;
+    --neonDeep: #1a9e05;
+    --cyan: #19e6ff;
+    --pink: #ff2bd6;
+    --yellow: #ffe600;
+    --red: #ff2a3d;
+    --redDeep: #7a0012;
+    --gold: #ffc83d;
+    --display: "Black Han Sans", "Noto Sans KR", "Apple SD Gothic Neo", sans-serif;
+    --num: "Orbitron", "Black Han Sans", monospace;
+    --body: "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background:
+      radial-gradient(1100px 600px at 10% -10%, #1d0b4a66, transparent 60%),
+      radial-gradient(900px 500px at 110% 0%, #003a4a55, transparent 60%),
+      var(--bg);
+    color: var(--text); font-family: var(--body);
+    -webkit-tap-highlight-color: transparent; overflow-x: hidden;
+  }
+  button, input, select { font: inherit; color: inherit; }
+  button { cursor: pointer; border: 0; background: none; }
+  button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; }
+  .hidden { display: none !important; }
+  .muted { color: var(--muted); }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; } }
+
+  .btn {
+    background: var(--neon); color: #031a00; font-weight: 900; border-radius: 14px;
+    padding: 14px 24px; font-size: 18px; box-shadow: 0 5px 0 var(--neonDeep), 0 0 24px #39ff1455;
+    transition: transform .08s, box-shadow .08s, opacity .15s;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--neonDeep); }
+  .btn:disabled { opacity: .3; cursor: not-allowed; }
+  .btn.ghost { background: var(--panel2); color: var(--text); border: 1px solid var(--line); box-shadow: 0 4px 0 #0008; }
+  .btn.small { padding: 9px 14px; font-size: 14px; border-radius: 10px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; backdrop-filter: blur(6px); box-shadow: inset 0 1px 0 #ffffff10, 0 12px 40px #0008; }
+  .neonTxt { font-family: var(--display); color: var(--neon); text-shadow: 0 0 8px #39ff14aa, 0 0 30px #39ff1455; }
+
+  /* ================= 역할 선택 ================= */
+  #roleSelect { min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px; }
+  .roleWrap { width: 100%; max-width: 760px; text-align: center; }
+  .bigTitle { font-family: var(--display); font-size: clamp(44px, 9vw, 92px); line-height: 1; letter-spacing: -0.01em; }
+  .bigTitle .g { color: var(--neon); text-shadow: 0 0 12px #39ff14, 0 0 40px #39ff1477; }
+  .bigTitle .r { color: var(--red); text-shadow: 0 0 12px #ff2a3d, 0 0 40px #ff2a3d77; }
+  .chickHero { font-size: clamp(64px, 14vw, 120px); display: inline-block; animation: run .35s ease-in-out infinite alternate; transform-origin: bottom center; }
+  @keyframes run { from { transform: translateY(0) rotate(-6deg) scaleX(-1); } to { transform: translateY(-10px) rotate(6deg) scaleX(-1); } }
+  .tagline { color: var(--muted); margin: 14px 0 28px; font-size: 16px; line-height: 1.6; }
+  .roleGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .roleBtn { padding: 26px 18px; border-radius: 22px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; transition: transform .12s, border-color .12s; }
+  .roleBtn:hover { transform: translateY(-3px); }
+  .roleBtn .ico { font-size: 46px; }
+  .roleBtn b { font-family: var(--display); font-size: 24px; font-weight: 400; }
+  .roleBtn small { color: var(--muted); font-size: 13px; line-height: 1.5; }
+  .roleBtn.host { border-color: #19e6ff66; box-shadow: 0 0 30px #19e6ff22; }
+  .roleBtn.host b { color: var(--cyan); }
+  .roleBtn.player { border-color: #39ff1466; box-shadow: 0 0 30px #39ff1422; }
+  .roleBtn.player b { color: var(--neon); }
+  .roleExtra { margin-top: 18px; display: flex; gap: 12px; justify-content: center; align-items: center; flex-wrap: wrap; font-size: 14px; color: var(--muted); }
+  .roleExtra select { background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+  @media (max-width: 560px) { .roleGrid { grid-template-columns: 1fr; } }
+
+  /* ================= 호스트: 대기실 ================= */
+  #host { min-height: 100dvh; }
+  #hLobby { min-height: 100dvh; padding: 28px clamp(16px, 3vw, 48px); display: flex; flex-direction: column; gap: 22px; }
+  .lobbyHead { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+  .lobbyHead .bigTitle { font-size: clamp(36px, 5vw, 64px); }
+  .lobbyHead .chickHero { font-size: clamp(48px, 6vw, 80px); }
+  .netBadge { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; background: var(--panel2); border: 1px solid var(--line); font-size: 14px; color: var(--muted); }
+  .netBadge i { width: 10px; height: 10px; border-radius: 50%; background: #666; }
+  .netBadge.on i { background: var(--neon); box-shadow: 0 0 10px var(--neon); }
+  .netBadge.err i { background: var(--red); }
+  .lobbyGrid { display: grid; grid-template-columns: minmax(280px, 400px) 1fr; gap: 22px; flex: 1; }
+  .joinCard { padding: 22px; text-align: center; display: flex; flex-direction: column; gap: 12px; align-self: start; }
+  .joinCard .lbl { color: var(--muted); font-size: 15px; }
+  .roomCode { font-family: var(--num); font-weight: 900; font-size: clamp(52px, 5.2vw, 88px); letter-spacing: .12em; color: var(--yellow); text-shadow: 0 0 14px #ffe60099, 0 0 40px #ffe60044; line-height: 1; padding-left: .12em; }
+  #qr { background: #fff; border-radius: 16px; padding: 12px; width: 100%; max-width: 300px; aspect-ratio: 1; margin: 0 auto; display: grid; place-items: center; color: #333; font-size: 14px; }
+  #qr svg { width: 100%; height: 100%; }
+  .joinUrl { font-size: 12px; color: var(--muted); word-break: break-all; }
+  .localBox { font-size: 14px; color: var(--muted); line-height: 1.6; background: #0006; border: 1px dashed var(--line); border-radius: 14px; padding: 14px; }
+  .playersCard { padding: 22px; display: flex; flex-direction: column; gap: 16px; min-height: 320px; }
+  .playersCard h2 { font-family: var(--display); font-weight: 400; font-size: 30px; display: flex; align-items: baseline; gap: 10px; }
+  .playersCard h2 span { color: var(--neon); font-family: var(--num); }
+  #hChips { display: flex; flex-wrap: wrap; gap: 10px; align-content: flex-start; flex: 1; }
+  .chip { display: inline-flex; align-items: center; gap: 8px; padding: 10px 12px 10px 16px; border-radius: 999px; background: var(--panel2); border: 1.5px solid #39ff1455; font-size: 20px; font-weight: 700; animation: pop .35s cubic-bezier(.2,1.6,.4,1); }
+  .chip.off { opacity: .4; border-style: dashed; }
+  .chip.bot { border-color: #ff2bd655; }
+  .chip button { width: 26px; height: 26px; border-radius: 50%; background: #ffffff14; color: var(--muted); font-size: 14px; line-height: 1; }
+  .chip button:hover { background: var(--red); color: #fff; }
+  @keyframes pop { from { transform: scale(.3); opacity: 0; } to { transform: none; opacity: 1; } }
+  .lobbyBtns { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .lobbyBtns .btn.start { font-size: 26px; padding: 18px 40px; font-family: var(--display); font-weight: 400; margin-left: auto; }
+  .rules { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .rule { padding: 16px 18px; display: flex; gap: 12px; align-items: center; font-size: 16px; line-height: 1.45; }
+  .rule b { font-size: 34px; }
+  @media (max-width: 900px) { .lobbyGrid, .rules { grid-template-columns: 1fr; } .netBadge { margin-left: 0; } }
+
+  /* ================= 호스트: 게임 화면 ================= */
+  #hGame { height: 100dvh; display: grid; grid-template-rows: auto 1fr; gap: 14px; padding: 14px clamp(12px, 1.6vw, 26px); overflow: hidden; }
+  .topbar { display: flex; align-items: center; gap: 18px; }
+  .brand { font-family: var(--display); font-size: 26px; white-space: nowrap; }
+  .brand .g { color: var(--neon); }
+  .roundTag { font-family: var(--num); font-weight: 900; font-size: 22px; padding: 8px 16px; border-radius: 12px; background: var(--panel2); border: 1px solid var(--line); white-space: nowrap; }
+  .roundTag em { font-style: normal; color: var(--yellow); }
+  .gauge { flex: 1; min-width: 160px; }
+  .gauge .gTxt { display: flex; justify-content: space-between; font-weight: 900; font-size: 18px; margin-bottom: 6px; }
+  .gauge .gTxt b { font-family: var(--num); color: var(--neon); }
+  .gauge .bar { height: 22px; border-radius: 999px; background: #ffffff10; border: 1px solid var(--line); overflow: hidden; position: relative; }
+  .gauge .bar i { position: absolute; inset: 0 auto 0 0; width: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--neon), #b6ff3c); box-shadow: 0 0 18px #39ff14aa; transition: width .45s cubic-bezier(.2,.8,.2,1), background .3s; }
+  .gauge .bar i.low { background: linear-gradient(90deg, #ff8a00, var(--yellow)); box-shadow: 0 0 18px #ffa600aa; }
+  .gauge .bar i.dead { background: var(--red); box-shadow: 0 0 18px var(--red); }
+  .codeTag { font-size: 14px; color: var(--muted); text-align: right; line-height: 1.2; white-space: nowrap; }
+  .codeTag b { display: block; font-family: var(--num); font-size: 24px; color: var(--yellow); letter-spacing: .1em; }
+  .iconBtn { width: 44px; height: 44px; border-radius: 12px; background: var(--panel2); border: 1px solid var(--line); font-size: 20px; flex: none; }
+
+  .mainGrid { display: grid; grid-template-columns: 1fr clamp(280px, 24vw, 420px); gap: 14px; min-height: 0; }
+  .stage { position: relative; overflow: hidden; border-radius: 22px; min-height: 0; }
+  .stage::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, transparent 40%, rgba(255, 30, 50, var(--heat, 0)) 100%); z-index: 1; transition: background .2s; }
+  #graph { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .multWrap { position: absolute; left: 92px; right: 0; top: 7%; text-align: left; pointer-events: none; z-index: 2; }
+  #bigMult { font-family: var(--num); font-weight: 900; font-size: clamp(60px, 7.6vw, 170px); line-height: 1; color: var(--neon); text-shadow: 0 0 18px currentColor, 0 0 60px currentColor; font-variant-numeric: tabular-nums; display: inline-block; }
+  #subMult { margin-top: 10px; font-size: clamp(16px, 1.6vw, 26px); font-weight: 900; color: var(--muted); }
+  #subMult b { font-family: var(--num); color: var(--text); }
+  #toasts { position: absolute; right: 18px; bottom: 64px; display: flex; flex-direction: column-reverse; align-items: flex-end; gap: 10px; z-index: 4; pointer-events: none; max-width: 52%; }
+  .toast { padding: 12px 18px; border-radius: 14px; background: linear-gradient(90deg, #003c48ee, #0b1a3aee); border: 1.5px solid var(--cyan); box-shadow: 0 0 24px #19e6ff66; font-size: clamp(16px, 1.5vw, 24px); font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; animation: toastIn .35s cubic-bezier(.2,1.4,.4,1), toastOut .4s ease-in 2.4s forwards; }
+  .toast em { font-style: normal; font-family: var(--num); color: var(--yellow); }
+  @keyframes toastIn { from { transform: translateX(120%) scale(.8); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes toastOut { to { transform: translateY(-30px); opacity: 0; } }
+
+  .overlay { position: absolute; inset: 0; display: grid; place-items: center; z-index: 5; pointer-events: none; }
+  #cdNum { font-family: var(--num); font-weight: 900; font-size: clamp(120px, 22vw, 360px); color: var(--yellow); text-shadow: 0 0 30px #ffe600, 0 0 90px #ffe60088; }
+  #cdNum.anim { animation: cdZoom .9s ease-out; }
+  @keyframes cdZoom { from { transform: scale(1.8); opacity: 0; } 25% { opacity: 1; } to { transform: scale(.9); opacity: .9; } }
+  #boomFx { background: radial-gradient(circle at center, #ff2a3dcc, #7a0012ee 55%, #1a0005f5); flex-direction: column; animation: boomFlash 1.1s ease-out; }
+  #boomFx .boomTxt { font-family: var(--display); font-size: clamp(90px, 12vw, 250px); color: #fff; text-shadow: 0 0 20px #ff2a3d, 0 0 80px #ff2a3d, 6px 6px 0 #3a0008; animation: boomZoom .6s cubic-bezier(.2,1.8,.4,1); line-height: 1; }
+  #boomFx .boomSub { font-size: clamp(22px, 2.6vw, 44px); font-weight: 900; text-align: center; margin-top: 8px; }
+  @keyframes boomFlash { 0% { background-color: #fff; opacity: 1; } 8% { opacity: 1; } }
+  @keyframes boomZoom { from { transform: scale(3) rotate(-12deg); opacity: 0; } to { transform: rotate(-4deg); opacity: 1; } }
+  #allFx .allTxt { font-family: var(--display); font-size: clamp(64px, 10vw, 170px); color: var(--cyan); text-shadow: 0 0 20px var(--cyan), 0 0 60px #19e6ff88; animation: boomZoom .6s cubic-bezier(.2,1.8,.4,1); }
+  .shake { animation: shake .8s cubic-bezier(.36,.07,.19,.97); }
+  @keyframes shake {
+    10%, 90% { transform: translate(-6px, 3px) rotate(-.4deg); } 20%, 80% { transform: translate(10px, -6px) rotate(.6deg); }
+    30%, 50%, 70% { transform: translate(-18px, 8px) rotate(-1deg); } 40%, 60% { transform: translate(18px, -8px) rotate(1deg); }
+  }
+
+  .panelOv { position: absolute; inset: 0; z-index: 6; display: grid; place-items: center; padding: 18px; background: #06050dcc; backdrop-filter: blur(4px); animation: fadeIn .35s; }
+  @keyframes fadeIn { from { opacity: 0; } }
+  .resPanel { width: min(1000px, 100%); max-height: 100%; overflow: auto; padding: 24px 28px; animation: slideUp .45s cubic-bezier(.2,1.2,.4,1); }
+  @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } }
+  .resPanel h2 { font-family: var(--display); font-weight: 400; font-size: clamp(30px, 3.4vw, 54px); }
+  .resPanel h2 em { font-style: normal; color: var(--yellow); }
+  .resHead { font-size: clamp(16px, 1.6vw, 24px); font-weight: 900; margin: 6px 0 16px; }
+  .resHead.boom { color: var(--red); }
+  .resHead.all { color: var(--cyan); }
+  .resList { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+  .resList li { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 12px; background: #ffffff0a; border: 1px solid var(--line); font-size: clamp(16px, 1.4vw, 22px); font-weight: 900; }
+  .resList li.esc { border-color: #19e6ff55; }
+  .resList li.dead { border-color: #ff2a3d55; background: #ff2a3d14; }
+  .resList .nm { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .resList .mx { font-family: var(--num); color: var(--cyan); font-size: .85em; }
+  .resList .pt { font-family: var(--num); color: var(--neon); min-width: 70px; text-align: right; }
+  .resList li.dead .pt { color: var(--red); }
+  .resList li.dead .mx { font-family: var(--body); color: var(--red); }
+  .nextRow { margin-top: 18px; display: flex; align-items: center; gap: 14px; font-weight: 900; color: var(--muted); }
+  .nextRow .bar { flex: 1; height: 10px; border-radius: 99px; background: #ffffff12; overflow: hidden; }
+  .nextRow .bar i { display: block; height: 100%; width: 100%; background: var(--yellow); transform-origin: left; }
+
+  .finPanel { width: min(1100px, 100%); max-height: 100%; overflow: auto; padding: 26px 30px; text-align: center; animation: slideUp .5s cubic-bezier(.2,1.2,.4,1); }
+  .finPanel h2 { font-family: var(--display); font-weight: 400; font-size: clamp(36px, 4.4vw, 70px); color: var(--yellow); text-shadow: 0 0 20px #ffe60088; }
+  .podium { display: flex; justify-content: center; align-items: flex-end; gap: 16px; margin: 22px 0 16px; }
+  .pod { flex: 0 1 220px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .pod .who { font-weight: 900; font-size: clamp(18px, 1.8vw, 30px); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pod .sc { font-family: var(--num); color: var(--neon); font-size: clamp(16px, 1.5vw, 24px); }
+  .pod .blk { width: 100%; border-radius: 14px 14px 4px 4px; display: grid; place-items: center; font-size: clamp(40px, 4vw, 64px); background: linear-gradient(180deg, #2c2a5a, #15142c); border: 1px solid var(--line); }
+  .pod.p1 .blk { height: 190px; background: linear-gradient(180deg, #ffc83d, #8a5d00); box-shadow: 0 0 40px #ffc83d66; }
+  .pod.p2 .blk { height: 140px; background: linear-gradient(180deg, #d9e2ef, #5b6578); }
+  .pod.p3 .blk { height: 105px; background: linear-gradient(180deg, #e89a5c, #7a3e12); }
+  .awards { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 8px 0 16px; }
+  .award { padding: 10px 16px; border-radius: 12px; background: var(--panel2); border: 1px solid var(--line); font-weight: 900; font-size: clamp(14px, 1.2vw, 18px); }
+  .award em { font-style: normal; color: var(--cyan); }
+  .finRest { color: var(--muted); font-size: 16px; margin-bottom: 18px; line-height: 1.8; }
+  .finBtns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+  /* 리더보드 */
+  .board { padding: 16px 14px; display: flex; flex-direction: column; min-height: 0; }
+  .board h3 { font-family: var(--display); font-weight: 400; font-size: 26px; padding: 0 6px 10px; display: flex; justify-content: space-between; align-items: baseline; }
+  .board h3 small { font-family: var(--body); font-size: 13px; color: var(--muted); font-weight: 700; }
+  #board { list-style: none; display: flex; flex-direction: column; gap: 7px; overflow: auto; min-height: 0; padding: 2px; }
+  #board li { display: grid; grid-template-columns: 34px 30px 1fr auto auto; align-items: center; gap: 8px; padding: 9px 10px; border-radius: 12px; background: #ffffff08; border: 1px solid var(--line); font-weight: 900; font-size: clamp(15px, 1.15vw, 20px); position: relative; }
+  #board li.top1 { border-color: #ffc83d88; background: linear-gradient(90deg, #ffc83d22, transparent); }
+  #board li.off { opacity: .5; }
+  #board .rk { font-family: var(--num); text-align: center; color: var(--muted); }
+  #board li.top1 .rk { color: var(--gold); }
+  #board .si { text-align: center; font-size: 1.05em; }
+  #board .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #board .ar { font-size: .95em; min-width: 22px; text-align: center; }
+  #board .ar.up { color: var(--neon); animation: arUp .6s ease-out 3; }
+  #board .ar.down { color: var(--red); animation: arDown .6s ease-out 3; }
+  @keyframes arUp { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes arDown { from { transform: translateY(-8px); opacity: 0; } to { transform: none; opacity: 1; } }
+  #board .sc { font-family: var(--num); color: var(--neon); text-align: right; min-width: 60px; }
+  #board li.flash { animation: rowFlash .9s ease-out; }
+  @keyframes rowFlash { 0% { background: #19e6ff55; box-shadow: 0 0 20px #19e6ff88; } }
+  .boardEmpty { color: var(--muted); padding: 10px; font-size: 14px; }
+
+  @media (max-width: 900px) {
+    #hGame { height: auto; min-height: 100dvh; overflow: visible; }
+    .mainGrid { grid-template-columns: 1fr; }
+    .stage { height: 62vh; }
+    .topbar { flex-wrap: wrap; }
+    .board { max-height: 60vh; }
+  }
+
+  /* 시뮬레이션용 폰 미리보기 */
+  #phoneSim { position: fixed; right: 18px; bottom: 18px; width: 300px; height: 600px; border-radius: 34px; border: 8px solid #222033; background: #000; box-shadow: 0 20px 60px #000c, 0 0 0 2px #39ff1444; z-index: 50; }
+  #phoneSim iframe { width: 100%; height: 100%; border: 0; display: block; border-radius: 26px; }
+  #phoneSim .phBar { position: absolute; top: -34px; left: 0; right: 0; justify-content: space-between; padding: 4px 6px; font-size: 12px; color: var(--muted); display: flex; gap: 8px; white-space: nowrap; }
+  #phoneSim .phBar button { color: var(--muted); font-size: 11px; }
+  #host.withPhone #hLobby, #host.withPhone #hGame { padding-right: 336px; }
+  @media (max-width: 900px) { #phoneSim { width: 240px; height: 480px; } #host.withPhone #hLobby, #host.withPhone #hGame { padding-right: 16px; padding-bottom: 500px; } }
+
+  /* ================= 참가자 (모바일) ================= */
+  #player { min-height: 100dvh; }
+  #pJoin { min-height: 100dvh; display: flex; flex-direction: column; justify-content: center; gap: 14px; padding: 24px 16px; max-width: 460px; margin: 0 auto; text-align: center; }
+  #pJoin .bigTitle { font-size: clamp(40px, 12vw, 60px); }
+  #pJoin label { text-align: left; font-size: 14px; color: var(--muted); font-weight: 700; display: flex; flex-direction: column; gap: 6px; }
+  #pJoin input { background: var(--panel2); border: 1.5px solid var(--line); border-radius: 14px; padding: 16px; font-size: 22px; font-weight: 900; width: 100%; }
+  #pCode { font-family: var(--num); letter-spacing: .3em; text-transform: uppercase; text-align: center; }
+  #pJoinBtn { font-size: 22px; padding: 18px; margin-top: 6px; font-family: var(--display); font-weight: 400; }
+  .pErr { color: var(--red); min-height: 1.4em; font-weight: 700; font-size: 15px; }
+
+  #pMain { height: 100dvh; display: flex; flex-direction: column; padding: max(12px, env(safe-area-inset-top)) 14px max(14px, env(safe-area-inset-bottom)); gap: 10px; transition: background .3s; overflow: hidden; }
+  .pTop { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: stretch; }
+  .pTop > div { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 8px 12px; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+  .pTop small { font-size: 11px; color: var(--muted); font-weight: 700; }
+  .pTop b { font-size: 19px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #pRank b, #pScore b { font-family: var(--num); }
+  #pRank b { color: var(--yellow); }
+  #pScore b { color: var(--neon); }
+  #pRank .arr { font-size: 14px; margin-left: 2px; }
+  .pInfo { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 4px; min-height: 0; }
+  #pRound { font-family: var(--num); font-weight: 900; font-size: 14px; color: var(--muted); letter-spacing: .08em; }
+  #pMult { font-family: var(--num); font-weight: 900; font-size: clamp(44px, 14vw, 72px); line-height: 1.05; color: var(--neon); text-shadow: 0 0 14px currentColor; font-variant-numeric: tabular-nums; }
+  #pMsg { font-size: 15px; font-weight: 700; color: var(--muted); min-height: 1.3em; }
+  #pNet { font-size: 12px; color: var(--red); font-weight: 700; min-height: 1em; }
+  #escBtn {
+    height: 60vh; width: 100%; flex: none; border-radius: 30px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px;
+    touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; transition: background .2s, transform .06s, box-shadow .2s, color .2s;
+  }
+  #escMain { font-family: var(--display); font-size: clamp(40px, 12.5vw, 66px); line-height: 1.05; padding: 0 10px; }
+  #escSub { font-size: clamp(16px, 4.8vw, 22px); font-weight: 900; padding: 0 14px; }
+  #escBtn.wait { background: #12112a; color: #7b78a8; border: 2.5px dashed #34316a; }
+  #escBtn.cd #escMain { font-family: var(--num); font-size: clamp(90px, 30vw, 160px); color: var(--yellow); text-shadow: 0 0 20px #ffe60099; }
+  #escBtn.go { background: radial-gradient(circle at 50% 35%, #8dff6e, var(--neon) 55%, #22c400); color: #042200; box-shadow: 0 10px 0 var(--neonDeep), 0 0 50px #39ff14aa, 0 0 120px #39ff1444; animation: goPulse .7s ease-in-out infinite alternate; }
+  #escBtn.go #escMain { text-shadow: 0 2px 0 #ffffff66; }
+  #escBtn.go:active { transform: translateY(6px) scale(.985); box-shadow: 0 3px 0 var(--neonDeep), 0 0 30px #39ff14aa; }
+  @keyframes goPulse { to { box-shadow: 0 10px 0 var(--neonDeep), 0 0 80px #39ff14dd, 0 0 160px #39ff1466; } }
+  #escBtn.done { background: #4a4d57; color: #e8e8ee; box-shadow: inset 0 0 0 3px #ffffff1c; }
+  #escBtn.done #escSub b { color: var(--neon); font-family: var(--num); font-size: 1.4em; display: block; margin-top: 6px; }
+  #escBtn.dead { background: #ff1f3d; color: #fff; box-shadow: 0 0 60px #ff1f3daa; }
+  #escBtn.dead #escMain { font-size: clamp(64px, 20vw, 110px); }
+  #escBtn.gold { background: linear-gradient(180deg, #ffd766, #c98400); color: #2a1a00; }
+  body.pBoom #pMain { background: radial-gradient(circle at 50% 60%, #a3001a, #3a0008); animation: shake .7s; }
+  body.pBoom .pTop > div { background: #0006; }
+  body.pBoom #pMult { color: #fff; }
+</style>
+</head>
+<body>
+
+<!-- ================= 역할 선택 ================= -->
+<section id="roleSelect">
+  <div class="roleWrap">
+    <div class="chickHero" aria-hidden="true">🐔</div>
+    <h1 class="bigTitle"><span class="g">치킨 런</span><br><span class="r">멈춰야 산다!</span></h1>
+    <p class="tagline">배수는 미친 듯이 오르고, 닭은 언제 터질지 모른다.<br>터지기 전에 탈출하면 <b>배수 × 100점</b>. 욕심내면 0점.</p>
+    <div class="roleGrid">
+      <button class="roleBtn card host" data-role="host"><span class="ico">📺</span><b>호스트로 시작</b><small>프로젝터·TV에 띄우는 메인 전광판<br>방 코드와 QR, 그래프, 리더보드</small></button>
+      <button class="roleBtn card player" data-role="player"><span class="ico">📱</span><b>참가자로 입장</b><small>내 폰이 탈출 버튼이 돼요<br>방 코드 4자리만 있으면 OK</small></button>
+    </div>
+    <div class="roleExtra">
+      <label>연결 방식
+        <select id="netSel">
+          <option value="auto">자동</option>
+          <option value="peer">PeerJS (WebRTC)</option>
+          <option value="firebase">Firebase</option>
+          <option value="local">로컬 (같은 브라우저 탭끼리)</option>
+        </select>
+      </label>
+      <button class="btn ghost small" id="simBtn">🧪 혼자 시뮬레이션 해보기</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 호스트 ================= -->
+<section id="host" class="hidden">
+  <!-- 대기실 -->
+  <div id="hLobby">
+    <div class="lobbyHead">
+      <span class="chickHero" aria-hidden="true">🐔</span>
+      <h1 class="bigTitle"><span class="g">치킨 런</span> <span class="r">멈춰야 산다!</span></h1>
+      <span class="netBadge" id="hNet"><i></i><span id="hNetTxt">연결 준비 중…</span></span>
+    </div>
+    <div class="lobbyGrid">
+      <div class="card joinCard">
+        <div class="lbl">📱 폰 카메라로 QR을 찍거나, 방 코드를 입력하세요</div>
+        <div id="qr">QR 준비 중…</div>
+        <div class="lbl">방 코드</div>
+        <div class="roomCode" id="hCode">····</div>
+        <div class="joinUrl" id="hUrl"></div>
+        <div class="localBox hidden" id="hLocalBox">
+          🧪 <b>로컬 모드</b>예요. 같은 브라우저의 다른 탭에서만 참가할 수 있어요.<br>
+          <div class="lobbyBtns" style="justify-content:center;margin-top:10px">
+            <button class="btn ghost small" id="hOpenTab">➕ 참가자 탭 열기</button>
+            <button class="btn ghost small" id="hTogglePhone">📱 폰 미리보기</button>
+          </div>
+        </div>
+        <button class="btn ghost small" id="hCopy">🔗 참가 링크 복사</button>
+      </div>
+      <div class="card playersCard">
+        <h2>참가자 <span id="hCount">0</span><small class="muted" style="font-family:var(--body);font-size:15px">명</small></h2>
+        <div id="hChips"><span class="muted" id="hEmpty">아직 아무도 없어요. QR을 찍고 들어오세요! 🐣</span></div>
+        <div class="lobbyBtns">
+          <button class="btn ghost small" id="hBot1">🤖 가상 참가자 +1</button>
+          <button class="btn ghost small" id="hBot5">🤖 +5</button>
+          <button class="btn start" id="hStart" disabled>게임 시작 ▶</button>
+        </div>
+      </div>
+    </div>
+    <div class="rules">
+      <div class="card rule"><b>📈</b><span>카운트다운 후 배수가 <b style="font-size:inherit;color:var(--neon)">1.00x</b>부터 기하급수적으로 치솟아요</span></div>
+      <div class="card rule"><b>💣</b><span>4~19초 사이 비밀 시점에 <b style="font-size:inherit;color:var(--red)">폭발!</b> 언제일지는 아무도 몰라요</span></div>
+      <div class="card rule"><b>🏃</b><span>터지기 전 <b style="font-size:inherit;color:var(--cyan)">[지금 탈출하기!]</b> → 배수×100점. 못 나오면 0점. 총 5라운드</span></div>
+    </div>
+  </div>
+
+  <!-- 게임 -->
+  <div id="hGame" class="hidden">
+    <div class="topbar">
+      <div class="brand">🐔 <span class="g">치킨 런</span></div>
+      <div class="roundTag">ROUND <em id="hRound">1</em>/<span id="hRounds">5</span></div>
+      <div class="gauge">
+        <div class="gTxt"><span>🐔 남은 생존자</span><span><b id="hAlive">0</b> / <span id="hTotal">0</span></span></div>
+        <div class="bar"><i id="hGaugeBar"></i></div>
+      </div>
+      <div class="codeTag">방 코드<b id="hCodeSmall">····</b></div>
+      <button class="iconBtn" id="hMute" title="소리 켜기/끄기 (M)">🔊</button>
+      <button class="iconBtn" id="hFull" title="전체 화면 (F)">⛶</button>
+    </div>
+    <div class="mainGrid">
+      <div class="stage card" id="stage">
+        <canvas id="graph"></canvas>
+        <div class="multWrap"><div id="bigMult">1.00x</div><div id="subMult"></div></div>
+        <div id="toasts"></div>
+        <div class="overlay hidden" id="cdOv"><div id="cdNum">3</div></div>
+        <div class="overlay hidden" id="boomFx"><div class="boomTxt">BOOM!</div><div class="boomSub" id="boomSub"></div></div>
+        <div class="overlay hidden" id="allFx"><div class="allTxt">🎉 전원 탈출!</div></div>
+        <div class="panelOv hidden" id="resOv"><div class="card resPanel" id="resPanel"></div></div>
+        <div class="panelOv hidden" id="finOv"><div class="card finPanel" id="finPanel"></div></div>
+      </div>
+      <div class="card board">
+        <h3>🏆 누적 리더보드 <small id="hBoardSub">실시간</small></h3>
+        <ol id="board"></ol>
+      </div>
+    </div>
+  </div>
+  <div id="phoneSim" class="hidden"><div class="phBar">📱 참가자 미리보기 <button id="phClose">닫기 ✕</button></div></div>
+</section>
+
+<!-- ================= 참가자 ================= -->
+<section id="player" class="hidden">
+  <div id="pJoin">
+    <div class="chickHero" aria-hidden="true" style="font-size:72px">🐔</div>
+    <h1 class="bigTitle"><span class="g">치킨 런</span></h1>
+    <label>방 코드<input id="pCode" maxlength="4" autocomplete="off" autocapitalize="characters" inputmode="text" placeholder="ABCD"></label>
+    <label>닉네임<input id="pName" maxlength="8" autocomplete="nickname" placeholder="최대 8글자"></label>
+    <button class="btn" id="pJoinBtn">입장하기</button>
+    <div class="pErr" id="pErr"></div>
+  </div>
+  <div id="pMain" class="hidden">
+    <div class="pTop">
+      <div><small>닉네임</small><b id="pMe">-</b></div>
+      <div id="pRank"><small>순위</small><b><span id="pRankV">-</span><span class="arr" id="pRankArr"></span></b></div>
+      <div id="pScore"><small>누적 점수</small><b id="pScoreV">0</b></div>
+    </div>
+    <div class="pInfo">
+      <div id="pRound">WAITING</div>
+      <div id="pMult">1.00x</div>
+      <div id="pMsg"></div>
+      <div id="pNet"></div>
+    </div>
+    <button id="escBtn" class="wait"><span id="escMain">대기 중</span><span id="escSub"></span></button>
+  </div>
+</section>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script>
+'use strict';
+/* =========================================================
+   설정
+   ========================================================= */
+// Firebase Realtime Database를 쓰려면 아래 값을 채우세요 (apiKey와 databaseURL이 있으면 '자동'에서 Firebase를 우선 사용).
+// 비워 두면 PeerJS(WebRTC)를 쓰고, 그것도 안 되면 로컬 시뮬레이션 모드로 동작합니다.
+const FIREBASE_CONFIG = {
+  apiKey: '',
+  authDomain: '',
+  databaseURL: '',
+  projectId: '',
+  storageBucket: '',
+  messagingSenderId: '',
+  appId: '',
+};
+const FIREBASE_SDK = 'https://www.gstatic.com/firebasejs/10.12.2/';
+
+const GAME = {
+  ROUNDS: 5,
+  COUNTDOWN: 3,        // 초
+  ROUND_MAX: 20,       // 라운드 최대 길이 (초)
+  CRASH_MIN: 4,        // 폭발 시점 범위 (초)
+  CRASH_MAX: 19,
+  BOOM_HOLD: 1.3,      // 폭발 연출 후 결과창까지 (초)
+  ALL_HOLD: 1.0,       // 전원 탈출 연출 후 결과창까지 (초)
+  RESULT: 5,           // 결과·리더보드 표시 (초)
+  LATENCY_COMP: 0.3,   // 탈출 판정 시 네트워크 지연 보정 최대치 (초)
+  MAX_PLAYERS: 40,
+};
+// 배수 곡선: 1.00x에서 시작해 기하급수적으로 상승 (2초≈1.45x, 5초≈2.6x, 10초≈7.8x, 15초≈26x, 19초≈75x)
+const multAt = t => Math.exp(0.18 * t + 0.0025 * t * t);
+const floor2 = m => Math.floor(m * 100 + 1e-6) / 100;
+const fmtX = m => floor2(m).toFixed(2) + 'x';
+const ptsOf = m => Math.floor(floor2(m) * 100 + 1e-6);
+
+const PREFIX = 'chickenrun-v1-';
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const now = () => performance.now();
+const show = (el, on = true) => el.classList.toggle('hidden', !on);
+const setText = (el, t) => { t = String(t); if (el.textContent !== t) el.textContent = t; };
+const setHTML = (el, h) => { if (el._h !== h) { el._h = h; el.innerHTML = h; } };
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const vibrate = p => { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} };
+const params = new URLSearchParams(location.search);
+const randCode = () => { const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; let s = ''; for (let i = 0; i < 4; i++) s += A[Math.floor(Math.random() * A.length)]; return s; };
+// 배수가 높을수록 초록 → 노랑 → 빨강
+const heatHue = m => 120 - 120 * clamp(Math.log(m) / Math.log(25), 0, 1);
+const heatColor = (m, l = 55) => `hsl(${heatHue(m)}, 100%, ${l}%)`;
+
+/* =========================================================
+   사운드 (Web Audio API만 사용, 외부 파일 없음)
+   ========================================================= */
+const SFX = {
+  ctx: null, master: null, muted: false, drone: null,
+  init() {
+    if (!this.ctx) {
+      try {
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        this.master = this.ctx.createGain(); this.master.gain.value = 1; this.master.connect(this.ctx.destination);
+      } catch (e) {}
+    }
+    if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+  },
+  setMute(m) { this.muted = m; if (this.master) this.master.gain.value = m ? 0 : 1; },
+  tone(freq, dur = .1, type = 'square', vol = .15, slide = 0, delay = 0) {
+    const c = this.ctx; if (!c) return;
+    const t = c.currentTime + delay, o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, freq + slide), t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(this.master); o.start(t); o.stop(t + dur + .03);
+  },
+  // ① 배수 상승 긴장음: 낮게 깔리는 톱니파 드론 + 점점 빨라지고 높아지는 전자 비프
+  startTension() {
+    const c = this.ctx; if (!c) return;
+    this.stopTension();
+    const o = c.createOscillator(), o2 = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain();
+    o.type = 'sawtooth'; o2.type = 'square'; o.frequency.value = 60; o2.frequency.value = 60.7;
+    f.type = 'lowpass'; f.frequency.value = 260; f.Q.value = 8;
+    g.gain.setValueAtTime(0.0001, c.currentTime); g.gain.exponentialRampToValueAtTime(0.07, c.currentTime + .4);
+    o.connect(f); o2.connect(f); f.connect(g).connect(this.master); o.start(); o2.start();
+    this.drone = { o, o2, f, g };
+  },
+  setTension(m) {
+    const d = this.drone, c = this.ctx; if (!d || !c) return;
+    const t = c.currentTime, base = 55 * Math.pow(m, 0.5);
+    d.o.frequency.setTargetAtTime(base, t, .05); d.o2.frequency.setTargetAtTime(base * 1.505, t, .05);
+    d.f.frequency.setTargetAtTime(Math.min(5000, 220 + 160 * Math.pow(m, 0.9)), t, .05);
+  },
+  stopTension() {
+    const d = this.drone, c = this.ctx; if (!d || !c) return;
+    this.drone = null;
+    const t = c.currentTime;
+    d.g.gain.cancelScheduledValues(t); d.g.gain.setValueAtTime(d.g.gain.value || 0.05, t); d.g.gain.exponentialRampToValueAtTime(0.0001, t + .12);
+    d.o.stop(t + .15); d.o2.stop(t + .15);
+  },
+  beep(m) { this.tone(520 * Math.pow(m, 0.33), .045, 'square', .07); },
+  // ② 탈출 코인
+  coin() { this.tone(988, .07, 'square', .12); this.tone(1319, .28, 'square', .12, 0, .07); },
+  // ③ 폭발: 저역 통과 노이즈 + 떨어지는 사인파 서브
+  boom() {
+    const c = this.ctx; if (!c) return;
+    const t = c.currentTime, len = Math.floor(c.sampleRate * 1.8);
+    const buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2);
+    const src = c.createBufferSource(); src.buffer = buf;
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.setValueAtTime(3000, t); lp.frequency.exponentialRampToValueAtTime(50, t + 1.6);
+    const ws = c.createWaveShaper(); const curve = new Float32Array(256);
+    for (let i = 0; i < 256; i++) { const x = i / 128 - 1; curve[i] = Math.tanh(x * 4); } ws.curve = curve;
+    const g = c.createGain(); g.gain.setValueAtTime(1, t); g.gain.exponentialRampToValueAtTime(0.001, t + 1.8);
+    src.connect(lp).connect(ws).connect(g).connect(this.master); src.start(t);
+    const o = c.createOscillator(), og = c.createGain();
+    o.type = 'sine'; o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(28, t + 1.2);
+    og.gain.setValueAtTime(.9, t); og.gain.exponentialRampToValueAtTime(0.001, t + 1.3);
+    o.connect(og).connect(this.master); o.start(t); o.stop(t + 1.35);
+  },
+  count(go) { this.tone(go ? 1046 : 523, go ? .45 : .16, 'triangle', .25); },
+  pop() { this.tone(700, .08, 'triangle', .15, 500); },
+  click() { this.tone(1500, .03, 'square', .08); },
+  cheer() { [784, 988, 1175, 1568].forEach((f, i) => this.tone(f, .16, 'triangle', .16, 0, i * .07)); },
+  fanfare() { [523, 659, 784, 1046, 784, 1046].forEach((f, i) => this.tone(f, i === 5 ? .6 : .2, 'triangle', .22, 0, i * .14)); },
+};
+
+/* =========================================================
+   네트워크 계층: PeerJS / Firebase / 로컬(BroadcastChannel)
+   - 호스트 → 참가자: 전체 상태 스냅샷 브로드캐스트 (broadcast)
+   - 참가자 → 호스트: 짧은 메시지 (send) — hi(접속·하트비트), esc(탈출), bye
+   ========================================================= */
+const firebaseReady = () => !!(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.databaseURL);
+const NET_LABEL = { peer: 'PeerJS (WebRTC)', firebase: 'Firebase Realtime DB', local: '로컬 시뮬레이션' };
+function pickNet() {
+  const q = params.get('net');
+  if (q === 'local') return 'local';
+  if (q === 'firebase' && firebaseReady()) return 'firebase';
+  if (q === 'peer' && typeof Peer !== 'undefined') return 'peer';
+  if (firebaseReady()) return 'firebase';
+  if (typeof Peer !== 'undefined') return 'peer';
+  return 'local';
+}
+const clean = m => JSON.parse(JSON.stringify(m));
+
+const NET = {
+  local: {
+    host(code, onMsg) {
+      if (typeof BroadcastChannel === 'undefined') return Promise.reject({ type: 'nobc' });
+      const bc = new BroadcastChannel(PREFIX + code);
+      bc.onmessage = e => { const d = e.data; if (d && d.to === 'host') onMsg(d.m); };
+      return Promise.resolve({ broadcast(m) { bc.postMessage({ to: 'all', m }); }, close() { bc.close(); } });
+    },
+    join(code, onMsg, onStatus) {
+      const bc = new BroadcastChannel(PREFIX + code);
+      bc.onmessage = e => { const d = e.data; if (d && d.to === 'all') onMsg(d.m); };
+      setTimeout(() => onStatus(true), 0);
+      return { send(m) { bc.postMessage({ to: 'host', m }); }, close() { bc.close(); } };
+    },
+  },
+
+  peer: {
+    host(code, onMsg) {
+      return new Promise((res, rej) => {
+        const peer = new Peer(PREFIX + code);
+        const conns = new Set();
+        let opened = false, last = null;
+        peer.on('open', () => {
+          opened = true;
+          res({
+            broadcast(m) { last = m; for (const c of conns) if (c.open) { try { c.send(m); } catch (e) {} } },
+            close() { peer.destroy(); },
+          });
+        });
+        peer.on('connection', c => {
+          c.on('open', () => { conns.add(c); if (last) try { c.send(last); } catch (e) {} });
+          c.on('data', m => onMsg(m));
+          c.on('close', () => conns.delete(c));
+          c.on('error', () => conns.delete(c));
+        });
+        peer.on('error', err => { if (!opened) { peer.destroy(); rej(err); } });
+        peer.on('disconnected', () => setTimeout(() => { if (!peer.destroyed) peer.reconnect(); }, 1000));
+      });
+    },
+    join(code, onMsg, onStatus) {
+      const self = { peer: new Peer(), conn: null, retry: null };
+      const again = (ms = 2000) => { clearTimeout(self.retry); self.retry = setTimeout(dial, ms); };
+      function dial() {
+        if (!self.peer.open) return;
+        const c = self.peer.connect(PREFIX + code, { reliable: true });
+        self.conn = c;
+        const to = setTimeout(() => { if (!c.open && self.conn === c) { onStatus(false, 'timeout'); again(); } }, 9000);
+        c.on('open', () => { clearTimeout(to); onStatus(true); });
+        c.on('data', m => onMsg(m));
+        c.on('close', () => { if (self.conn === c) { onStatus(false); again(); } });
+      }
+      self.peer.on('open', dial);
+      self.peer.on('error', e => { onStatus(false, e.type); if (e.type === 'peer-unavailable' || e.type === 'network' || e.type === 'server-error') again(2500); });
+      self.peer.on('disconnected', () => { if (!self.peer.destroyed) self.peer.reconnect(); });
+      self.send = m => { if (self.conn && self.conn.open) try { self.conn.send(m); } catch (e) {} };
+      self.close = () => { clearTimeout(self.retry); self.peer.destroy(); };
+      return self;
+    },
+  },
+
+  firebase: {
+    _db: null,
+    loadScript(src) { return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); },
+    async db() {
+      if (this._db) return this._db;
+      if (!window.firebase) { await this.loadScript(FIREBASE_SDK + 'firebase-app-compat.js'); await this.loadScript(FIREBASE_SDK + 'firebase-database-compat.js'); }
+      if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+      return (this._db = firebase.database());
+    },
+    async host(code, onMsg) {
+      const db = await this.db();
+      const ref = db.ref('chickenrun/' + code);
+      const snap = await ref.child('state').once('value');
+      const v = snap.val();
+      if (v && Date.now() - (v.ts || 0) < 60000) throw { type: 'unavailable-id' };
+      await ref.remove();
+      ref.onDisconnect().remove();
+      ref.child('inbox').on('child_added', s => { onMsg(s.val()); s.ref.remove(); });
+      return {
+        broadcast(m) { ref.child('state').set(clean({ ...m, ts: Date.now() })); },
+        close() { ref.child('inbox').off(); ref.remove(); },
+      };
+    },
+    join(code, onMsg, onStatus) {
+      const self = { ref: null, send(m) { if (self.ref) self.ref.child('inbox').push(clean(m)); }, close() { if (self.ref) self.ref.child('state').off(); } };
+      this.db().then(db => {
+        self.ref = db.ref('chickenrun/' + code);
+        self.ref.child('state').on('value', s => { const v = s.val(); if (v) onMsg(v); });
+        db.ref('.info/connected').on('value', s => onStatus(!!s.val()));
+      }).catch(() => onStatus(false, 'firebase'));
+      return self;
+    },
+  },
+};
+
+/* =========================================================
+   라우팅
+   ========================================================= */
+function startRole(role, opt = {}) {
+  SFX.init();
+  show($('roleSelect'), false);
+  if (role === 'host') Host.start(opt); else Player.start();
+}
+document.querySelectorAll('.roleBtn').forEach(b => b.onclick = () => {
+  const role = b.dataset.role, net = $('netSel').value;
+  try {
+    const u = new URL(location.href); u.searchParams.set('role', role);
+    if (net !== 'auto') u.searchParams.set('net', net); else u.searchParams.delete('net');
+    history.replaceState(null, '', u); params.set('role', role); if (net !== 'auto') params.set('net', net); else params.delete('net');
+  } catch (e) {}
+  startRole(role);
+});
+$('simBtn').onclick = () => {
+  try { const u = new URL(location.href); u.searchParams.set('role', 'host'); u.searchParams.set('net', 'local'); u.searchParams.set('sim', '1'); history.replaceState(null, '', u); } catch (e) {}
+  params.set('net', 'local'); params.set('sim', '1');
+  startRole('host', { sim: true });
+};
+$('netSel').value = ['peer', 'firebase', 'local'].includes(params.get('net')) ? params.get('net') : 'auto';
+if (!firebaseReady()) $('netSel').querySelector('[value=firebase]').textContent = 'Firebase (설정 필요)';
+
+/* =========================================================
+   호스트 (모든 판정은 여기서: 폭발 시점은 참가자에게 절대 보내지 않음)
+   ========================================================= */
+const BOT_NAMES = ['꼬꼬봇', '병아리', '닭강정', '치킨무', '후라이드', '양념이', '반반봇', '깐풍기', '닭가슴살', '삐약이', '순살봇', '날개봇'];
+
+const Host = {
+  net: null, netMode: 'local', code: '', hs: Math.random().toString(36).slice(2, 8),
+  players: new Map(), kicked: new Set(),
+  phase: 'lobby', round: 0,
+  cdStart: 0, runStart: 0, crashAt: 0, runEnd: 0, endReason: '', resStart: 0, resEnd: 0,
+  escLog: [], lastRanks: new Map(), arrows: new Map(), flashIds: new Set(),
+  dirty: true, boardDirty: true, lastBc: 0, lastCdInt: -1, nextBeep: 0,
+  feathers: [], boomAt: 0, sim: false, resShown: false,
+
+  async start(opt = {}) {
+    this.sim = !!opt.sim || params.get('sim') === '1';
+    show($('host'));
+    $('hRounds').textContent = GAME.ROUNDS;
+    $('hStart').onclick = () => this.startGame();
+    $('hBot1').onclick = () => this.addBots(1);
+    $('hBot5').onclick = () => this.addBots(5);
+    $('hCopy').onclick = () => { const u = this.joinUrl(); try { navigator.clipboard.writeText(u); $('hCopy').textContent = '✅ 복사했어요'; } catch (e) { prompt('참가 링크', u); } setTimeout(() => $('hCopy').textContent = '🔗 참가 링크 복사', 1500); };
+    $('hOpenTab').onclick = () => window.open(this.joinUrl(), '_blank', 'noopener');
+    $('hTogglePhone').onclick = () => this.togglePhone();
+    $('phClose').onclick = () => this.togglePhone(false);
+    $('hMute').onclick = () => this.toggleMute();
+    $('hFull').onclick = () => this.toggleFull();
+    $('hChips').onclick = e => { const b = e.target.closest('[data-kick]'); if (b) this.kick(b.dataset.kick); };
+    document.addEventListener('keydown', e => {
+      if (e.target.tagName === 'INPUT') return;
+      if ((e.key === ' ' || e.key === 'Enter') && this.phase === 'lobby' && !$('hStart').disabled) { e.preventDefault(); this.startGame(); }
+      else if (e.key === 'm' || e.key === 'M') this.toggleMute();
+      else if (e.key === 'f' || e.key === 'F') this.toggleFull();
+    });
+    window.addEventListener('resize', () => this.drawGraph());
+    await this.open();
+    if (this.sim) { this.addBots(5); this.togglePhone(true); }
+    this.renderLobby();
+    setInterval(() => this.tick(), 50);
+    const raf = () => { this.frame(); requestAnimationFrame(raf); };
+    requestAnimationFrame(raf);
+  },
+
+  async open() {
+    this.netMode = pickNet();
+    let code = '';
+    try { code = sessionStorage.getItem('chickenrun-hostcode') || ''; } catch (e) {}
+    for (let i = 0; i < 6; i++) {
+      if (!code || i > 0) code = randCode();
+      try {
+        this.setNet(false, `${NET_LABEL[this.netMode]} 연결 중…`);
+        this.net = await NET[this.netMode].host(code, m => this.onMsg(m));
+        this.code = code;
+        break;
+      } catch (e) {
+        if (e && e.type === 'unavailable-id') continue;
+        console.warn('net error', e);
+        if (this.netMode !== 'local') { this.netMode = 'local'; i = -1; code = ''; continue; }
+        this.setNet(false, '실시간 연결을 열 수 없어요', true);
+        return;
+      }
+    }
+    if (!this.net) { this.setNet(false, '방을 열 수 없어요. 새로고침해 주세요', true); return; }
+    try { sessionStorage.setItem('chickenrun-hostcode', this.code); } catch (e) {}
+    this.setNet(true, `${NET_LABEL[this.netMode]} · 연결됨`);
+    this.showCode();
+  },
+  setNet(on, txt, err) { $('hNet').classList.toggle('on', on); $('hNet').classList.toggle('err', !!err); $('hNetTxt').textContent = txt; },
+  joinUrl() {
+    const u = new URL(location.href); u.search = ''; u.hash = '';
+    u.searchParams.set('role', 'player'); u.searchParams.set('room', this.code);
+    if (this.netMode === 'local' || params.get('net')) u.searchParams.set('net', this.netMode);
+    return u.toString();
+  },
+  showCode() {
+    $('hCode').textContent = this.code; $('hCodeSmall').textContent = this.code;
+    const url = this.joinUrl();
+    $('hUrl').textContent = url;
+    show($('hLocalBox'), this.netMode === 'local');
+    show($('qr'), this.netMode !== 'local');
+    if (location.protocol === 'file:' && this.netMode !== 'local') $('hUrl').textContent = '⚠️ 파일로 열었어요. 폰에서 접속하려면 웹에 올린 주소(GitHub Pages 등)로 열어 주세요.';
+    if (typeof qrcode !== 'undefined') {
+      const q = qrcode(0, 'M'); q.addData(url); q.make();
+      $('qr').innerHTML = q.createSvgTag({ cellSize: 8, margin: 2, scalable: true });
+    } else $('qr').textContent = 'QR을 불러오지 못했어요. 방 코드로 입장하세요.';
+  },
+  togglePhone(on) {
+    const el = $('phoneSim');
+    on = on ?? el.classList.contains('hidden');
+    if (on && !el.querySelector('iframe')) {
+      const u = new URL(this.joinUrl()); u.searchParams.set('name', '나'); u.searchParams.set('auto', '1');
+      const f = document.createElement('iframe'); f.src = u.toString(); f.allow = 'autoplay; vibrate'; el.appendChild(f);
+    }
+    if (!on) { const f = el.querySelector('iframe'); if (f) f.remove(); }
+    show(el, on);
+    $('host').classList.toggle('withPhone', on);
+    requestAnimationFrame(() => this.drawGraph());
+  },
+  toggleMute() { SFX.init(); SFX.setMute(!SFX.muted); $('hMute').textContent = SFX.muted ? '🔇' : '🔊'; },
+  toggleFull() { try { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); } catch (e) {} },
+
+  /* ---------- 참가자 관리 ---------- */
+  uniqueName(name) {
+    name = String(name || '').replace(/\s+/g, ' ').trim().slice(0, 8) || '익명닭';
+    const names = new Set([...this.players.values()].map(p => p.name));
+    if (!names.has(name)) return name;
+    for (let i = 2; ; i++) { const n = name.slice(0, 7) + i; if (!names.has(n)) return n; }
+  },
+  addPlayer(id, name, bot = false) {
+    if (this.players.size >= GAME.MAX_PLAYERS) return null;
+    const p = {
+      id, name: this.uniqueName(name), bot, score: 0, conn: true, lastSeen: now(),
+      st: (this.phase === 'run' || this.phase === 'res') ? 3 : 0, mult: 0, pts: 0,
+      best: 0, booms: 0, escapes: 0, target: 0,
+    };
+    if (bot) p.target = this.botTarget();
+    this.players.set(id, p);
+    if (this.phase === 'lobby') SFX.pop();
+    this.dirty = this.boardDirty = true;
+    this.lastRanks.set(id, this.ranks().get(id));
+    this.renderLobby();
+    return p;
+  },
+  addBots(n) {
+    for (let i = 0; i < n; i++) {
+      const used = new Set([...this.players.values()].map(p => p.name));
+      const base = BOT_NAMES.find(b => !used.has('🤖' + b)) || BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)];
+      this.addPlayer('bot-' + Math.random().toString(36).slice(2, 9), '🤖' + base, true);
+    }
+  },
+  // 가상 참가자의 목표 배수: 대부분 1.5~5x, 가끔 욕심쟁이
+  botTarget() { const r = Math.random(); return 1.2 + (-Math.log(1 - r * 0.98)) * (Math.random() < .2 ? 6 : 2.2); },
+  kick(id) {
+    const p = this.players.get(id); if (!p) return;
+    this.players.delete(id); if (!p.bot) this.kicked.add(id);
+    this.dirty = this.boardDirty = true; this.renderLobby();
+  },
+  renderLobby() {
+    const list = [...this.players.values()];
+    $('hCount').textContent = list.length;
+    show($('hEmpty'), list.length === 0);
+    $('hChips').querySelectorAll('.chip').forEach(c => { if (!this.players.has(c.dataset.id)) c.remove(); });
+    for (const p of list) {
+      let c = $('hChips').querySelector(`.chip[data-id="${CSS.escape(p.id)}"]`);
+      if (!c) { c = document.createElement('span'); c.className = 'chip'; c.dataset.id = p.id; $('hChips').appendChild(c); }
+      c.classList.toggle('off', !p.conn); c.classList.toggle('bot', p.bot);
+      setHTML(c, `${p.bot ? '' : '🐥 '}${esc(p.name)}<button data-kick="${esc(p.id)}" title="내보내기" aria-label="${esc(p.name)} 내보내기">✕</button>`);
+    }
+    $('hStart').disabled = list.length === 0 || !this.net;
+  },
+
+  /* ---------- 메시지 ---------- */
+  onMsg(m) {
+    if (!m || typeof m !== 'object') return;
+    const pid = String(m.pid || '').slice(0, 48);
+    if (!pid) return;
+    if (m.t === 'hi') {
+      if (this.kicked.has(pid)) return;
+      let p = this.players.get(pid);
+      if (!p) { p = this.addPlayer(pid, m.name); if (!p) return; }
+      p.lastSeen = now();
+      if (!p.conn) { p.conn = true; this.dirty = this.boardDirty = true; this.renderLobby(); }
+    } else if (m.t === 'esc') {
+      const p = this.players.get(pid);
+      if (!p) return;
+      p.lastSeen = now();
+      if (this.phase !== 'run' || p.st !== 0 || m.rd !== this.round) return;
+      const hostE = (now() - this.runStart) / 1000;
+      // 지연 보정: 참가자가 누른 순간의 시각을 최대 0.3초까지 인정 (호스트 시각보다 늦게는 불가)
+      const e = Number.isFinite(m.e) ? clamp(m.e, hostE - GAME.LATENCY_COMP, hostE) : hostE;
+      if (e >= this.crashAt) return;
+      this.escape(p, Math.max(0, e));
+    } else if (m.t === 'bye') {
+      const p = this.players.get(pid);
+      if (p && p.conn) { p.conn = false; p.lastSeen = 0; this.dirty = this.boardDirty = true; this.renderLobby(); }
+    }
+  },
+
+  /* ---------- 게임 흐름 ---------- */
+  startGame() {
+    if (!this.players.size) return;
+    SFX.init();
+    for (const p of this.players.values()) { p.score = 0; p.best = 0; p.booms = 0; p.escapes = 0; }
+    this.round = 0;
+    this.lastRanks = this.ranks(); this.arrows.clear();
+    show($('hLobby'), false); show($('hGame')); show($('finOv'), false);
+    requestAnimationFrame(() => this.drawGraph());
+    this.startRound();
+  },
+  toLobby() {
+    this.phase = 'lobby'; this.round = 0;
+    for (const p of this.players.values()) { p.score = 0; p.st = 0; p.pts = 0; p.mult = 0; }
+    show($('hGame'), false); show($('hLobby')); show($('finOv'), false);
+    this.dirty = this.boardDirty = true; this.renderLobby();
+  },
+  startRound() {
+    this.round++;
+    this.phase = 'cd'; this.cdStart = now(); this.lastCdInt = -1;
+    this.crashAt = GAME.CRASH_MIN + Math.random() * (GAME.CRASH_MAX - GAME.CRASH_MIN);
+    this.escLog = []; this.feathers = []; this.endReason = ''; this.runEnd = 0; this.resShown = false;
+    for (const p of this.players.values()) { p.st = 0; p.pts = 0; p.mult = 0; if (p.bot) p.target = this.botTarget(); }
+    $('hRound').textContent = this.round;
+    show($('resOv'), false); show($('boomFx'), false); show($('allFx'), false); show($('cdOv'));
+    $('stage').style.setProperty('--heat', 0);
+    this.dirty = this.boardDirty = true;
+  },
+  startRun() {
+    this.phase = 'run'; this.runStart = now(); this.nextBeep = 0;
+    show($('cdOv'), false);
+    SFX.startTension();
+    this.dirty = true;
+  },
+  escape(p, e) {
+    p.st = 1; p.mult = floor2(multAt(e)); p.pts = ptsOf(p.mult);
+    p.score += p.pts; p.best = Math.max(p.best, p.mult); p.escapes++;
+    this.escLog.push({ id: p.id, name: p.name, e, m: p.mult });
+    this.toast(p.name, p.mult);
+    SFX.coin();
+    this.flashIds.add(p.id);
+    this.updateArrows();
+    this.dirty = this.boardDirty = true;
+  },
+  boom() {
+    this.phase = 'res'; this.endReason = 'boom'; this.runEnd = this.crashAt; this.boomAt = now();
+    let lost = 0;
+    for (const p of this.players.values()) if (p.st === 0) { p.st = 2; p.booms++; lost++; }
+    SFX.stopTension(); SFX.boom();
+    this.resStart = now(); this.resEnd = now() + (GAME.BOOM_HOLD + GAME.RESULT) * 1000;
+    $('boomSub').innerHTML = `💥 <span style="font-family:var(--num)">${fmtX(multAt(this.crashAt))}</span>에서 폭발! · ${lost ? `<b>${lost}명</b> 튀겨짐 🍗` : '모두 탈출 성공'}`;
+    show($('boomFx'));
+    const st = $('hGame'); st.classList.remove('shake'); void st.offsetWidth; st.classList.add('shake');
+    this.spawnFeathers();
+    this.dirty = this.boardDirty = true;
+  },
+  allEscaped(e) {
+    this.phase = 'res'; this.endReason = 'all'; this.runEnd = e;
+    SFX.stopTension(); SFX.cheer();
+    this.resStart = now(); this.resEnd = now() + (GAME.ALL_HOLD + GAME.RESULT) * 1000;
+    show($('allFx'));
+    this.dirty = this.boardDirty = true;
+  },
+  finish() {
+    this.phase = 'final';
+    show($('resOv'), false); show($('boomFx'), false); show($('allFx'), false);
+    this.renderFinal(); show($('finOv'));
+    SFX.fanfare();
+    this.dirty = this.boardDirty = true;
+  },
+
+  tick() {
+    const t = now();
+    // 접속 상태 (하트비트 6초 이상 끊기면 오프라인)
+    for (const p of this.players.values()) {
+      if (p.bot) continue;
+      const on = t - p.lastSeen < 6000;
+      if (on !== p.conn) { p.conn = on; this.dirty = this.boardDirty = true; if (this.phase === 'lobby') this.renderLobby(); }
+    }
+    for (const [id, a] of this.arrows) if (a.until < t) { this.arrows.delete(id); this.boardDirty = true; }
+
+    if (this.phase === 'cd') {
+      const left = GAME.COUNTDOWN - (t - this.cdStart) / 1000;
+      const n = Math.ceil(left);
+      if (n !== this.lastCdInt && n > 0) {
+        this.lastCdInt = n; SFX.count(false);
+        const el = $('cdNum'); el.textContent = n; el.classList.remove('anim'); void el.offsetWidth; el.classList.add('anim');
+      }
+      if (left <= 0) { SFX.count(true); this.startRun(); }
+    } else if (this.phase === 'run') {
+      const e = (t - this.runStart) / 1000;
+      const m = multAt(Math.min(e, this.crashAt));
+      for (const p of this.players.values()) if (p.bot && p.st === 0 && m >= p.target && e < this.crashAt) this.escape(p, e);
+      if (e >= this.crashAt) { this.boom(); }
+      else {
+        const part = [...this.players.values()].filter(p => p.st === 0 || p.st === 1);
+        const waiting = part.filter(p => p.st === 0 && (p.conn || p.bot));
+        if (part.length && !waiting.length) this.allEscaped(e);
+        else {
+          SFX.setTension(m);
+          if (t >= this.nextBeep) { SFX.beep(m); this.nextBeep = t + Math.max(70, 560 / Math.pow(m, 0.6)); }
+        }
+      }
+    } else if (this.phase === 'res') {
+      const hold = (this.endReason === 'boom' ? GAME.BOOM_HOLD : GAME.ALL_HOLD) * 1000;
+      if (!this.resShown && t - this.resStart >= hold) { this.resShown = true; this.renderResult(); show($('resOv')); show($('boomFx'), false); show($('allFx'), false); }
+      if (this.resShown) { const s = Math.max(0, Math.ceil((this.resEnd - t) / 1000)); const el = $('resNext'); if (el) setText(el, this.round >= GAME.ROUNDS ? `최종 결과까지 ${s}초` : `다음 라운드까지 ${s}초`); }
+      if (t >= this.resEnd) { if (this.round >= GAME.ROUNDS) this.finish(); else this.startRound(); }
+    }
+
+    const interval = this.phase === 'run' || this.phase === 'cd' ? 200 : 1500;
+    if (this.dirty || t - this.lastBc > interval) this.broadcast();
+    if (this.boardDirty) { this.boardDirty = false; this.renderBoard(); }
+  },
+
+  ranks() {
+    const list = [...this.players.values()];
+    const r = new Map();
+    for (const p of list) r.set(p.id, 1 + list.filter(q => q.score > p.score).length);
+    return r;
+  },
+  sorted() { return [...this.players.values()].sort((a, b) => b.score - a.score || a.name.localeCompare(b.name)); },
+  updateArrows() {
+    const r = this.ranks(), t = now();
+    for (const [id, nr] of r) {
+      const or = this.lastRanks.get(id);
+      if (or != null && nr !== or) this.arrows.set(id, { dir: nr < or ? 'up' : 'down', until: t + 2600 });
+    }
+    this.lastRanks = r;
+  },
+
+  broadcast() {
+    this.dirty = false; this.lastBc = now();
+    if (!this.net) return;
+    const t = now(), r = this.ranks();
+    const st = {
+      t: 's', hs: this.hs, code: this.code, ph: this.phase, rd: this.round, tr: GAME.ROUNDS,
+      cd: this.phase === 'cd' ? Math.max(0, GAME.COUNTDOWN - (t - this.cdStart) / 1000) : 0,
+      e: this.phase === 'run' ? (t - this.runStart) / 1000 : this.runEnd,
+      nx: this.phase === 'res' ? Math.max(0, (this.resEnd - t) / 1000) : 0,
+      end: this.endReason || '',
+      cm: this.phase === 'res' || this.phase === 'final' ? floor2(multAt(this.endReason === 'boom' ? this.crashAt : this.runEnd)) : 0,
+      ps: this.sorted().map(p => [p.id, p.name, p.score, r.get(p.id), p.st, p.pts, p.mult, p.conn || p.bot ? 1 : 0]),
+    };
+    try { this.net.broadcast(st); } catch (e) { console.warn(e); }
+  },
+
+  /* ---------- 화면 ---------- */
+  toast(name, m) {
+    const box = $('toasts');
+    const d = document.createElement('div'); d.className = 'toast';
+    d.innerHTML = `🏃 ${esc(name)} 탈출! <em>(${fmtX(m)})</em>`;
+    box.prepend(d);
+    while (box.children.length > 6) box.lastChild.remove();
+    setTimeout(() => d.remove(), 2900);
+  },
+  renderBoard() {
+    const el = $('board');
+    const rows = this.sorted(), r = this.ranks();
+    if (!rows.length) { el.innerHTML = '<li class="boardEmpty">참가자가 없어요</li>'; return; }
+    el.querySelectorAll('.boardEmpty').forEach(x => x.remove());
+    const tops = new Map([...el.children].map(li => [li.dataset.id, li.getBoundingClientRect().top]));
+    const existing = new Map([...el.children].map(li => [li.dataset.id, li]));
+    const inGame = this.phase !== 'lobby';
+    for (const p of rows) {
+      let li = existing.get(p.id);
+      if (!li) { li = document.createElement('li'); li.dataset.id = p.id; li.dataset.score = p.score; }
+      existing.delete(p.id);
+      const rk = r.get(p.id);
+      li.className = (rk === 1 && p.score > 0 ? 'top1 ' : '') + (!p.conn && !p.bot ? 'off' : '');
+      const icon = !inGame ? '🐥' : this.phase === 'final' ? (rk <= 3 ? ['🥇', '🥈', '🥉'][rk - 1] : '🏁') : p.st === 1 ? '🏃' : p.st === 2 ? '🍗' : p.st === 3 ? '👀' : '🐔';
+      const a = this.arrows.get(p.id);
+      const ar = a ? `<span class="ar ${a.dir}">${a.dir === 'up' ? '▲' : '▼'}</span>` : '<span class="ar"></span>';
+      const medal = rk === 1 && p.score > 0 ? '👑' : rk;
+      setHTML(li, `<span class="rk">${medal}</span><span class="si">${icon}</span><span class="nm">${esc(p.name)}</span>${ar}<span class="sc">${li.dataset.score}</span>`);
+      el.appendChild(li);
+      const sc = li.querySelector('.sc');
+      if (+li.dataset.score !== p.score) { animateNumber(sc, +li.dataset.score, p.score); li.dataset.score = p.score; li._h = null; }
+      if (this.flashIds.has(p.id)) { li.classList.remove('flash'); void li.offsetWidth; li.classList.add('flash'); }
+    }
+    this.flashIds.clear();
+    existing.forEach(li => li.remove());
+    for (const li of el.children) {
+      const f = tops.get(li.dataset.id);
+      if (f == null) continue;
+      const dy = f - li.getBoundingClientRect().top;
+      if (Math.abs(dy) > 1) li.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: 650, easing: 'cubic-bezier(.2,.8,.2,1)' });
+    }
+  },
+  renderResult() {
+    const list = [...this.players.values()].filter(p => p.st === 1 || p.st === 2)
+      .sort((a, b) => b.pts - a.pts || a.name.localeCompare(b.name));
+    const cm = fmtX(multAt(this.crashAt));
+    const head = this.endReason === 'boom'
+      ? `<div class="resHead boom">💥 ${this.crashAt.toFixed(1)}초, ${cm}에서 폭발!</div>`
+      : `<div class="resHead all">🎉 전원 탈출! 폭발 예정이었던 시점은 ${this.crashAt.toFixed(1)}초 (${cm})</div>`;
+    const rows = list.map(p => p.st === 1
+      ? `<li class="esc"><span>🏃</span><span class="nm">${esc(p.name)}</span><span class="mx">${fmtX(p.mult)}</span><span class="pt">+${p.pts}</span></li>`
+      : `<li class="dead"><span>🍗</span><span class="nm">${esc(p.name)}</span><span class="mx">폭발</span><span class="pt">0</span></li>`).join('');
+    $('resPanel').innerHTML = `<h2>ROUND <em>${this.round}</em> 결과</h2>${head}<ul class="resList">${rows || '<li>참가자가 없었어요</li>'}</ul>
+      <div class="nextRow"><span id="resNext"></span><div class="bar"><i style="animation:barDown ${GAME.RESULT}s linear forwards"></i></div></div>`;
+  },
+  renderFinal() {
+    const rows = this.sorted(), r = this.ranks();
+    const pod = [rows[1], rows[0], rows[2]].map((p, i) => {
+      if (!p) return '<div class="pod"></div>';
+      const cls = ['p2', 'p1', 'p3'][i], md = ['🥈', '🥇', '🥉'][i];
+      return `<div class="pod ${cls}"><div class="who">${esc(p.name)}</div><div class="sc">${p.score}점</div><div class="blk">${md}</div></div>`;
+    }).join('');
+    const aw = [];
+    const best = rows.slice().sort((a, b) => b.best - a.best)[0];
+    if (best && best.best > 0) aw.push(`🚀 최고 배수 탈출 <em>${esc(best.name)}</em> ${fmtX(best.best)}`);
+    const fried = rows.slice().sort((a, b) => b.booms - a.booms)[0];
+    if (fried && fried.booms > 0) aw.push(`🍗 가장 많이 튀겨진 닭 <em>${esc(fried.name)}</em> ${fried.booms}번`);
+    const safe = rows.filter(p => p.booms === 0 && p.escapes > 0);
+    if (safe.length) aw.push(`🛡️ 무폭발 생존 <em>${safe.slice(0, 3).map(p => esc(p.name)).join(', ')}${safe.length > 3 ? ` 외 ${safe.length - 3}명` : ''}</em>`);
+    const rest = rows.slice(3).map(p => `${r.get(p.id)}위 ${esc(p.name)} ${p.score}점`).join(' · ');
+    $('finPanel').innerHTML = `<h2>🏆 최종 결과</h2><div class="podium">${pod}</div>
+      <div class="awards">${aw.map(a => `<span class="award">${a}</span>`).join('')}</div>
+      <div class="finRest">${rest}</div>
+      <div class="finBtns"><button class="btn" id="finAgain">🔁 같은 멤버로 다시 하기</button><button class="btn ghost" id="finLobby">대기실로</button></div>`;
+    $('finAgain').onclick = () => this.startGame();
+    $('finLobby').onclick = () => this.toLobby();
+  },
+
+  frame() {
+    if (this.phase === 'lobby') return;
+    const t = now();
+    let m = 1, e = 0;
+    if (this.phase === 'run') { e = Math.min((t - this.runStart) / 1000, this.crashAt); m = multAt(e); }
+    else if (this.phase === 'res' || this.phase === 'final') { e = this.runEnd; m = multAt(e); }
+    const bm = $('bigMult');
+    const boomed = this.endReason === 'boom' && this.phase !== 'cd';
+    setText(bm, (boomed ? '💥 ' : '') + fmtX(m));
+    bm.style.color = boomed ? 'var(--red)' : this.phase === 'cd' ? 'var(--muted)' : heatColor(m, 58);
+    // 배수가 높을수록 숫자가 떨리고 가장자리가 붉어짐
+    if (this.phase === 'run') {
+      const k = clamp((m - 3) / 20, 0, 1) * 6;
+      bm.style.transform = k > 0 ? `translate(${(Math.random() - .5) * k}px, ${(Math.random() - .5) * k}px)` : '';
+      $('stage').style.setProperty('--heat', clamp((m - 1.5) / 30, 0, .55).toFixed(3));
+    } else bm.style.transform = '';
+    let sub = '';
+    if (this.phase === 'run') sub = `⏱ <b>${e.toFixed(1)}</b>초 / ${GAME.ROUND_MAX}초 · 지금 탈출하면 <b>+${ptsOf(m)}</b>점`;
+    else if (this.phase === 'cd') sub = '곧 시작합니다… 폰을 준비하세요!';
+    else if (this.phase === 'res') sub = this.endReason === 'boom' ? `${this.crashAt.toFixed(1)}초에 폭발` : `폭발 예정: ${this.crashAt.toFixed(1)}초 (${fmtX(multAt(this.crashAt))})`;
+    setHTML($('subMult'), sub);
+    // 생존자 게이지
+    const part = [...this.players.values()].filter(p => p.st !== 3);
+    const alive = part.filter(p => p.st === 0).length;
+    setText($('hAlive'), alive); setText($('hTotal'), part.length);
+    const bar = $('hGaugeBar'), ratio = part.length ? alive / part.length : 0;
+    bar.style.width = (ratio * 100).toFixed(1) + '%';
+    bar.className = this.phase === 'res' && this.endReason === 'boom' && alive === 0 && part.some(p => p.st === 2) ? 'dead' : ratio <= .34 ? 'low' : '';
+    setText($('hBoardSub'), this.phase === 'final' ? '최종' : `ROUND ${this.round}/${GAME.ROUNDS}`);
+    this.drawGraph();
+  },
+
+  spawnFeathers() {
+    this.feathers = [];
+    for (let i = 0; i < 46; i++) {
+      const a = Math.random() * Math.PI * 2, s = 3 + Math.random() * 9;
+      this.feathers.push({ x: 0, y: 0, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 4, r: Math.random() * 6, vr: (Math.random() - .5) * .4, w: 6 + Math.random() * 10, c: Math.random() < .7 ? '#fff6e8' : Math.random() < .5 ? '#ffb347' : '#ff4d2a', life: 1 });
+    }
+  },
+
+  drawGraph() {
+    const cv = $('graph'); if (!cv || $('hGame').classList.contains('hidden')) return;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const W = cv.clientWidth, H = cv.clientHeight;
+    if (!W || !H) return;
+    if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+    const g = cv.getContext('2d');
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, W, H);
+    const t = now();
+    let tEnd = 0;
+    if (this.phase === 'run') tEnd = Math.min((t - this.runStart) / 1000, this.crashAt);
+    else if (this.phase === 'res' || this.phase === 'final') tEnd = this.runEnd;
+    const mEnd = multAt(tEnd);
+    const L = 64, R = 40, T = 30, B = 44;
+    const tMax = Math.max(8, tEnd * 1.12 + .6), mMax = Math.max(2, mEnd * 1.22);
+    const X = s => L + s / tMax * (W - L - R), Y = m => H - B - (m - 1) / (mMax - 1) * (H - T - B);
+
+    // 격자
+    g.font = '700 13px Orbitron, monospace'; g.lineWidth = 1;
+    const ys = niceStep((mMax - 1) / 5);
+    g.textAlign = 'right'; g.textBaseline = 'middle';
+    for (let m = 1; m <= mMax + 1e-9; m += ys) {
+      const y = Y(m);
+      g.strokeStyle = m === 1 ? '#ffffff30' : '#ffffff10'; g.beginPath(); g.moveTo(L, y); g.lineTo(W - R, y); g.stroke();
+      g.fillStyle = '#8f8cb8'; g.fillText((ys < 1 ? m.toFixed(1) : Math.round(m)) + 'x', L - 10, y);
+    }
+    const xs = tMax > 24 ? 5 : 2;
+    g.textAlign = 'center'; g.textBaseline = 'top';
+    for (let s = 0; s <= tMax; s += xs) {
+      const x = X(s);
+      g.strokeStyle = '#ffffff0c'; g.beginPath(); g.moveTo(x, T); g.lineTo(x, H - B); g.stroke();
+      g.fillStyle = '#8f8cb8'; g.fillText(s + 's', x, H - B + 10);
+    }
+
+    const boomed = this.endReason === 'boom' && (this.phase === 'res' || this.phase === 'final');
+    const col = boomed ? '#ff2a3d' : heatColor(mEnd, 55);
+    // 곡선
+    if (tEnd > 0) {
+      const N = 140;
+      g.beginPath(); g.moveTo(X(0), Y(1));
+      for (let i = 1; i <= N; i++) { const s = tEnd * i / N; g.lineTo(X(s), Y(multAt(s))); }
+      const grd = g.createLinearGradient(0, Y(mEnd), 0, H - B);
+      grd.addColorStop(0, boomed ? '#ff2a3d55' : `hsla(${heatHue(mEnd)},100%,55%,.35)`); grd.addColorStop(1, '#00000000');
+      g.save(); g.lineTo(X(tEnd), H - B); g.lineTo(X(0), H - B); g.closePath(); g.fillStyle = grd; g.fill(); g.restore();
+      g.beginPath(); g.moveTo(X(0), Y(1));
+      for (let i = 1; i <= N; i++) { const s = tEnd * i / N; g.lineTo(X(s), Y(multAt(s))); }
+      g.strokeStyle = col; g.lineWidth = 6; g.lineJoin = 'round'; g.lineCap = 'round'; g.shadowColor = col; g.shadowBlur = 24; g.stroke(); g.shadowBlur = 0;
+    }
+    // 탈출 지점 마커
+    g.textBaseline = 'bottom';
+    this.escLog.forEach((p, i) => {
+      const x = X(p.e), y = Y(p.m);
+      g.fillStyle = '#19e6ff'; g.shadowColor = '#19e6ff'; g.shadowBlur = 12;
+      g.beginPath(); g.arc(x, y, 7, 0, Math.PI * 2); g.fill(); g.shadowBlur = 0;
+      g.font = '900 15px "Noto Sans KR", sans-serif'; g.textAlign = 'right';
+      const label = p.name.length > 6 ? p.name.slice(0, 6) + '…' : p.name;
+      const off = (i % 3) * 18;
+      g.lineWidth = 4; g.strokeStyle = '#06050d'; g.strokeText(label, x - 10, y - 8 - off); g.fillStyle = '#d6fbff'; g.fillText(label, x - 10, y - 8 - off);
+    });
+    // 닭 (곡선 끝을 달린다)
+    const cx = X(tEnd), cy = Y(mEnd);
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    if (boomed) {
+      const k = (t - this.boomAt) / 1000;
+      if (k < .5) { g.font = `${Math.round(90 + k * 200)}px serif`; g.globalAlpha = 1 - k * 1.2; g.fillText('💥', cx, cy); g.globalAlpha = 1; }
+      g.font = '64px serif'; g.fillText('🍗', cx, cy + Math.min(60, k * k * 120));
+      for (const f of this.feathers) {
+        if (f.life <= 0) continue;
+        f.x += f.vx; f.y += f.vy; f.vy += .25; f.vx *= .985; f.r += f.vr; f.life -= .008;
+        g.save(); g.globalAlpha = Math.max(0, f.life); g.translate(cx + f.x, cy + f.y); g.rotate(f.r);
+        g.fillStyle = f.c; g.beginPath(); g.ellipse(0, 0, f.w, f.w * .32, 0, 0, Math.PI * 2); g.fill(); g.restore();
+      }
+    } else {
+      const running = this.phase === 'run';
+      const bob = running ? Math.sin(t / 55) * 5 : this.phase === 'cd' ? Math.sin(t / 30) * 2 : 0;
+      const slope = tEnd > 0 ? Math.atan2(Y(multAt(tEnd)) - Y(multAt(Math.max(0, tEnd - .3))), X(tEnd) - X(Math.max(0, tEnd - .3))) : 0;
+      g.save(); g.translate(cx, cy - 28 + bob); g.rotate(slope * .5); g.scale(-1, 1);
+      g.font = '58px serif'; g.fillText(this.endReason === 'all' && this.phase !== 'cd' ? '😎' : '🐔', 0, 0); g.restore();
+      if (running) { g.font = '20px serif'; g.globalAlpha = .6; g.fillText('💨', cx - 44, cy - 14 + bob); g.globalAlpha = 1; }
+    }
+  },
+};
+
+function niceStep(raw) {
+  if (!(raw > 0)) return 1;
+  const p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p;
+  return (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * p;
+}
+function animateNumber(el, from, to, ms = 800) {
+  const t0 = now();
+  const step = () => { const k = Math.min(1, (now() - t0) / ms), e = 1 - Math.pow(1 - k, 3); el.textContent = Math.round(from + (to - from) * e); if (k < 1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+document.head.insertAdjacentHTML('beforeend', '<style>@keyframes barDown{from{transform:scaleX(1)}to{transform:scaleX(0)}}</style>');
+
+/* =========================================================
+   참가자 (모바일 컨트롤러)
+   ========================================================= */
+const Player = {
+  net: null, pid: '', name: '', code: '', st: null, me: null, recvAt: 0,
+  joined: false, hs: '', pending: 0, pendingAt: 0, resent: false,
+  lastSt: -1, lastPhase: '', lastRound: 0, lastCdInt: -1, prevRank: 0, rankArr: '', hiTimer: null, joinTimer: null, connected: false, wake: null,
+
+  start() {
+    show($('player'));
+    // window.name은 새로고침해도 유지되고 새 탭에는 복사되지 않아 탭마다 고유한 참가자 ID로 쓰기 좋음
+    const m = /^crpid:(\w+)$/.exec(window.name || '');
+    this.pid = m ? m[1] : 'p' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+    window.name = 'crpid:' + this.pid;
+    const room = (params.get('room') || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
+    $('pCode').value = room;
+    let saved = ''; try { saved = localStorage.getItem('chickenrun-name') || ''; } catch (e) {}
+    $('pName').value = params.get('name') || saved;
+    $('pJoinBtn').onclick = () => this.join();
+    $('pName').onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) this.join(); };
+    $('pCode').oninput = () => { $('pCode').value = $('pCode').value.toUpperCase().replace(/[^A-Z]/g, ''); };
+    const btn = $('escBtn');
+    btn.addEventListener('pointerdown', e => { e.preventDefault(); this.escape(); });
+    btn.addEventListener('contextmenu', e => e.preventDefault());
+    window.addEventListener('pagehide', () => { if (this.net) try { this.net.send({ t: 'bye', pid: this.pid }); } catch (e) {} });
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && this.joined) { this.requestWake(); this.hi(); } });
+    if (params.get('auto') === '1' && room && $('pName').value) this.join();
+    else (room ? $('pName') : $('pCode')).focus();
+    const raf = () => { this.render(); requestAnimationFrame(raf); };
+    requestAnimationFrame(raf);
+  },
+
+  join() {
+    SFX.init(); vibrate(20);
+    const code = $('pCode').value.trim().toUpperCase(), name = $('pName').value.trim();
+    if (code.length !== 4) return this.err('방 코드 4자리를 입력하세요');
+    if (!name) return this.err('닉네임을 입력하세요');
+    this.code = code; this.name = name.slice(0, 8);
+    try { localStorage.setItem('chickenrun-name', this.name); } catch (e) {}
+    $('pJoinBtn').disabled = true; $('pJoinBtn').textContent = '연결 중…'; this.err('');
+    if (this.net) try { this.net.close(); } catch (e) {}
+    const mode = pickNet();
+    this.net = NET[mode].join(code, m => this.onMsg(m), (ok, why) => this.onStatus(ok, why));
+    clearInterval(this.hiTimer);
+    this.hiTimer = setInterval(() => this.hi(), 2000);
+    clearTimeout(this.joinTimer);
+    this.joinTimer = setTimeout(() => {
+      if (this.joined) return;
+      this.err(mode === 'local' ? '방을 찾을 수 없어요. 같은 브라우저에 호스트 탭이 열려 있는지 확인하세요.' : '방을 찾을 수 없어요. 코드를 확인하고, 메인 화면이 켜져 있는지 보세요.');
+      this.resetJoin();
+    }, 10000);
+  },
+  hi() { if (this.net && this.connected) this.net.send({ t: 'hi', pid: this.pid, name: this.name }); },
+  onStatus(ok, why) {
+    this.connected = ok;
+    if (ok) this.hi();
+    if (this.joined) setText($('pNet'), ok ? '' : '⚠️ 연결이 끊겼어요. 다시 연결 중…');
+  },
+  resetJoin() {
+    clearInterval(this.hiTimer); clearTimeout(this.joinTimer);
+    if (this.net) try { this.net.close(); } catch (e) {}
+    this.net = null; this.joined = false; this.connected = false;
+    $('pJoinBtn').disabled = false; $('pJoinBtn').textContent = '입장하기';
+  },
+  err(t) { $('pErr').textContent = t; },
+  async requestWake() { try { if ('wakeLock' in navigator) this.wake = await navigator.wakeLock.request('screen'); } catch (e) {} },
+
+  onMsg(s) {
+    if (!s || s.t !== 's' || s.code !== this.code) return;
+    s.ps = Array.isArray(s.ps) ? s.ps : Object.values(s.ps || {});
+    const me = s.ps.find(a => a && a[0] === this.pid);
+    if (!me) {
+      if (this.joined && s.hs === this.hs) {   // 같은 호스트 세션인데 명단에서 빠짐 → 내보내짐
+        this.resetJoin(); show($('pMain'), false); show($('pJoin')); document.body.classList.remove('pBoom');
+        this.err('호스트가 내보냈어요');
+      }
+      return;
+    }
+    if (!this.joined) {
+      this.joined = true; clearTimeout(this.joinTimer);
+      show($('pJoin'), false); show($('pMain'));
+      setText($('pMe'), me[1]); this.requestWake(); SFX.pop(); vibrate(30);
+    }
+    this.hs = s.hs;
+    this.st = s; this.me = me; this.recvAt = now();
+    setText($('pNet'), '');
+    const myst = me[4];
+    // 상태 전환에 따른 효과
+    if (s.rd !== this.lastRound || (s.ph === 'cd' && this.lastPhase !== 'cd')) { this.pending = 0; this.resent = false; document.body.classList.remove('pBoom'); }
+    if (myst === 1 && this.lastSt === 0 && s.rd === this.lastRound) { SFX.coin(); vibrate([40, 40, 80]); }
+    if (myst === 2 && this.lastSt !== 2) { SFX.boom(); vibrate([500, 120, 300, 120, 600]); document.body.classList.add('pBoom'); }
+    if (s.ph === 'res' && s.end === 'boom' && this.lastPhase === 'run' && myst === 1) vibrate(120);
+    if (s.ph === 'final' || s.ph === 'lobby') document.body.classList.remove('pBoom');
+    if (s.ph === 'final' && this.lastPhase !== 'final') { SFX.fanfare(); vibrate([80, 60, 80, 60, 200]); }
+    if (myst !== 0) this.pending = 0;
+    // 순위 변동 화살표
+    const rk = me[3];
+    if (this.prevRank && rk !== this.prevRank) { this.rankArr = rk < this.prevRank ? '▲' : '▼'; this.rankArrUntil = now() + 3000; }
+    this.prevRank = rk;
+    this.lastSt = myst; this.lastPhase = s.ph; this.lastRound = s.rd;
+  },
+
+  liveE() { const s = this.st; return s ? s.e + (now() - this.recvAt) / 1000 : 0; },
+
+  escape() {
+    const s = this.st, me = this.me;
+    if (!s || s.ph !== 'run' || !me || me[4] !== 0 || this.pending === s.rd) return;
+    this.pending = s.rd; this.pendingAt = now(); this.resent = false;
+    this.net.send({ t: 'esc', pid: this.pid, rd: s.rd, e: this.liveE() });
+    vibrate(70); SFX.click();
+  },
+
+  render() {
+    const s = this.st, me = this.me;
+    if (!s || !me || !this.joined) return;
+    const t = now();
+    // 탈출 요청 응답이 늦으면 한 번 더 보냄
+    if (this.pending === s.rd && !this.resent && t - this.pendingAt > 1200 && s.ph === 'run' && me[4] === 0) { this.resent = true; this.net.send({ t: 'esc', pid: this.pid, rd: s.rd, e: this.liveE() - (t - this.pendingAt) / 1000 }); }
+
+    setText($('pRankV'), `${me[3]}위/${s.ps.length}`);
+    const arr = $('pRankArr');
+    const showArr = this.rankArr && t < (this.rankArrUntil || 0);
+    setText(arr, showArr ? this.rankArr : ''); arr.style.color = this.rankArr === '▲' ? 'var(--neon)' : 'var(--red)';
+    setText($('pScoreV'), me[2]);
+
+    const btn = $('escBtn');
+    let cls = 'wait', main = '', sub = '', round = `ROUND ${s.rd}/${s.tr}`, mult = '', multColor = 'var(--neon)', msg = '';
+    const myst = me[4];
+    const live = s.ph === 'run' ? multAt(this.liveE()) : 1;
+
+    if (s.ph === 'lobby') {
+      round = 'WAITING ROOM'; mult = '🐣'; msg = `${s.ps.length}명 입장 · 호스트가 곧 시작해요`;
+      main = '대기 중'; sub = '게임이 시작되면 이 버튼이 초록색으로 켜져요';
+    } else if (s.ph === 'cd') {
+      const left = s.cd - (t - this.recvAt) / 1000, n = Math.max(1, Math.ceil(left));
+      if (n !== this.lastCdInt && left > 0) { this.lastCdInt = n; SFX.count(false); vibrate(25); }
+      cls = 'wait cd'; main = String(n); sub = '엄지를 버튼 위에 준비!'; mult = '1.00x'; multColor = 'var(--muted)'; msg = '곧 배수가 오르기 시작해요';
+    } else if (s.ph === 'run') {
+      this.lastCdInt = -1;
+      mult = fmtX(live); multColor = heatColor(live, 58);
+      if (myst === 0 && this.pending !== s.rd) { cls = 'go'; main = '지금<br>탈출하기!'; sub = `지금 누르면 +${ptsOf(live)}점`; msg = '💣 언제 터질지 몰라요…'; }
+      else if (myst === 0) { cls = 'done'; main = '탈출 중…'; sub = '확인하는 중'; }
+      else if (myst === 1) { cls = 'done'; main = '탈출 성공! 🏃'; sub = `${fmtX(me[6])}에서 탈출<b>+${me[5]}점</b>`; msg = '남은 사람들의 눈치싸움을 지켜보세요 👀'; }
+      else if (myst === 3) { main = '관전 중 👀'; sub = '다음 라운드부터 참가해요'; }
+    } else if (s.ph === 'res') {
+      mult = (s.end === 'boom' ? '💥 ' : '') + fmtX(s.cm); multColor = s.end === 'boom' ? 'var(--red)' : 'var(--cyan)';
+      msg = (s.rd >= s.tr ? '최종 결과까지 ' : '다음 라운드까지 ') + Math.max(0, Math.ceil(s.nx - (t - this.recvAt) / 1000)) + '초';
+      if (myst === 1) { cls = 'done'; main = '탈출 성공! 🏃'; sub = `${fmtX(me[6])}에서 탈출<b>+${me[5]}점</b>`; }
+      else if (myst === 2) { cls = 'dead'; main = '폭발!'; sub = '🍗 튀겨졌어요… 이번 라운드 0점'; }
+      else { main = '관전 중 👀'; sub = '다음 라운드부터 참가해요'; }
+    } else if (s.ph === 'final') {
+      round = 'GAME OVER'; mult = me[3] === 1 ? '👑' : '🏁'; multColor = 'var(--gold)'; msg = '메인 화면에서 최종 결과를 확인하세요';
+      cls = me[3] <= 3 ? 'gold' : 'wait'; main = `${me[3]}위!`; sub = `최종 ${me[2]}점`;
+    }
+    if (myst === 2 && (s.ph === 'run')) { cls = 'dead'; main = '폭발!'; sub = '🍗 튀겨졌어요… 이번 라운드 0점'; }
+    if (btn.className !== cls) btn.className = cls;
+    setHTML($('escMain'), main); setHTML($('escSub'), sub);
+    setText($('pRound'), round); setText($('pMult'), mult); setText($('pMsg'), msg);
+    $('pMult').style.color = multColor;
+  },
+};
+
+/* ---------- 진입 ---------- */
+const initialRole = params.get('role');
+if (initialRole === 'host') startRole('host');
+else if (initialRole === 'player' || params.get('room')) startRole('player');
+</script>
+</body>
+</html>
