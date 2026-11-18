@@ -421,6 +421,36 @@ input { font: inherit; }
 .pTop3 div.me { outline: 2px solid var(--gold); }
 .pConn { position: fixed; left: 50%; top: 8px; transform: translateX(-50%); z-index: 99; background: #b91c1c; color: #fff; font-size: 13px; font-weight: 700; padding: 6px 14px; border-radius: 99px; }
 
+/* 호스트 화면의 '내 패' 패널 */
+.pEmbedHead { display: none; }
+#player.embed {
+  position: fixed; right: 12px; bottom: 12px; z-index: 40; width: 340px; min-height: 0; max-height: calc(100vh - 150px); margin: 0;
+  background: rgba(8, 14, 11, .96); border: 2px solid var(--gold); border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,.8); overflow: hidden auto;
+}
+#player.embed .pEmbedHead { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; cursor: pointer; font-size: 14px; font-weight: 700; color: var(--gold); border-bottom: 1px solid var(--line); position: sticky; top: 0; background: rgba(8,14,11,.98); z-index: 3; }
+#player.embed .tog { color: var(--muted); font-size: 12px; }
+#player.embed.min .pScreen { display: none !important; }
+#player.embed .pScreen { padding: 10px 12px 12px; gap: 9px; }
+#player.embed .pTop, #player.embed .pConn { display: none !important; }
+#player.embed .pStat b { font-size: 19px; }
+#player.embed .diceZone { flex: none; height: 150px; min-height: 0; border-width: 4px; }
+#player.embed .diceRow .bigDie { max-width: 92px; }
+#player.embed .act { min-height: 62px; font-size: 18px; border-radius: 14px; }
+#player.embed .act small { font-size: 10px; }
+#player.embed .pAlert { font-size: 13px; padding: 8px 10px; min-height: 0; }
+#player.embed .resCard .big { font-size: 26px; }
+#player.embed #pFinal .pWaitIc { font-size: 40px; }
+#player.embed.flashRed { animation: none; }
+/* 호스트가 참여 중이면 오른쪽 열을 넓혀 리더보드 아래에 패널을 둠 */
+body.selfOn #hGame { grid-template-columns: 1fr 364px; }
+body.selfOn .board { padding-bottom: 470px; }
+body.selfOn.selfMin .board { padding-bottom: 60px; }
+body.selfOn .board .foot { display: none; }
+.selfJoin { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px; }
+.selfJoin input { background: #0a120e; border: 2px solid rgba(255,255,255,.12); border-radius: 11px; padding: 8px 12px; color: #fff; font-size: 16px; font-weight: 700; width: 160px; outline: none; }
+.selfJoin input:focus { border-color: var(--gold); }
+.selfJoin small { flex-basis: 100%; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.selfJoin.joined input { display: none; }
 @media (max-width: 900px) {
   #hLobby { grid-template-columns: 1fr; }
 }
@@ -486,6 +516,11 @@ input { font: inherit; }
         <h2>참가자 <span id="hCount">0</span>명</h2>
         <button class="btnStart" id="hStart" disabled>게임 시작 ▶</button>
       </div>
+      <div class="selfJoin" id="hSelfBox">
+        <input type="text" id="hSelfName" maxlength="8" placeholder="내 닉네임" autocomplete="off">
+        <button class="btnInv" id="hSelfJoin">🙋 호스트도 참여하기</button>
+        <small>이 화면에 '내 패' 패널이 생겨요. 메인 화면을 모두가 보고 있다면 내 폰으로 초대 링크를 열어 참여하는 게 좋아요.</small>
+      </div>
       <div class="lobbyPlayers" id="hPlayers"></div>
       <div class="rulesBox">
         <h3>🎲 게임 방법 (총 5라운드 · 시작 자금 1,000P)</h3>
@@ -549,6 +584,7 @@ input { font: inherit; }
 
 <!-- ================= 참가자 ================= -->
 <section id="player" class="hidden">
+  <div class="pEmbedHead" id="pEmbedHead"><span>🎴 내 패 · <b id="pEmbedName"></b></span><span class="tog">접기 ▾</span></div>
   <div class="pScreen pCenter" id="pJoin">
     <div class="logoDice" data-logo></div>
     <h1 class="title" style="font-size:40px">BLUFFING <em>DICE</em> 100</h1>
@@ -880,7 +916,8 @@ const HostNet = {
   },
   send(pid, msg) {
     const l = this.links.get(pid); if (!l) return;
-    if (l.via === 'bc') { try { this.bc.postMessage({ to: pid, msg }); } catch (e) {} }
+    if (l.via === 'self') setTimeout(() => Player.onMsg(msg, 'self'), 0);
+    else if (l.via === 'bc') { try { this.bc.postMessage({ to: pid, msg }); } catch (e) {} }
     else if (l.via === 'mqtt') { try { l.client.publish(topicPlayer(this.code, pid), JSON.stringify(msg)); } catch (e) {} }
     else if (l.conn && l.conn.open) { try { l.conn.send(msg); } catch (e) {} }
   },
@@ -901,6 +938,9 @@ const Host = {
     HostNet.open((pid, m) => this.onMsg(pid, m), pid => this.onLeave(pid), (s, txt) => this.setNet(s, txt));
     this.showCode();
     $('hStart').onclick = () => { SFX.init(); this.startGame(); };
+    $('hSelfJoin').onclick = () => this.selfJoin();
+    $('hSelfName').onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) this.selfJoin(); };
+    try { $('hSelfName').value = localStorage.getItem('bluffdice-name') || ''; } catch (e) {}
     $('hLocalTab').onclick = $('hTab').onclick = () => this.openLocalTab();
     $('hCopy').onclick = $('hCopy2').onclick = e => copyText(this.joinUrl(false), e.currentTarget);
     $('hShare').onclick = e => shareLink(this.joinUrl(false), e.currentTarget);
@@ -916,6 +956,21 @@ const Host = {
     this.renderLobby();
   },
   setNet(s, txt) { $('hNet').className = 'net ' + s; $('hNet').querySelector('span').textContent = txt; },
+  selfJoin() {
+    const name = $('hSelfName').value.trim();
+    if (!name) { $('hSelfName').focus(); return; }
+    SFX.init();
+    const pid = 'host-self';
+    try { localStorage.setItem('bluffdice-name', name.slice(0, 8)); } catch (e) {}
+    HostNet.accept(pid, { t: 'join', pid, name }, { via: 'self' });
+    Player.startEmbedded(pid, this.players.get(pid)?.name || name);
+    this.render();
+  },
+  selfLeave() {
+    HostNet.links.delete('host-self');
+    this.players.delete('host-self');
+    this.broadcast();
+  },
   onPing(pid) {
     const p = this.players.get(pid);
     if (p && !p.connected) { p.connected = true; this.broadcast(); }
@@ -1177,6 +1232,10 @@ const Host = {
 
   /* ---------- 화면 ---------- */
   render() {
+    // 호스트가 참여 중이면 게임 중에만 '내 패' 패널 표시
+    const selfOn = this.players.has('host-self') && this.phase !== 'lobby';
+    show($('player'), selfOn);
+    if (document.body.classList.contains('selfOn') !== selfOn) { document.body.classList.toggle('selfOn', selfOn); this.seatKey = ''; }
     if (this.phase === 'lobby') { this.renderLobby(); return; }
     if (this.phase === 'final') { this.renderBoard(); return; }
     $('hRound').innerHTML = `${this.round}<small>/${CFG.rounds}</small>`;
@@ -1212,7 +1271,11 @@ const Host = {
     $('hCount').textContent = ps.length;
     $('hStart').disabled = ps.filter(p => p.connected).length < 2;
     $('hStart').textContent = ps.length < 2 ? '2명 이상 모이면 시작' : '게임 시작 ▶';
-    $('hPlayers').innerHTML = ps.length ? ps.map(p => `<div class="lobbyChip ${p.connected ? '' : 'off'}">${avatar(p.name)}<span>${esc(p.name)}</span></div>`).join('')
+    const me = this.players.get('host-self');
+    $('hSelfBox').classList.toggle('joined', !!me);
+    $('hSelfJoin').textContent = me ? `✅ ${me.name}(으)로 참여 중 · 취소` : '🙋 호스트도 참여하기';
+    $('hSelfJoin').onclick = () => me ? this.selfLeave() : this.selfJoin();
+    $('hPlayers').innerHTML = ps.length ? ps.map(p => `<div class="lobbyChip ${p.connected ? '' : 'off'}">${avatar(p.name)}<span>${esc(p.name)}${p.id === 'host-self' ? ' <small style="color:var(--gold)">호스트</small>' : ''}</span></div>`).join('')
       : '<div class="lobbyEmpty">📱 폰으로 QR을 찍거나 방 코드를 입력해 입장하세요</div>';
   },
   seatOrder() { return [...this.players.values()].sort((a, b) => a.joinedAt - b.joinedAt); },
@@ -1356,11 +1419,38 @@ const Host = {
 /* =========================================================
    참가자 (모바일 컨트롤러)
    ========================================================= */
+// 호스트 화면에 붙은 '내 패' 패널은 효과음을 호스트가 이미 내므로 엿보기 소리만 냄
+const PSFX = new Proxy(SFX, { get(t, k) {
+  if (Player.embed && k !== 'init' && k !== 'peek') return () => {};
+  return typeof t[k] === 'function' ? t[k].bind(t) : t[k];
+} });
 const Player = {
-  pid: '', code: '', name: '', local: false, via: 'mqtt', relay: null, relayTry: [], pingTimer: null, peerTimer: null,
+  embed: false, pid: '', code: '', name: '', local: false, via: 'mqtt', relay: null, relayTry: [], pingTimer: null, peerTimer: null,
   peer: null, conn: null, bc: null, joined: false, st: null, deadline: 0, lockAt: 0,
   lastSeq: -1, lastPhase: '', lastRound: 0, peeking: false, rollTimer: null, reconnTimer: null, joinTimer: null, wake: null, resTimer: null,
 
+  // 호스트도 같은 화면에서 참여: 참가자 화면을 '내 패' 패널로 띄움
+  startEmbedded(pid, name) {
+    this.embed = true; this.pid = pid; this.name = name; this.via = 'self'; this.joined = true;
+    $('player').classList.add('embed');
+    $('pEmbedName').textContent = name;
+    $('pEmbedHead').onclick = () => {
+      const min = $('player').classList.toggle('min');
+      document.body.classList.toggle('selfMin', min);
+      Host.seatKey = ''; Host.layoutSeats();
+      $('pEmbedHead').querySelector('.tog').textContent = min ? '펼치기 ▴' : '접기 ▾';
+    };
+    this.bindCommon();
+  },
+  bindCommon() {
+    if (this.bound) return; this.bound = true;
+    $('pDie').onclick = () => this.act('die');
+    $('pCall').onclick = () => this.act('call');
+    $('pRaise').onclick = () => this.act('raise');
+    this.bindPeek();
+    const raf = () => { this.paintTimer(); requestAnimationFrame(raf); };
+    requestAnimationFrame(raf);
+  },
   start() {
     show($('player'));
     try { this.pid = sessionStorage.getItem('bluffdice-pid') || ''; } catch (e) {}
@@ -1373,14 +1463,9 @@ const Player = {
     $('pCode').oninput = () => { $('pCode').value = $('pCode').value.toUpperCase().replace(/[^A-Z]/g, ''); };
     $('pJoinBtn').onclick = () => this.join();
     $('pName').onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) this.join(); };
-    $('pDie').onclick = () => this.act('die');
-    $('pCall').onclick = () => this.act('call');
-    $('pRaise').onclick = () => this.act('raise');
-    this.bindPeek();
+    this.bindCommon();
     window.addEventListener('beforeunload', () => { if (this.joined) this.send({ t: 'bye' }); });
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && this.joined) this.requestWake(); });
-    const raf = () => { this.paintTimer(); requestAnimationFrame(raf); };
-    requestAnimationFrame(raf);
     setTimeout(() => (room ? $('pName') : $('pCode')).focus(), 50);
   },
   screen(id) { ['pJoin', 'pWait', 'pGame', 'pFinal'].forEach(s => show($(s), s === id)); },
@@ -1389,7 +1474,7 @@ const Player = {
   async requestWake() { try { if ('wakeLock' in navigator) this.wake = await navigator.wakeLock.request('screen'); } catch (e) {} },
 
   join() {
-    SFX.init(); vibrate(20);
+    PSFX.init(); vibrate(20);
     const code = $('pCode').value.trim().toUpperCase(), name = $('pName').value.trim();
     if (code.length !== 4) return this.err('방 코드 4자리를 입력하세요');
     if (!name) return this.err('닉네임을 입력하세요');
@@ -1477,16 +1562,17 @@ const Player = {
   },
   send(msg) {
     try {
-      if (this.via === 'bc') this.bc.postMessage({ from: this.pid, msg });
+      if (this.via === 'self') setTimeout(() => HostNet.accept(this.pid, msg, { via: 'self' }), 0);
+      else if (this.via === 'bc') this.bc.postMessage({ from: this.pid, msg });
       else if (this.via === 'peer') { if (this.conn && this.conn.open) this.conn.send(msg); }
       else if (this.relay && this.relay.connected) this.relay.publish(topicHost(this.code), JSON.stringify({ from: this.pid, msg }), { qos: msg.t === 'ping' ? 0 : 1 });
     } catch (e) {}
   },
   act(a) {
-    SFX.init();
+    PSFX.init();
     const s = this.st; if (!s || s.phase !== 'bet') return;
     vibrate(a === 'raise' ? 60 : 25);
-    if (a === 'raise') SFX.chips(); else if (a === 'die') SFX.fold(); else SFX.click();
+    if (a === 'raise') PSFX.chips(); else if (a === 'die') PSFX.fold(); else PSFX.click();
     this.send({ t: 'act', a });
   },
 
@@ -1497,7 +1583,7 @@ const Player = {
       if (!this.canPeek()) return;
       e.preventDefault();
       try { z.setPointerCapture(e.pointerId); } catch (_) {}
-      this.peeking = true; z.classList.add('peek'); SFX.peek(); vibrate(10); this.renderPeek();
+      this.peeking = true; z.classList.add('peek'); PSFX.peek(); vibrate(10); this.renderPeek();
     };
     const up = () => { if (!this.peeking) return; this.peeking = false; z.classList.remove('peek'); this.renderPeek(); };
     z.addEventListener('pointerdown', down);
@@ -1518,7 +1604,7 @@ const Player = {
     // 호스트가 마지막으로 응답한 경로로 보냄
     if (via) this.via = via;
     if (m.t === 'welcome') {
-      if (!this.joined) { this.joined = true; clearTimeout(this.joinTimer); SFX.join(); vibrate(40); this.requestWake(); }
+      if (!this.joined) { this.joined = true; clearTimeout(this.joinTimer); PSFX.join(); vibrate(40); this.requestWake(); }
       this.name = m.name;
       if (!this.st) this.screen('pWait');
     } else if (m.t === 'full') { this.err('방이 가득 찼어요 (최대 16명)'); this.resetJoinBtn(); }
@@ -1537,14 +1623,14 @@ const Player = {
     // 다른 사람의 레이즈 → 진동 + 칩 소리 + 붉은 플래시
     if (this.lastSeq >= 0 && m.raiseSeq > this.lastSeq && m.phase === 'bet') {
       if (m.lastRaiser !== m.me.name) {
-        vibrate([120, 60, 120]); SFX.chips();
+        vibrate([120, 60, 120]); PSFX.chips();
         retrigger($('player'), 'flashRed');
       }
     }
     this.lastSeq = m.raiseSeq;
     if (m.phase !== this.lastPhase || m.round !== this.lastRound) {
       if (m.phase === 'roll' && m.me.active) {
-        SFX.roll(1.4); vibrate([30, 40, 30, 40, 30]);
+        PSFX.roll(1.4); vibrate([30, 40, 30, 40, 30]);
         this.rollEndLocal = Date.now() + Math.min(2200, m.left);
         $('pDice').classList.add('rolling');
         clearInterval(this.rollTimer);
@@ -1559,11 +1645,11 @@ const Player = {
         this.resRevealAt = Date.now() + (m.revealIn || 0);
         this.resTimer = setTimeout(() => {
           const s = this.st; if (!s || s.phase !== 'show' || !s.res) return;
-          if (s.res.win) { SFX.fanfare(); vibrate([80, 50, 80, 50, 250]); } else if (s.me.active) { SFX.lose(); vibrate(200); }
+          if (s.res.win) { PSFX.fanfare(); vibrate([80, 50, 80, 50, 250]); } else if (s.me.active) { PSFX.lose(); vibrate(200); }
           this.render();
         }, m.revealIn || 0);
       }
-      if (m.phase === 'final') { SFX.fanfare(); vibrate([100, 60, 100, 60, 300]); }
+      if (m.phase === 'final') { PSFX.fanfare(); vibrate([100, 60, 100, 60, 300]); }
       this.lastPhase = m.phase; this.lastRound = m.round;
     }
   },
