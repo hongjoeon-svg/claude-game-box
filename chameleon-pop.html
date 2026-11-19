@@ -335,7 +335,7 @@ body.selfOn .boardList { flex: none; height: calc(100vh - 47vh - 7vw); }
   position: absolute; width: calc(50% - 5px); height: calc(50% - 5px);
   border-radius: 26px; background: var(--c); color: var(--fg);
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-  font-family: var(--display); font-size: clamp(36px, 12vw, 64px);
+  font-family: var(--display); font-size: clamp(22px, min(12vw, 8vh), 64px); line-height: 1.1; overflow: hidden;
   box-shadow: inset 0 -10px 0 rgba(0,0,0,.25), inset 0 6px 0 rgba(255,255,255,.25), 0 8px 24px rgba(0,0,0,.35);
   transition: left .2s cubic-bezier(.3,1.4,.5,1), top .2s cubic-bezier(.3,1.4,.5,1), filter .15s, opacity .15s, transform .08s;
   text-shadow: 0 2px 0 rgba(0,0,0,.18);
@@ -410,10 +410,41 @@ body.selfOn .boardList { flex: none; height: calc(100vh - 47vh - 7vw); }
 #player.embed .meTag { font-size: 11px; background: var(--cham); color: #0b1a06; border-radius: 4px; padding: 1px 5px; }
 
 @media (max-width: 900px) {
-  body { overflow: auto; }
+  body:has(#host:not(.hidden)) { overflow: auto; }
   #hLobby { grid-template-columns: 1fr; height: auto; min-height: 100%; }
-  #hGame { grid-template-columns: 1fr; grid-template-rows: auto 40vh; height: auto; min-height: 100%; }
-  .card { width: 100%; }
+  #hGame { grid-template-columns: 1fr; grid-template-rows: auto auto; height: auto; min-height: 100%; }
+  .gMain { padding: 12px; gap: 10px; }
+  .card { width: 100%; border-radius: 22px; }
+  .board { border-left: 0; border-top: 1px solid var(--line); padding: 12px; }
+  .boardList, body.selfOn .boardList { flex: none; height: auto; min-height: 120px; }
+  .gFoot { flex-wrap: wrap; gap: 6px 10px; }
+  .gFoot > span { white-space: nowrap; }
+  #hUrlS { display: none; }
+  /* 호스트가 폰으로 메인 화면을 띄우고 같이 할 때: 패드를 화면 아래에 고정하고 그만큼 비워둠 */
+  #player.embed { left: 0; right: 0; bottom: 0; width: auto; height: 40vh; border-radius: 18px 18px 0 0; border-bottom: 0; }
+  body.selfOn #hGame { padding-bottom: 40vh; }
+  #player.embed .padBtn { font-size: clamp(20px, min(7vw, 4.5vh), 36px); }
+}
+/* 가로로 눕힌 폰: 상단 정보를 한 줄로 줄이고 버튼 영역을 넓게 */
+@media (max-height: 520px) {
+  #pGame { padding: 6px 10px max(6px, env(safe-area-inset-bottom)); gap: 6px; }
+  #player:not(.embed) .pHead { min-height: 0; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 4px 14px; }
+  #player:not(.embed) .pRow { display: contents; }
+  #player:not(.embed) .pNm { order: 1; font-size: 15px; }
+  #player:not(.embed) .pScore { order: 2; font-size: 24px; }
+  #player:not(.embed) .comboBox { order: 3; flex: 1; justify-content: flex-end; }
+  #player:not(.embed) .pRank { order: 4; font-size: 18px; }
+  #player:not(.embed) .pTime { order: 5; flex-basis: 100%; height: 5px; }
+  #player:not(.embed) .pStatus { order: 6; flex-basis: 100%; font-size: 15px; min-height: 1.3em; }
+  .comboGauge i { width: 16px; height: 9px; }
+  .padBtn { border-radius: 18px; flex-direction: row; gap: .3em; }
+  .padBtn .sym { font-size: .5em; }
+  .lockOv b { font-size: 40px; }
+  .lockOv { font-size: 16px; gap: 4px; }
+  .floatPts { font-size: 44px; }
+  .pAtk { top: 20%; font-size: 20px; padding: 10px; }
+  #pJoin, #pWait, #pFinal { justify-content: flex-start; }
+  .bigEmoji { font-size: 48px; }
 }
 </style>
 </head>
@@ -1233,8 +1264,10 @@ const Host = {
   renderBoard() {
     const box = $('hBoard'); if (!box || this.phase === 'lobby') return;
     const list = this.ranked(), ranks = this.rankMap(), n = list.length;
+    const narrow = window.innerWidth <= 900;
     const H = box.clientHeight || 400;
-    const rowH = Math.max(30, Math.min(78, Math.floor(H / Math.max(n, 5))));
+    const rowH = narrow ? 44 : Math.max(30, Math.min(78, Math.floor(H / Math.max(n, 5))));
+    box.style.height = narrow ? n * rowH + 'px' : '';
     const fs = Math.max(13, Math.min(21, rowH * .34));
     const prevIdx = new Map(this.lastOrder.map((id, i) => [id, i]));
     const alive = new Set();
