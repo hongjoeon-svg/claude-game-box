@@ -64,8 +64,6 @@
   .star { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #fff; opacity: .5; animation: twinkle var(--d, 4s) ease-in-out infinite; animation-delay: var(--del, 0s); }
   .star.big { width: 3px; height: 3px; box-shadow: 0 0 6px #fff; }
   @keyframes twinkle { 0%, 100% { opacity: .15; transform: scale(.8); } 50% { opacity: .9; transform: scale(1.1); } }
-  .sparkle { position: fixed; right: 4vw; bottom: 6vh; width: 54px; height: 54px; z-index: 0; pointer-events: none; filter: drop-shadow(0 0 14px #a855f7aa); animation: float 6s ease-in-out infinite; opacity: .85; }
-  @keyframes float { 50% { transform: translateY(-12px) rotate(10deg); } }
 
   /* ---------- 헤더 ---------- */
   .wrap { position: relative; z-index: 1; max-width: 1340px; margin: 0 auto; padding: 0 20px 56px; }
@@ -177,7 +175,6 @@
 </head>
 <body>
 <div class="space" id="space" aria-hidden="true"></div>
-<svg class="sparkle" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="sg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff8a3d"/><stop offset=".5" stop-color="#ff4fb8"/><stop offset="1" stop-color="#a855f7"/></linearGradient></defs><path d="M12 0c.6 6.2 5.8 11.4 12 12-6.2.6-11.4 5.8-12 12-.6-6.2-5.8-11.4-12-12C6.2 11.4 11.4 6.2 12 0z" fill="url(#sg)"/></svg>
 
 <div class="wrap">
   <header>
