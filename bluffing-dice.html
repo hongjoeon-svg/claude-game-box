@@ -84,7 +84,17 @@ input { font: inherit; }
 .codeBox { display: flex; align-items: baseline; gap: 14px; }
 .codeBox small { color: var(--muted); font-size: 15px; }
 .codeBig { font-family: var(--display); font-size: 64px; letter-spacing: .12em; color: var(--gold); line-height: 1; }
-.urlTxt { color: var(--muted); font-size: 14px; word-break: break-all; }
+.urlTxt { color: #e8efe9; font-size: 14px; word-break: break-all; user-select: all; }
+.invite { display: flex; flex-direction: column; gap: 8px; background: rgba(230,192,99,.08); border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px; }
+.invLbl { font-size: 13px; font-weight: 900; color: var(--gold); }
+.invBtns { display: flex; gap: 8px; flex-wrap: wrap; }
+.btnInv { background: linear-gradient(180deg, #f3d27a, #c9982f); color: #2a1a04; font-weight: 900; font-size: 15px; padding: 9px 16px; border-radius: 11px; text-decoration: none; display: inline-block; }
+.btnInv + .btnInv { background: rgba(255,255,255,.1); color: var(--text); border: 1px solid rgba(255,255,255,.2); }
+.pubNote { width: min(720px, 100%); text-align: left; display: flex; flex-direction: column; gap: 8px; background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.5); border-radius: 16px; padding: 14px 16px; }
+.pubNote b { color: #ffb4a3; }
+.pubNote p { font-size: 14px; line-height: 1.55; color: #e9dcd8; }
+.linkBtn { background: none; color: var(--gold); text-decoration: underline; font-size: 12px; padding: 0; }
+.urlMini { font-size: 11px; word-break: break-all; }
 .net { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
 .net i { width: 9px; height: 9px; border-radius: 50%; background: #f59e0b; box-shadow: 0 0 10px #f59e0b; }
 .net.on i { background: var(--green); box-shadow: 0 0 10px var(--green); }
@@ -103,7 +113,7 @@ input { font: inherit; }
 .lobbyPlayers { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; align-content: start; }
 .lobbyChip { display: flex; align-items: center; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; font-weight: 700; font-size: 18px; animation: popIn .35s cubic-bezier(.2,1.6,.4,1); }
 .lobbyChip.off { opacity: .45; }
-.lobbyEmpty { color: var(--muted); padding: 40px 0; font-size: 18px; text-align: center; border: 2px dashed rgba(255,255,255,.1); border-radius: 18px; }
+.lobbyEmpty { grid-column: 1 / -1; color: var(--muted); padding: 40px 0; font-size: 18px; text-align: center; border: 2px dashed rgba(255,255,255,.1); border-radius: 18px; }
 @keyframes popIn { from { transform: scale(.6); opacity: 0; } }
 .av { flex: none; width: 34px; height: 34px; border-radius: 50%; display: inline-grid; place-items: center; font-weight: 900; font-size: 16px; color: #fff;
   background: hsl(var(--h) 55% 42%); box-shadow: inset 0 -3px 0 rgba(0,0,0,.25), 0 0 0 2px rgba(255,255,255,.15); }
@@ -411,6 +421,36 @@ input { font: inherit; }
 .pTop3 div.me { outline: 2px solid var(--gold); }
 .pConn { position: fixed; left: 50%; top: 8px; transform: translateX(-50%); z-index: 99; background: #b91c1c; color: #fff; font-size: 13px; font-weight: 700; padding: 6px 14px; border-radius: 99px; }
 
+/* 호스트 화면의 '내 패' 패널 */
+.pEmbedHead { display: none; }
+#player.embed {
+  position: fixed; right: 12px; bottom: 12px; z-index: 40; width: 340px; min-height: 0; max-height: calc(100vh - 150px); margin: 0;
+  background: rgba(8, 14, 11, .96); border: 2px solid var(--gold); border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,.8); overflow: hidden auto;
+}
+#player.embed .pEmbedHead { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; cursor: pointer; font-size: 14px; font-weight: 700; color: var(--gold); border-bottom: 1px solid var(--line); position: sticky; top: 0; background: rgba(8,14,11,.98); z-index: 3; }
+#player.embed .tog { color: var(--muted); font-size: 12px; }
+#player.embed.min .pScreen { display: none !important; }
+#player.embed .pScreen { padding: 10px 12px 12px; gap: 9px; }
+#player.embed .pTop, #player.embed .pConn { display: none !important; }
+#player.embed .pStat b { font-size: 19px; }
+#player.embed .diceZone { flex: none; height: 150px; min-height: 0; border-width: 4px; }
+#player.embed .diceRow .bigDie { max-width: 92px; }
+#player.embed .act { min-height: 62px; font-size: 18px; border-radius: 14px; }
+#player.embed .act small { font-size: 10px; }
+#player.embed .pAlert { font-size: 13px; padding: 8px 10px; min-height: 0; }
+#player.embed .resCard .big { font-size: 26px; }
+#player.embed #pFinal .pWaitIc { font-size: 40px; }
+#player.embed.flashRed { animation: none; }
+/* 호스트가 참여 중이면 오른쪽 열을 넓혀 리더보드 아래에 패널을 둠 */
+body.selfOn #hGame { grid-template-columns: 1fr 364px; }
+body.selfOn .board { padding-bottom: 470px; }
+body.selfOn.selfMin .board { padding-bottom: 60px; }
+body.selfOn .board .foot { display: none; }
+.selfJoin { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px; }
+.selfJoin input { background: #0a120e; border: 2px solid rgba(255,255,255,.12); border-radius: 11px; padding: 8px 12px; color: #fff; font-size: 16px; font-weight: 700; width: 160px; outline: none; }
+.selfJoin input:focus { border-color: var(--gold); }
+.selfJoin small { flex-basis: 100%; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.selfJoin.joined input { display: none; }
 @media (max-width: 900px) {
   #hLobby { grid-template-columns: 1fr; }
 }
@@ -428,6 +468,11 @@ input { font: inherit; }
   <div>
     <h1 class="title">BLUFFING <em>DICE</em> 100</h1>
     <p class="sub" style="margin-top:10px">블러핑 다이스 100 · 프로젝터 + 스마트폰 실시간 심리·베팅 파티 게임</p>
+  </div>
+<div class="pubNote hidden" data-pubnote>
+    <b>⚠️ 친구들과 하려면 공개 주소로 여세요</b>
+    <p>지금 연 claude.ai 화면은 친구 폰과 연결이 막히고, 링크도 초대받아 로그인한 사람만 열 수 있어요. 아래 주소는 로그인 없이 누구나 링크·QR로 바로 들어와요.</p>
+    <div class="invBtns"><a class="btnInv" data-publink target="_blank" rel="noopener">공개 주소로 열기 ↗</a><button class="btnInv" data-pubcopy>주소 복사</button></div>
   </div>
   <div class="roles">
     <button class="roleBtn" data-role="host">
@@ -453,14 +498,28 @@ input { font: inherit; }
       <h1 class="title">BLUFFING<br><em>DICE</em> 100</h1>
       <div class="qrBox" id="hQr"></div>
       <div class="codeBox"><small>방 코드</small><span class="codeBig" id="hCode">····</span></div>
-      <div class="urlTxt" id="hUrl"></div>
+      <div class="invite">
+        <div class="invLbl">🔗 초대 링크 · 카톡 등으로 보내면 누르기만 해도 입장</div>
+        <div class="urlTxt" id="hUrl"></div>
+        <div class="invBtns"><button class="btnInv" id="hCopy">📋 링크 복사</button><button class="btnInv" id="hShare">📤 공유하기</button></div>
+      </div>
       <div class="net" id="hNet"><i></i><span>연결 준비 중…</span></div>
       <button class="btnGhost" id="hLocalTab">🧪 로컬 테스트: 참가자 탭 새로 열기<br><small style="color:var(--muted)">같은 브라우저의 여러 탭끼리 연결돼요 (서버·인터넷 없이 테스트)</small></button>
     </div>
     <div class="lobbyRight">
+      <div class="pubNote hidden" data-pubnote>
+    <b>⚠️ 친구들과 하려면 공개 주소로 여세요</b>
+    <p>지금 연 claude.ai 화면은 친구 폰과 연결이 막히고, 링크도 초대받아 로그인한 사람만 열 수 있어요. 아래 주소는 로그인 없이 누구나 링크·QR로 바로 들어와요.</p>
+    <div class="invBtns"><a class="btnInv" data-publink target="_blank" rel="noopener">공개 주소로 열기 ↗</a><button class="btnInv" data-pubcopy>주소 복사</button></div>
+  </div>
       <div class="lobbyHead">
         <h2>참가자 <span id="hCount">0</span>명</h2>
         <button class="btnStart" id="hStart" disabled>게임 시작 ▶</button>
+      </div>
+      <div class="selfJoin" id="hSelfBox">
+        <input type="text" id="hSelfName" maxlength="8" placeholder="내 닉네임" autocomplete="off">
+        <button class="btnInv" id="hSelfJoin">🙋 호스트도 참여하기</button>
+        <small>이 화면에 '내 패' 패널이 생겨요. 메인 화면을 모두가 보고 있다면 내 폰으로 초대 링크를 열어 참여하는 게 좋아요.</small>
       </div>
       <div class="lobbyPlayers" id="hPlayers"></div>
       <div class="rulesBox">
@@ -508,7 +567,7 @@ input { font: inherit; }
     <aside class="board">
       <h3>LEADERBOARD <span id="hBoardRound"></span></h3>
       <ol id="hBoard"></ol>
-      <div class="foot">입장 코드 <b id="hCodeSmall">····</b><br>중간에 들어와도 다음 라운드부터 참여해요</div>
+      <div class="foot">입장 코드 <b id="hCodeSmall">····</b> · <button class="linkBtn" id="hCopy2">링크 복사</button><br><span class="urlMini" id="hUrlSmall"></span><br>중간에 들어와도 다음 라운드부터 참여해요</div>
     </aside>
   </div>
 
@@ -525,6 +584,7 @@ input { font: inherit; }
 
 <!-- ================= 참가자 ================= -->
 <section id="player" class="hidden">
+  <div class="pEmbedHead" id="pEmbedHead"><span>🎴 내 패 · <b id="pEmbedName"></b></span><span class="tog">접기 ▾</span></div>
   <div class="pScreen pCenter" id="pJoin">
     <div class="logoDice" data-logo></div>
     <h1 class="title" style="font-size:40px">BLUFFING <em>DICE</em> 100</h1>
@@ -586,6 +646,7 @@ input { font: inherit; }
 </section>
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js" onerror="var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js';document.head.appendChild(s)"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script>
 'use strict';
@@ -593,6 +654,10 @@ input { font: inherit; }
    공통
    ========================================================= */
 const PREFIX = 'bluffdice100-v1-';
+// 로그인 없이 누구나 들어오는 공개 주소 (GitHub Pages)
+const PUBLIC_URL = 'https://hongjoeon-svg.github.io/claude-game-box/bluffing-dice.html';
+// claude.ai 아티팩트 안에서 열면 외부 연결이 막히고 링크도 초대받은 사람만 열 수 있음
+const IN_ARTIFACT = !!(window.claude && typeof window.claude.use === 'function') || /claude\.ai|claudeusercontent/.test(location.hostname);
 const CFG = { rounds: 5, start: 1000, ante: 100, raise: 200, roll: 5000, bet: 20000, show: 8000, lock: 5000, maxPlayers: 16 };
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -603,6 +668,21 @@ const vibrate = p => { try { navigator.vibrate && navigator.vibrate(p); } catch 
 const params = new URLSearchParams(location.search);
 const hueOf = name => { let h = 0; for (const c of String(name)) h = (h * 31 + c.codePointAt(0)) % 360; return h; };
 const avatar = name => `<span class="av" style="--h:${hueOf(name)}">${esc([...String(name)][0] || '?')}</span>`;
+function copyText(text, btn) {
+  const label = btn ? btn.textContent : '';
+  const done = ok => { if (!btn) return; btn.textContent = ok ? '✅ 복사됨' : '주소를 길게 눌러 복사하세요'; setTimeout(() => btn.textContent = label, 1600); };
+  const fallback = () => {
+    try {
+      const ta = document.createElement('textarea'); ta.value = text; ta.style.cssText = 'position:fixed;opacity:0';
+      document.body.appendChild(ta); ta.select(); const ok = document.execCommand('copy'); ta.remove(); done(ok);
+    } catch (e) { done(false); }
+  };
+  try { navigator.clipboard.writeText(text).then(() => done(true), fallback); } catch (e) { fallback(); }
+}
+function shareLink(url, btn) {
+  if (navigator.share) navigator.share({ title: '블러핑 다이스 100', text: '🎲 블러핑 다이스 100 같이 해요! 링크 누르고 닉네임만 입력하면 입장', url }).catch(() => {});
+  else copyText(url, btn);
+}
 function retrigger(el, cls) { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
 function animateNum(el, from, to, ms = 900, suffix = '') {
   const t0 = performance.now();
@@ -722,17 +802,70 @@ document.querySelectorAll('.roleBtn').forEach(b => b.onclick = () => {
 });
 
 /* =========================================================
-   호스트 네트워크: PeerJS(WebRTC) + BroadcastChannel(로컬 멀티탭 테스트)를 동시에 엽니다
+   네트워크
+   - 중계 서버(MQTT over WebSocket): 기본 연결. 폰이 LTE/5G든 다른 와이파이든 상관없이 연결돼요
+   - PeerJS(WebRTC): 중계 서버가 안 될 때 쓰는 예비 연결
+   - BroadcastChannel: 같은 브라우저 여러 탭끼리 하는 로컬 테스트
    ========================================================= */
+const RELAYS = ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt'];
+const topicHost = code => `bluffdice100v1/${code}/host`;
+const topicPlayer = (code, pid) => `bluffdice100v1/${code}/p/${pid}`;
+const randCode = () => { const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; return Array.from({ length: 4 }, () => A[Math.floor(Math.random() * A.length)]).join(''); };
+// mqtt.js가 늦게 로드될 수 있어 잠깐 기다림
+function waitFor(test, ms) {
+  return new Promise(res => {
+    const t0 = Date.now();
+    const tick = () => { if (test()) res(true); else if (Date.now() - t0 > ms) res(false); else setTimeout(tick, 100); };
+    tick();
+  });
+}
+
 const HostNet = {
-  code: '', peer: null, bc: null, links: new Map(), // pid -> {via:'peer'|'bc', conn}
+  code: '', peer: null, bc: null, relays: [], links: new Map(), // pid -> {via:'peer'|'bc'|'mqtt', conn|client, seen}
+  st: { mqtt: 'wait', peer: 'wait' },
   onMsg: null, onLeave: null, onStatus: null,
   open(onMsg, onLeave, onStatus) {
     this.onMsg = onMsg; this.onLeave = onLeave; this.onStatus = onStatus;
-    const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-    this.code = Array.from({ length: 4 }, () => A[Math.floor(Math.random() * A.length)]).join('');
+    this.code = randCode();
     this.openBC();
+    this.openRelays();
     this.openPeer();
+    // 중계 서버로 들어온 참가자는 끊김을 알 수 없어서 ping이 끊기면 나간 것으로 봄
+    setInterval(() => {
+      const t = Date.now();
+      for (const [pid, l] of this.links) if (l.via === 'mqtt' && t - l.seen > 12000) { this.links.delete(pid); this.onLeave(pid); }
+    }, 2000);
+  },
+  changeCode() {
+    const old = this.code;
+    this.code = randCode();
+    this.openBC();
+    for (const c of this.relays) { try { c.unsubscribe(topicHost(old)); c.subscribe(topicHost(this.code)); } catch (e) {} }
+    Host.showCode();
+  },
+  status() {
+    const { mqtt, peer } = this.st;
+    if (mqtt === 'on') this.onStatus('on', '온라인 연결됨 · 중계 서버' + (peer === 'on' ? ' + P2P' : ''));
+    else if (peer === 'on') this.onStatus('on', '온라인 연결됨 · P2P (중계 서버 연결 안 됨)');
+    else if (mqtt === 'wait' || peer === 'wait') this.onStatus('', '온라인 연결 중…');
+    else this.onStatus('off', '온라인 연결 실패 · 인터넷을 확인하고 새로고침하세요 (로컬 탭 테스트는 가능)');
+  },
+  // 참가자에게서 온 메시지: 어느 경로로 왔든 여기서 한 번에 처리
+  accept(pid, msg, link) {
+    if (!msg || typeof msg !== 'object') return;
+    pid = String(pid || '').slice(0, 32); if (!pid) return;
+    const cur = this.links.get(pid);
+    if (msg.t === 'join') {
+      if (cur && cur.conn && cur.conn !== link.conn) { try { cur.conn.close(); } catch (e) {} }
+      this.links.set(pid, { ...link, seen: Date.now() });
+    } else if (!cur || cur.via !== link.via || (link.conn && cur.conn !== link.conn) || (link.client && cur.client !== link.client)) {
+      // 연결 경로가 바뀐 참가자(예: 재접속): 아는 사람이면 경로만 갱신
+      if (!Host.players.has(pid)) return;
+      this.links.set(pid, { ...link, seen: Date.now() });
+    } else cur.seen = Date.now();
+    if (msg.t === 'ping') { Host.onPing(pid); return; }
+    if (msg.t === 'bye') { this.links.delete(pid); this.onLeave(pid); return; }
+    this.onMsg(pid, msg);
   },
   openBC() {
     if (typeof BroadcastChannel === 'undefined') return;
@@ -740,34 +873,40 @@ const HostNet = {
     this.bc = new BroadcastChannel('bluffdice100-' + this.code);
     this.bc.onmessage = e => {
       const d = e.data; if (!d || !d.from || d.to) return;
-      const pid = String(d.from).slice(0, 32);
-      if (d.msg && d.msg.t === 'bye') { this.links.delete(pid); this.onLeave(pid); return; }
-      if (d.msg && d.msg.t === 'join') this.links.set(pid, { via: 'bc' });
-      if (this.links.has(pid)) this.onMsg(pid, d.msg);
+      this.accept(d.from, d.msg, { via: 'bc' });
     };
   },
+  async openRelays() {
+    if (!(await waitFor(() => window.mqtt, 8000))) { this.st.mqtt = 'off'; this.status(); return; }
+    let fails = 0;
+    for (const url of RELAYS) {
+      const c = mqtt.connect(url, { clientId: 'bd-h-' + Math.random().toString(36).slice(2, 10), clean: true, connectTimeout: 8000, reconnectPeriod: 3000, keepalive: 30 });
+      c.on('connect', () => { c.subscribe(topicHost(this.code)); c._ok = true; this.st.mqtt = 'on'; this.status(); });
+      c.on('close', () => { c._ok = false; if (!this.relays.some(x => x._ok)) { this.st.mqtt = 'off'; this.status(); } });
+      c.on('error', () => { if (++fails >= RELAYS.length && !this.relays.some(x => x._ok)) { this.st.mqtt = 'off'; this.status(); } });
+      c.on('message', (topic, buf) => {
+        if (topic !== topicHost(this.code)) return;
+        let d; try { d = JSON.parse(buf.toString()); } catch (e) { return; }
+        if (d && d.from) this.accept(d.from, d.msg, { via: 'mqtt', client: c });
+      });
+      this.relays.push(c);
+    }
+  },
   openPeer() {
-    if (typeof Peer === 'undefined') { this.onStatus('off', '온라인 연결 불가 (PeerJS 로드 실패) · 로컬 탭 테스트만 가능'); return; }
+    if (typeof Peer === 'undefined') { this.st.peer = 'off'; this.status(); return; }
     const peer = new Peer(PREFIX + this.code);
     this.peer = peer;
-    peer.on('open', () => this.onStatus('on', '온라인 연결됨 (PeerJS)'));
+    peer.on('open', () => { this.st.peer = 'on'; this.status(); });
     peer.on('error', err => {
-      if (err.type === 'unavailable-id') { peer.destroy(); const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; this.code = Array.from({ length: 4 }, () => A[Math.floor(Math.random() * A.length)]).join(''); this.openBC(); this.openPeer(); Host.showCode(); return; }
+      if (err.type === 'unavailable-id') { peer.destroy(); this.changeCode(); this.openPeer(); return; }
       if (err.type === 'peer-unavailable') return;
-      this.onStatus('off', '온라인 연결 오류: ' + err.type + ' · 로컬 탭 테스트는 가능');
+      this.st.peer = 'off'; this.status();
     });
-    peer.on('disconnected', () => { this.onStatus('', '재연결 중…'); setTimeout(() => { if (!peer.destroyed) peer.reconnect(); }, 1000); });
+    peer.on('disconnected', () => { setTimeout(() => { if (!peer.destroyed) peer.reconnect(); }, 1000); });
     peer.on('connection', conn => {
       conn.on('data', msg => {
-        if (!msg || typeof msg !== 'object') return;
-        if (msg.t === 'join') {
-          const pid = String(msg.pid || '').slice(0, 32); if (!pid) return;
-          const old = this.links.get(pid);
-          if (old && old.conn && old.conn !== conn) { try { old.conn.close(); } catch (e) {} }
-          this.links.set(pid, { via: 'peer', conn });
-          conn._pid = pid;
-          this.onMsg(pid, msg);
-        } else if (conn._pid && this.links.get(conn._pid)?.conn === conn) this.onMsg(conn._pid, msg);
+        if (msg && msg.t === 'join') conn._pid = String(msg.pid || '').slice(0, 32);
+        if (conn._pid) this.accept(conn._pid, msg, { via: 'peer', conn });
       });
       conn.on('close', () => {
         const pid = conn._pid;
@@ -777,7 +916,9 @@ const HostNet = {
   },
   send(pid, msg) {
     const l = this.links.get(pid); if (!l) return;
-    if (l.via === 'bc') { try { this.bc.postMessage({ to: pid, msg }); } catch (e) {} }
+    if (l.via === 'self') setTimeout(() => Player.onMsg(msg, 'self'), 0);
+    else if (l.via === 'bc') { try { this.bc.postMessage({ to: pid, msg }); } catch (e) {} }
+    else if (l.via === 'mqtt') { try { l.client.publish(topicPlayer(this.code, pid), JSON.stringify(msg)); } catch (e) {} }
     else if (l.conn && l.conn.open) { try { l.conn.send(msg); } catch (e) {} }
   },
 };
@@ -797,7 +938,12 @@ const Host = {
     HostNet.open((pid, m) => this.onMsg(pid, m), pid => this.onLeave(pid), (s, txt) => this.setNet(s, txt));
     this.showCode();
     $('hStart').onclick = () => { SFX.init(); this.startGame(); };
+    $('hSelfJoin').onclick = () => this.selfJoin();
+    $('hSelfName').onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) this.selfJoin(); };
+    try { $('hSelfName').value = localStorage.getItem('bluffdice-name') || ''; } catch (e) {}
     $('hLocalTab').onclick = $('hTab').onclick = () => this.openLocalTab();
+    $('hCopy').onclick = $('hCopy2').onclick = e => copyText(this.joinUrl(false), e.currentTarget);
+    $('hShare').onclick = e => shareLink(this.joinUrl(false), e.currentTarget);
     $('hSkip').onclick = () => { if (this.phase !== 'lobby' && this.phase !== 'final') this.advance(); };
     $('hQuit').onclick = () => { if (confirm('게임을 끝내고 로비로 돌아갈까요?')) this.toLobby(); };
     $('hAgain').onclick = () => { SFX.init(); this.toLobby(); this.startGame(); };
@@ -810,8 +956,29 @@ const Host = {
     this.renderLobby();
   },
   setNet(s, txt) { $('hNet').className = 'net ' + s; $('hNet').querySelector('span').textContent = txt; },
+  selfJoin() {
+    const name = $('hSelfName').value.trim();
+    if (!name) { $('hSelfName').focus(); return; }
+    SFX.init();
+    const pid = 'host-self';
+    try { localStorage.setItem('bluffdice-name', name.slice(0, 8)); } catch (e) {}
+    HostNet.accept(pid, { t: 'join', pid, name }, { via: 'self' });
+    Player.startEmbedded(pid, this.players.get(pid)?.name || name);
+    this.render();
+  },
+  selfLeave() {
+    HostNet.links.delete('host-self');
+    this.players.delete('host-self');
+    this.broadcast();
+  },
+  onPing(pid) {
+    const p = this.players.get(pid);
+    if (p && !p.connected) { p.connected = true; this.broadcast(); }
+  },
   joinUrl(local) {
-    const u = new URL(location.href); u.search = ''; u.hash = '';
+    // 폰이 열 주소: 일반 웹 주소면 지금 주소, 파일/claude.ai로 열었으면 공개 주소
+    const base = !local && (IN_ARTIFACT || !/^https?:$/.test(location.protocol)) ? PUBLIC_URL : location.href;
+    const u = new URL(base); u.search = ''; u.hash = '';
     u.searchParams.set('role', 'player'); u.searchParams.set('room', HostNet.code);
     if (local) u.searchParams.set('local', '1');
     return u.toString();
@@ -819,7 +986,8 @@ const Host = {
   showCode() {
     const url = this.joinUrl(false);
     $('hCode').textContent = $('hCodeSmall').textContent = HostNet.code;
-    $('hUrl').textContent = location.protocol === 'file:' ? '⚠️ 파일로 열었어요. 폰으로 접속하려면 웹에 올린 주소에서 열어 주세요. (로컬 탭 테스트는 가능)' : url;
+    $('hUrl').textContent = url;
+    $('hUrlSmall').textContent = url.replace(/^https?:\/\//, '');
     if (typeof qrcode !== 'undefined') {
       const q = qrcode(0, 'M'); q.addData(url); q.make();
       $('hQr').innerHTML = q.createSvgTag({ cellSize: 8, margin: 2, scalable: true });
@@ -1064,6 +1232,10 @@ const Host = {
 
   /* ---------- 화면 ---------- */
   render() {
+    // 호스트가 참여 중이면 게임 중에만 '내 패' 패널 표시
+    const selfOn = this.players.has('host-self') && this.phase !== 'lobby';
+    show($('player'), selfOn);
+    if (document.body.classList.contains('selfOn') !== selfOn) { document.body.classList.toggle('selfOn', selfOn); this.seatKey = ''; }
     if (this.phase === 'lobby') { this.renderLobby(); return; }
     if (this.phase === 'final') { this.renderBoard(); return; }
     $('hRound').innerHTML = `${this.round}<small>/${CFG.rounds}</small>`;
@@ -1099,7 +1271,11 @@ const Host = {
     $('hCount').textContent = ps.length;
     $('hStart').disabled = ps.filter(p => p.connected).length < 2;
     $('hStart').textContent = ps.length < 2 ? '2명 이상 모이면 시작' : '게임 시작 ▶';
-    $('hPlayers').innerHTML = ps.length ? ps.map(p => `<div class="lobbyChip ${p.connected ? '' : 'off'}">${avatar(p.name)}<span>${esc(p.name)}</span></div>`).join('')
+    const me = this.players.get('host-self');
+    $('hSelfBox').classList.toggle('joined', !!me);
+    $('hSelfJoin').textContent = me ? `✅ ${me.name}(으)로 참여 중 · 취소` : '🙋 호스트도 참여하기';
+    $('hSelfJoin').onclick = () => me ? this.selfLeave() : this.selfJoin();
+    $('hPlayers').innerHTML = ps.length ? ps.map(p => `<div class="lobbyChip ${p.connected ? '' : 'off'}">${avatar(p.name)}<span>${esc(p.name)}${p.id === 'host-self' ? ' <small style="color:var(--gold)">호스트</small>' : ''}</span></div>`).join('')
       : '<div class="lobbyEmpty">📱 폰으로 QR을 찍거나 방 코드를 입력해 입장하세요</div>';
   },
   seatOrder() { return [...this.players.values()].sort((a, b) => a.joinedAt - b.joinedAt); },
@@ -1243,11 +1419,38 @@ const Host = {
 /* =========================================================
    참가자 (모바일 컨트롤러)
    ========================================================= */
+// 호스트 화면에 붙은 '내 패' 패널은 효과음을 호스트가 이미 내므로 엿보기 소리만 냄
+const PSFX = new Proxy(SFX, { get(t, k) {
+  if (Player.embed && k !== 'init' && k !== 'peek') return () => {};
+  return typeof t[k] === 'function' ? t[k].bind(t) : t[k];
+} });
 const Player = {
-  pid: '', code: '', name: '', local: false,
+  embed: false, pid: '', code: '', name: '', local: false, via: 'mqtt', relay: null, relayTry: [], pingTimer: null, peerTimer: null,
   peer: null, conn: null, bc: null, joined: false, st: null, deadline: 0, lockAt: 0,
   lastSeq: -1, lastPhase: '', lastRound: 0, peeking: false, rollTimer: null, reconnTimer: null, joinTimer: null, wake: null, resTimer: null,
 
+  // 호스트도 같은 화면에서 참여: 참가자 화면을 '내 패' 패널로 띄움
+  startEmbedded(pid, name) {
+    this.embed = true; this.pid = pid; this.name = name; this.via = 'self'; this.joined = true;
+    $('player').classList.add('embed');
+    $('pEmbedName').textContent = name;
+    $('pEmbedHead').onclick = () => {
+      const min = $('player').classList.toggle('min');
+      document.body.classList.toggle('selfMin', min);
+      Host.seatKey = ''; Host.layoutSeats();
+      $('pEmbedHead').querySelector('.tog').textContent = min ? '펼치기 ▴' : '접기 ▾';
+    };
+    this.bindCommon();
+  },
+  bindCommon() {
+    if (this.bound) return; this.bound = true;
+    $('pDie').onclick = () => this.act('die');
+    $('pCall').onclick = () => this.act('call');
+    $('pRaise').onclick = () => this.act('raise');
+    this.bindPeek();
+    const raf = () => { this.paintTimer(); requestAnimationFrame(raf); };
+    requestAnimationFrame(raf);
+  },
   start() {
     show($('player'));
     try { this.pid = sessionStorage.getItem('bluffdice-pid') || ''; } catch (e) {}
@@ -1260,14 +1463,9 @@ const Player = {
     $('pCode').oninput = () => { $('pCode').value = $('pCode').value.toUpperCase().replace(/[^A-Z]/g, ''); };
     $('pJoinBtn').onclick = () => this.join();
     $('pName').onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) this.join(); };
-    $('pDie').onclick = () => this.act('die');
-    $('pCall').onclick = () => this.act('call');
-    $('pRaise').onclick = () => this.act('raise');
-    this.bindPeek();
-    window.addEventListener('beforeunload', () => { if (this.local && this.bc) try { this.bc.postMessage({ from: this.pid, msg: { t: 'bye' } }); } catch (e) {} });
+    this.bindCommon();
+    window.addEventListener('beforeunload', () => { if (this.joined) this.send({ t: 'bye' }); });
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && this.joined) this.requestWake(); });
-    const raf = () => { this.paintTimer(); requestAnimationFrame(raf); };
-    requestAnimationFrame(raf);
     setTimeout(() => (room ? $('pName') : $('pCode')).focus(), 50);
   },
   screen(id) { ['pJoin', 'pWait', 'pGame', 'pFinal'].forEach(s => show($(s), s === id)); },
@@ -1276,47 +1474,86 @@ const Player = {
   async requestWake() { try { if ('wakeLock' in navigator) this.wake = await navigator.wakeLock.request('screen'); } catch (e) {} },
 
   join() {
-    SFX.init(); vibrate(20);
+    PSFX.init(); vibrate(20);
     const code = $('pCode').value.trim().toUpperCase(), name = $('pName').value.trim();
     if (code.length !== 4) return this.err('방 코드 4자리를 입력하세요');
     if (!name) return this.err('닉네임을 입력하세요');
     this.code = code; this.name = name.slice(0, 8); this.local = $('pLocal').checked;
+    if (IN_ARTIFACT && !this.local) {
+      const url = PUBLIC_URL + '?role=player&room=' + code;
+      $('pErr').innerHTML = `이 claude.ai 화면에서는 입장할 수 없어요.<br><a style="color:var(--gold)" href="${url}" target="_blank" rel="noopener">로그인 없이 되는 공개 주소로 입장 ↗</a>`;
+      return;
+    }
     try { if (!this.local) localStorage.setItem('bluffdice-name', this.name); } catch (e) {}
     $('pJoinBtn').disabled = true; $('pJoinBtn').textContent = '연결 중…'; this.err('');
-    if (this.local) this.connectLocal(); else this.connectPeer();
+    if (this.local) this.connectLocal(); else this.connectOnline();
     clearTimeout(this.joinTimer);
     this.joinTimer = setTimeout(() => {
       if (this.joined) return;
-      this.err(this.local ? '방을 찾을 수 없어요. 호스트 탭이 같은 브라우저에 열려 있는지 확인하세요.' : '방을 찾을 수 없어요. 코드를 확인하고, 메인 화면이 켜져 있는지 보세요.');
+      $('pErr').innerHTML = this.local ? '방을 찾을 수 없어요. 호스트 탭이 같은 브라우저에 열려 있는지 확인하세요.'
+        : '방을 찾을 수 없어요.<br>· 방 코드가 메인 화면과 같은지<br>· 메인 화면(호스트)이 켜져 있는지 확인하고 다시 눌러 주세요.<br>· 계속 안 되면 와이파이를 끄고 LTE/5G로 해 보세요.';
       this.resetJoinBtn();
-    }, 9000);
+    }, 15000);
+    clearInterval(this.pingTimer);
+    this.pingTimer = setInterval(() => { if (this.joined) this.send({ t: 'ping' }); }, 4000);
   },
+  joinMsg() { return { t: 'join', pid: this.pid, name: this.name }; },
   connectLocal() {
     if (typeof BroadcastChannel === 'undefined') { this.err('이 브라우저는 로컬 테스트 모드를 지원하지 않아요'); this.resetJoinBtn(); return; }
+    this.via = 'bc';
     try { this.bc && this.bc.close(); } catch (e) {}
     this.bc = new BroadcastChannel('bluffdice100-' + this.code);
-    this.bc.onmessage = e => { const d = e.data; if (d && d.to === this.pid) this.onMsg(d.msg); };
-    this.send({ t: 'join', pid: this.pid, name: this.name });
+    this.bc.onmessage = e => { const d = e.data; if (d && d.to === this.pid) this.onMsg(d.msg, 'bc'); };
+    this.send(this.joinMsg());
+  },
+  // 중계 서버로 먼저 연결하고, 6초 안에 입장이 안 되면 P2P(PeerJS)도 같이 시도
+  async connectOnline() {
+    this.endRelays();
+    const hasMqtt = await waitFor(() => window.mqtt, 4000);
+    if (hasMqtt) this.connectRelay();
+    clearTimeout(this.peerTimer);
+    this.peerTimer = setTimeout(() => { if (!this.joined) this.connectPeer(); }, hasMqtt ? 6000 : 0);
+  },
+  endRelays() { (this.relayTry || []).forEach(c => { try { c.end(true); } catch (e) {} }); this.relayTry = []; this.relay = null; },
+  connectRelay() {
+    this.relayTry = RELAYS.map(url => {
+      const c = mqtt.connect(url, { clientId: 'bd-p-' + Math.random().toString(36).slice(2, 10), clean: true, connectTimeout: 8000, reconnectPeriod: 2000, keepalive: 30 });
+      const topic = topicPlayer(this.code, this.pid);
+      c.on('connect', () => {
+        // 가장 먼저 연결된 중계 서버 하나만 씀
+        if (this.relay && this.relay !== c) { try { c.end(true); } catch (e) {} return; }
+        this.relay = c;
+        this.relayTry.filter(x => x !== c).forEach(x => { try { x.end(true); } catch (e) {} });
+        c.subscribe(topic, { qos: 0 }, () => {
+          c.publish(topicHost(this.code), JSON.stringify({ from: this.pid, msg: this.joinMsg() }), { qos: 1 });
+        });
+        if (this.joined && this.via === 'mqtt') show($('pConn'), false);
+      });
+      c.on('offline', () => { if (this.relay === c && this.joined && this.via === 'mqtt') show($('pConn')); });
+      c.on('message', (t, buf) => {
+        if (t !== topic) return;
+        let m; try { m = JSON.parse(buf.toString()); } catch (e) { return; }
+        this.onMsg(m, 'mqtt');
+      });
+      return c;
+    });
   },
   connectPeer() {
-    if (typeof Peer === 'undefined') { this.err('실시간 연결 라이브러리를 불러오지 못했어요. 인터넷 연결을 확인하세요.'); this.resetJoinBtn(); return; }
+    if (typeof Peer === 'undefined') return;
     if (!this.peer || this.peer.destroyed) {
       this.peer = new Peer();
       this.peer.on('open', () => this.dial());
-      this.peer.on('error', e => {
-        if (!this.joined) { this.err(e.type === 'peer-unavailable' ? '방을 찾을 수 없어요. 코드를 확인하세요.' : '연결 오류: ' + e.type); this.resetJoinBtn(); }
-        else this.scheduleReconnect();
-      });
+      this.peer.on('error', () => { if (this.joined && this.via === 'peer') this.scheduleReconnect(); });
       this.peer.on('disconnected', () => { if (!this.peer.destroyed) this.peer.reconnect(); });
     } else if (this.peer.open) this.dial();
   },
   dial() {
     const conn = this.peer.connect(PREFIX + this.code, { reliable: true });
     this.conn = conn;
-    const to = setTimeout(() => { if (!conn.open && this.joined) this.scheduleReconnect(); }, 10000);
-    conn.on('open', () => { clearTimeout(to); conn.send({ t: 'join', pid: this.pid, name: this.name }); show($('pConn'), false); });
-    conn.on('data', m => this.onMsg(m));
-    conn.on('close', () => { if (this.conn === conn && this.joined) { show($('pConn')); this.scheduleReconnect(); } });
+    const to = setTimeout(() => { if (!conn.open && this.joined && this.via === 'peer') this.scheduleReconnect(); }, 10000);
+    conn.on('open', () => { clearTimeout(to); conn.send(this.joinMsg()); });
+    conn.on('data', m => this.onMsg(m, 'peer'));
+    conn.on('close', () => { if (this.conn === conn && this.joined && this.via === 'peer') { show($('pConn')); this.scheduleReconnect(); } });
   },
   scheduleReconnect() {
     if (this.reconnTimer) return;
@@ -1324,14 +1561,18 @@ const Player = {
     this.reconnTimer = setTimeout(() => { this.reconnTimer = null; this.connectPeer(); }, 2000);
   },
   send(msg) {
-    if (this.local) { try { this.bc.postMessage({ from: this.pid, msg }); } catch (e) {} }
-    else if (this.conn && this.conn.open) { try { this.conn.send(msg); } catch (e) {} }
+    try {
+      if (this.via === 'self') setTimeout(() => HostNet.accept(this.pid, msg, { via: 'self' }), 0);
+      else if (this.via === 'bc') this.bc.postMessage({ from: this.pid, msg });
+      else if (this.via === 'peer') { if (this.conn && this.conn.open) this.conn.send(msg); }
+      else if (this.relay && this.relay.connected) this.relay.publish(topicHost(this.code), JSON.stringify({ from: this.pid, msg }), { qos: msg.t === 'ping' ? 0 : 1 });
+    } catch (e) {}
   },
   act(a) {
-    SFX.init();
+    PSFX.init();
     const s = this.st; if (!s || s.phase !== 'bet') return;
     vibrate(a === 'raise' ? 60 : 25);
-    if (a === 'raise') SFX.chips(); else if (a === 'die') SFX.fold(); else SFX.click();
+    if (a === 'raise') PSFX.chips(); else if (a === 'die') PSFX.fold(); else PSFX.click();
     this.send({ t: 'act', a });
   },
 
@@ -1342,7 +1583,7 @@ const Player = {
       if (!this.canPeek()) return;
       e.preventDefault();
       try { z.setPointerCapture(e.pointerId); } catch (_) {}
-      this.peeking = true; z.classList.add('peek'); SFX.peek(); vibrate(10); this.renderPeek();
+      this.peeking = true; z.classList.add('peek'); PSFX.peek(); vibrate(10); this.renderPeek();
     };
     const up = () => { if (!this.peeking) return; this.peeking = false; z.classList.remove('peek'); this.renderPeek(); };
     z.addEventListener('pointerdown', down);
@@ -1358,10 +1599,12 @@ const Player = {
   },
 
   /* ---------- 수신 ---------- */
-  onMsg(m) {
+  onMsg(m, via) {
     if (!m || typeof m !== 'object') return;
+    // 호스트가 마지막으로 응답한 경로로 보냄
+    if (via) this.via = via;
     if (m.t === 'welcome') {
-      if (!this.joined) { this.joined = true; clearTimeout(this.joinTimer); SFX.join(); vibrate(40); this.requestWake(); }
+      if (!this.joined) { this.joined = true; clearTimeout(this.joinTimer); PSFX.join(); vibrate(40); this.requestWake(); }
       this.name = m.name;
       if (!this.st) this.screen('pWait');
     } else if (m.t === 'full') { this.err('방이 가득 찼어요 (최대 16명)'); this.resetJoinBtn(); }
@@ -1380,14 +1623,14 @@ const Player = {
     // 다른 사람의 레이즈 → 진동 + 칩 소리 + 붉은 플래시
     if (this.lastSeq >= 0 && m.raiseSeq > this.lastSeq && m.phase === 'bet') {
       if (m.lastRaiser !== m.me.name) {
-        vibrate([120, 60, 120]); SFX.chips();
+        vibrate([120, 60, 120]); PSFX.chips();
         retrigger($('player'), 'flashRed');
       }
     }
     this.lastSeq = m.raiseSeq;
     if (m.phase !== this.lastPhase || m.round !== this.lastRound) {
       if (m.phase === 'roll' && m.me.active) {
-        SFX.roll(1.4); vibrate([30, 40, 30, 40, 30]);
+        PSFX.roll(1.4); vibrate([30, 40, 30, 40, 30]);
         this.rollEndLocal = Date.now() + Math.min(2200, m.left);
         $('pDice').classList.add('rolling');
         clearInterval(this.rollTimer);
@@ -1402,11 +1645,11 @@ const Player = {
         this.resRevealAt = Date.now() + (m.revealIn || 0);
         this.resTimer = setTimeout(() => {
           const s = this.st; if (!s || s.phase !== 'show' || !s.res) return;
-          if (s.res.win) { SFX.fanfare(); vibrate([80, 50, 80, 50, 250]); } else if (s.me.active) { SFX.lose(); vibrate(200); }
+          if (s.res.win) { PSFX.fanfare(); vibrate([80, 50, 80, 50, 250]); } else if (s.me.active) { PSFX.lose(); vibrate(200); }
           this.render();
         }, m.revealIn || 0);
       }
-      if (m.phase === 'final') { SFX.fanfare(); vibrate([100, 60, 100, 60, 300]); }
+      if (m.phase === 'final') { PSFX.fanfare(); vibrate([100, 60, 100, 60, 300]); }
       this.lastPhase = m.phase; this.lastRound = m.round;
     }
   },
@@ -1518,8 +1761,14 @@ const Player = {
   },
 };
 
-// 주소에 role이 있으면 바로 해당 화면으로
+if (IN_ARTIFACT) {
+  document.querySelectorAll('[data-pubnote]').forEach(n => n.classList.remove('hidden'));
+  document.querySelectorAll('[data-publink]').forEach(a => a.href = PUBLIC_URL + '?role=host');
+  document.querySelectorAll('[data-pubcopy]').forEach(b => b.onclick = () => copyText(PUBLIC_URL + '?role=host', b));
+}
+// 주소에 role이 있으면 바로 해당 화면으로, 방 코드만 있는 초대 링크면 참가자 화면으로
 if (params.get('role') === 'host' || params.get('role') === 'player') startRole(params.get('role'));
+else if (params.get('room')) startRole('player');
 </script>
 </body>
 </html>
