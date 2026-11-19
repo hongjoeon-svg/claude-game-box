@@ -87,6 +87,7 @@ input { font: inherit; }
 .urlTxt { color: #e8efe9; font-size: 14px; word-break: break-all; user-select: all; }
 .invite { display: flex; flex-direction: column; gap: 8px; background: rgba(230,192,99,.08); border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px; }
 .invLbl { font-size: 13px; font-weight: 900; color: var(--gold); }
+.invWarn { font-size: 12px; line-height: 1.5; color: #ffcf8a; }
 .invBtns { display: flex; gap: 8px; flex-wrap: wrap; }
 .btnInv { background: linear-gradient(180deg, #f3d27a, #c9982f); color: #2a1a04; font-weight: 900; font-size: 15px; padding: 9px 16px; border-radius: 11px; text-decoration: none; display: inline-block; }
 .btnInv + .btnInv { background: rgba(255,255,255,.1); color: var(--text); border: 1px solid rgba(255,255,255,.2); }
@@ -575,6 +576,7 @@ body.hcompact #player.embed .diceZone { height: 120px; }
         <div class="invLbl">🔗 초대 링크 · 카톡 등으로 보내면 누르기만 해도 입장</div>
         <div class="urlTxt" id="hUrl"></div>
         <div class="invBtns"><button class="btnInv" id="hCopy">📋 링크 복사</button><button class="btnInv" id="hShare">📤 공유하기</button></div>
+        <div class="invWarn">⚠️ 링크를 보낸 뒤엔 꼭 이 화면으로 돌아와 켜 두세요. 이 화면이 꺼져 있거나 카톡 등 다른 앱에 가 있으면 친구가 입장할 수 없어요.</div>
       </div>
       <div class="net" id="hNet"><i></i><span>연결 준비 중…</span></div>
       <button class="btnGhost" id="hLocalTab">🧪 로컬 테스트: 참가자 탭 새로 열기<br><small style="color:var(--muted)">같은 브라우저의 여러 탭끼리 연결돼요 (서버·인터넷 없이 테스트)</small></button>
@@ -925,6 +927,7 @@ const HostNet = {
     // 중계 서버로 들어온 참가자는 끊김을 알 수 없어서 ping이 끊기면 나간 것으로 봄
     setInterval(() => {
       const t = Date.now();
+      if (!this.relays.some(c => c.connected)) return;   // 호스트 쪽이 끊겨 있으면 판단 보류
       for (const [pid, l] of this.links) if (l.via === 'mqtt' && t - l.seen > 12000) { this.links.delete(pid); this.onLeave(pid); }
     }, 2000);
   },
@@ -952,7 +955,11 @@ const HostNet = {
       this.links.set(pid, { ...link, seen: Date.now() });
     } else if (!cur || cur.via !== link.via || (link.conn && cur.conn !== link.conn) || (link.client && cur.client !== link.client)) {
       // 연결 경로가 바뀐 참가자(예: 재접속): 아는 사람이면 경로만 갱신
-      if (!Host.players.has(pid)) return;
+      if (!Host.players.has(pid)) {
+        // 모르는 참가자(예: 호스트가 잠깐 끊긴 사이 목록에서 빠짐)에게는 다시 입장하라고 알림
+        if (msg.t === 'ping') { this.links.set(pid, { ...link, seen: Date.now() }); this.send(pid, { t: 'rejoin' }); this.links.delete(pid); }
+        return;
+      }
       this.links.set(pid, { ...link, seen: Date.now() });
     } else cur.seen = Date.now();
     if (msg.t === 'ping') { Host.onPing(pid); return; }
@@ -973,7 +980,11 @@ const HostNet = {
     let fails = 0;
     for (const url of RELAYS) {
       const c = mqtt.connect(url, { clientId: 'bd-h-' + Math.random().toString(36).slice(2, 10), clean: true, connectTimeout: 8000, reconnectPeriod: 3000, keepalive: 30 });
-      c.on('connect', () => { c.subscribe(topicHost(this.code)); c._ok = true; this.st.mqtt = 'on'; this.status(); });
+      c.on('connect', () => {
+        c.subscribe(topicHost(this.code)); c._ok = true; this.st.mqtt = 'on'; this.status();
+        // 호스트 쪽이 끊겼던 동안은 참가자 탓이 아니므로 접속 시계를 새로 시작
+        for (const l of this.links.values()) if (l.via === 'mqtt') l.seen = Date.now();
+      });
       c.on('close', () => { c._ok = false; if (!this.relays.some(x => x._ok)) { this.st.mqtt = 'off'; this.status(); } });
       c.on('error', () => { if (++fails >= RELAYS.length && !this.relays.some(x => x._ok)) { this.st.mqtt = 'off'; this.status(); } });
       c.on('message', (topic, buf) => {
@@ -1045,6 +1056,16 @@ const Host = {
     $('hToLobby').onclick = () => this.toLobby();
     document.addEventListener('pointerdown', () => SFX.init(), { once: true });
     window.addEventListener('resize', () => { this.seatKey = ''; this.layoutSeats(); });
+    // 호스트 화면이 꺼지거나 다른 앱에 다녀오면 연결이 멈추므로: 화면 켜짐 유지 + 돌아오면 바로 재연결
+    const wake = async () => { try { if ('wakeLock' in navigator && document.visibilityState === 'visible') this.wake = await navigator.wakeLock.request('screen'); } catch (e) {} };
+    wake(); document.addEventListener('pointerdown', wake, { once: true });
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState !== 'visible') return;
+      wake();
+      for (const c of HostNet.relays) if (!c.connected) { try { c.reconnect(); } catch (e) {} }
+      if (HostNet.peer && HostNet.peer.disconnected && !HostNet.peer.destroyed) { try { HostNet.peer.reconnect(); } catch (e) {} }
+      this.broadcast();
+    });
     setInterval(() => this.loop(), 100);
     const raf = () => { this.paintTimer(); requestAnimationFrame(raf); };
     requestAnimationFrame(raf);
@@ -1628,7 +1649,11 @@ const Player = {
     $('pName').onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) this.join(); };
     this.bindCommon();
     window.addEventListener('beforeunload', () => { if (this.joined) this.send({ t: 'bye' }); });
-    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && this.joined) this.requestWake(); });
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState !== 'visible') return;
+      for (const c of this.relayTry || []) if (!c.connected) { try { c.reconnect(); } catch (e) {} }
+      if (this.joined) { this.requestWake(); this.sendJoin(); }
+    });
     setTimeout(() => (room ? $('pName') : $('pCode')).focus(), 50);
   },
   screen(id) { ['pJoin', 'pWait', 'pGame', 'pFinal'].forEach(s => show($(s), s === id)); },
@@ -1650,17 +1675,30 @@ const Player = {
     try { if (!this.local) localStorage.setItem('bluffdice-name', this.name); } catch (e) {}
     $('pJoinBtn').disabled = true; $('pJoinBtn').textContent = '연결 중…'; this.err('');
     if (this.local) this.connectLocal(); else this.connectOnline();
-    clearTimeout(this.joinTimer);
-    this.joinTimer = setTimeout(() => {
-      if (this.joined) return;
-      $('pErr').innerHTML = this.local ? '방을 찾을 수 없어요. 호스트 탭이 같은 브라우저에 열려 있는지 확인하세요.'
-        : '방을 찾을 수 없어요.<br>· 방 코드가 메인 화면과 같은지<br>· 메인 화면(호스트)이 켜져 있는지 확인하고 다시 눌러 주세요.<br>· 계속 안 되면 와이파이를 끄고 LTE/5G로 해 보세요.';
-      this.resetJoinBtn();
-    }, 15000);
+    // 호스트가 잠깐 다른 앱(카톡 등)에 가 있어도 들어올 수 있게, 응답이 올 때까지 계속 입장 요청을 보냄
+    clearInterval(this.joinRetry);
+    const t0 = Date.now();
+    this.joinRetry = setInterval(() => {
+      if (this.joined) { clearInterval(this.joinRetry); return; }
+      this.sendJoin();
+      if (Date.now() - t0 > 12000) {
+        $('pJoinBtn').textContent = '호스트 화면을 기다리는 중…';
+        $('pErr').innerHTML = this.local ? '호스트 탭을 찾고 있어요. 같은 브라우저에 호스트 탭이 열려 있는지 확인하세요.'
+          : '⏳ 메인 화면(호스트)을 찾는 중이에요. 계속 자동으로 시도하고 있어요.<br>· 호스트가 게임 화면을 켜 두었는지 (카톡 등 다른 앱에 가 있으면 연결이 멈춰요)<br>· 방 코드가 메인 화면과 같은지 확인해 주세요.<br><button class="linkBtn" id="pRetry">코드를 고쳐서 다시 입장</button>';
+        const rb = $('pRetry'); if (rb) rb.onclick = () => { clearInterval(this.joinRetry); this.resetJoinBtn(); this.err(''); };
+      }
+    }, 2500);
     clearInterval(this.pingTimer);
     this.pingTimer = setInterval(() => { if (this.joined) this.send({ t: 'ping' }); }, 4000);
   },
   joinMsg() { return { t: 'join', pid: this.pid, name: this.name }; },
+  // 연결된 모든 경로로 입장 요청 (호스트가 어느 중계 서버에 붙어 있든 닿도록)
+  sendJoin() {
+    const m = this.joinMsg();
+    if (this.local) { this.send(m); return; }
+    for (const c of this.relayTry || []) if (c.connected) { try { c.publish(topicHost(this.code), JSON.stringify({ from: this.pid, msg: m }), { qos: 1 }); } catch (e) {} }
+    if (this.conn && this.conn.open) { try { this.conn.send(m); } catch (e) {} }
+  },
   connectLocal() {
     if (typeof BroadcastChannel === 'undefined') { this.err('이 브라우저는 로컬 테스트 모드를 지원하지 않아요'); this.resetJoinBtn(); return; }
     this.via = 'bc';
@@ -1682,11 +1720,9 @@ const Player = {
     this.relayTry = RELAYS.map(url => {
       const c = mqtt.connect(url, { clientId: 'bd-p-' + Math.random().toString(36).slice(2, 10), clean: true, connectTimeout: 8000, reconnectPeriod: 2000, keepalive: 30 });
       const topic = topicPlayer(this.code, this.pid);
+      // 중계 서버 두 곳 모두 연결해 두고, 호스트가 응답한 쪽으로 보냄
       c.on('connect', () => {
-        // 가장 먼저 연결된 중계 서버 하나만 씀
-        if (this.relay && this.relay !== c) { try { c.end(true); } catch (e) {} return; }
-        this.relay = c;
-        this.relayTry.filter(x => x !== c).forEach(x => { try { x.end(true); } catch (e) {} });
+        if (!this.relay) this.relay = c;
         c.subscribe(topic, { qos: 0 }, () => {
           c.publish(topicHost(this.code), JSON.stringify({ from: this.pid, msg: this.joinMsg() }), { qos: 1 });
         });
@@ -1696,6 +1732,7 @@ const Player = {
       c.on('message', (t, buf) => {
         if (t !== topic) return;
         let m; try { m = JSON.parse(buf.toString()); } catch (e) { return; }
+        this.relay = c;
         this.onMsg(m, 'mqtt');
       });
       return c;
@@ -1728,7 +1765,10 @@ const Player = {
       if (this.via === 'self') setTimeout(() => HostNet.accept(this.pid, msg, { via: 'self' }), 0);
       else if (this.via === 'bc') this.bc.postMessage({ from: this.pid, msg });
       else if (this.via === 'peer') { if (this.conn && this.conn.open) this.conn.send(msg); }
-      else if (this.relay && this.relay.connected) this.relay.publish(topicHost(this.code), JSON.stringify({ from: this.pid, msg }), { qos: msg.t === 'ping' ? 0 : 1 });
+      else {
+        if (!(this.relay && this.relay.connected)) this.relay = (this.relayTry || []).find(c => c.connected) || this.relay;
+        if (this.relay && this.relay.connected) this.relay.publish(topicHost(this.code), JSON.stringify({ from: this.pid, msg }), { qos: msg.t === 'ping' ? 0 : 1 });
+      }
     } catch (e) {}
   },
   act(a) {
@@ -1767,13 +1807,14 @@ const Player = {
     // 호스트가 마지막으로 응답한 경로로 보냄
     if (via) this.via = via;
     if (m.t === 'welcome') {
-      if (!this.joined) { this.joined = true; clearTimeout(this.joinTimer); PSFX.join(); vibrate(40); this.requestWake(); }
+      if (!this.joined) { this.joined = true; clearInterval(this.joinRetry); this.err(''); PSFX.join(); vibrate(40); this.requestWake(); }
       this.name = m.name;
       if (!this.st) this.screen('pWait');
     } else if (m.t === 'full') { this.err('방이 가득 찼어요 (최대 16명)'); this.resetJoinBtn(); }
+    else if (m.t === 'rejoin') this.sendJoin();
     else if (m.t === 'nack') { this.alert('⚠️ ' + m.why, 'gold'); vibrate([60, 40, 60]); }
     else if (m.t === 'st') {
-      if (!this.joined) { this.joined = true; clearTimeout(this.joinTimer); this.requestWake(); }
+      if (!this.joined) { this.joined = true; clearInterval(this.joinRetry); this.err(''); this.requestWake(); }
       show($('pConn'), false);
       this.deadline = Date.now() + m.left;
       this.lockAt = Date.now() + m.lockLeft;
