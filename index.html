@@ -2,76 +2,185 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#090b16">
 <title>클로드 게임 모음집</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
 <style>
+  /* 우주·사이버 무드: 다크 네이비 그라데이션 + 은은한 그리드·별빛, 네온 오렌지→핑크→퍼플 포인트, 유리 카드 */
   :root {
-    --bg: #1a1714;
-    --panel: #26211d;
-    --panel2: #312a25;
-    --text: #f4ede6;
-    --muted: #a99d92;
-    --accent: #d97757;
-    --accent2: #e8a87c;
-    --good: #7fbf7f;
-    --bad: #e06c6c;
+    color-scheme: dark;
+    --bg0: #090b16;
+    --bg1: #11162b;
+    --text: #f5f6ff;
+    --sub: #a7adc8;
+    --dim: #7b81a0;
+    --glass: rgba(22, 27, 52, .55);
+    --glassHi: rgba(32, 38, 72, .7);
+    --line: rgba(255, 255, 255, .09);
+    --orange: #ff8a3d;
+    --pink: #ff4fb8;
+    --purple: #a855f7;
+    --font: "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; }
+  html, body { min-height: 100%; }
   body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", sans-serif;
-    -webkit-tap-highlight-color: transparent;
+    font-family: var(--font); color: var(--text);
+    background:
+      radial-gradient(900px 520px at 50% -8%, #3a1d6e55, transparent 65%),
+      radial-gradient(700px 500px at 100% 30%, #7a1f6a26, transparent 60%),
+      radial-gradient(800px 600px at -5% 80%, #1d3a8a33, transparent 60%),
+      linear-gradient(180deg, var(--bg0), var(--bg1) 55%, var(--bg0));
+    background-attachment: fixed;
+    overflow-x: hidden; -webkit-tap-highlight-color: transparent;
   }
-  button { font: inherit; cursor: pointer; }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; }
+  :focus-visible { outline: 2px solid #ff9de0; outline-offset: 3px; }
 
-  /* ---------- 홈 ---------- */
-  header.top {
-    text-align: center;
-    padding: 48px 16px 24px;
+  /* ---------- 배경: 그리드 + 별빛 ---------- */
+  .space { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .space::before {
+    content: ""; position: absolute; inset: -2px;
+    background-image:
+      linear-gradient(rgba(140, 150, 255, .06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(140, 150, 255, .06) 1px, transparent 1px);
+    background-size: 56px 56px;
+    -webkit-mask-image: radial-gradient(ellipse at 50% 0%, #000 0%, #0008 45%, transparent 85%);
+            mask-image: radial-gradient(ellipse at 50% 0%, #000 0%, #0008 45%, transparent 85%);
   }
-  .logo {
-    width: 64px; height: 64px; margin: 0 auto 16px;
-    animation: spin 12s linear infinite;
+  .space::after {
+    content: ""; position: absolute; right: -6%; top: 4%; width: 46vw; height: 46vw; max-width: 620px; max-height: 620px;
+    background-image:
+      linear-gradient(rgba(255, 79, 184, .09) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 79, 184, .09) 1px, transparent 1px);
+    background-size: 40px 40px;
+    -webkit-mask-image: radial-gradient(circle at 70% 30%, #000, transparent 70%);
+            mask-image: radial-gradient(circle at 70% 30%, #000, transparent 70%);
   }
+  .star { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #fff; opacity: .5; animation: twinkle var(--d, 4s) ease-in-out infinite; animation-delay: var(--del, 0s); }
+  .star.big { width: 3px; height: 3px; box-shadow: 0 0 6px #fff; }
+  @keyframes twinkle { 0%, 100% { opacity: .15; transform: scale(.8); } 50% { opacity: .9; transform: scale(1.1); } }
+
+  /* ---------- 헤더 ---------- */
+  .wrap { position: relative; z-index: 1; max-width: 1340px; margin: 0 auto; padding: 0 20px 56px; }
+  header { text-align: center; padding: 54px 0 10px; }
+  .logo { width: 72px; height: 72px; margin: 0 auto 18px; filter: drop-shadow(0 0 10px #ff5fa088) drop-shadow(0 0 26px #a855f766); animation: spin 18s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  header.top h1 { font-size: clamp(28px, 6vw, 44px); letter-spacing: -0.02em; }
-  header.top h1 span { color: var(--accent); }
-  header.top p { color: var(--muted); margin-top: 8px; }
-
-  .grid {
-    max-width: 1000px; margin: 0 auto; padding: 16px 16px 64px;
-    display: grid; gap: 16px;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  h1 {
+    font-size: clamp(32px, 5.2vw, 54px); font-weight: 900; letter-spacing: -.02em; line-height: 1.15;
+    background: linear-gradient(92deg, #ffb070 0%, var(--orange) 18%, var(--pink) 52%, #c77dff 80%, var(--purple) 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 0 18px rgba(255, 79, 184, .38)) drop-shadow(0 0 40px rgba(168, 85, 247, .25));
   }
+  .tagline { color: var(--sub); margin-top: 12px; font-size: clamp(14px, 1.6vw, 17px); }
+
+  /* ---------- 필터 탭 ---------- */
+  .tabs { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin: 34px 0 30px; }
+  .tab {
+    position: relative; padding: 11px 26px; border-radius: 999px; font-weight: 700; font-size: 16px; color: #d6daf0;
+    background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .14);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), 0 6px 18px rgba(0, 0, 0, .25);
+    transition: transform .15s, background .2s, border-color .2s, box-shadow .25s, color .2s;
+  }
+  .tab:hover { transform: translateY(-2px); background: rgba(255, 255, 255, .1); color: #fff; }
+  .tab .n { font-size: 12px; font-weight: 700; margin-left: 6px; opacity: .6; }
+  .tab[aria-selected="true"] {
+    color: #fff; border-color: rgba(255, 170, 230, .7);
+    background: linear-gradient(120deg, #7c3aed, #c026d3 55%, #ff4fb8);
+    box-shadow: 0 0 0 1px rgba(255, 120, 220, .35), 0 0 18px rgba(214, 70, 230, .55), 0 0 42px rgba(168, 85, 247, .35), inset 0 1px 0 rgba(255, 255, 255, .35);
+  }
+  .tab[aria-selected="true"] .n { opacity: .9; }
+
+  /* ---------- 카드 그리드 ---------- */
+  .grid { display: grid; gap: 20px; grid-template-columns: 1fr; }
+  @media (min-width: 480px) { .grid { grid-template-columns: repeat(2, 1fr); gap: 16px; } }
+  @media (min-width: 760px) { .grid { grid-template-columns: repeat(3, 1fr); gap: 20px; } }
+  @media (min-width: 1020px) { .grid { grid-template-columns: repeat(4, 1fr); } }
+  @media (min-width: 1260px) { .grid { grid-template-columns: repeat(5, 1fr); } }
+
   .card {
-    background: var(--panel);
-    border: 1px solid #3a322c;
-    border-radius: 18px;
-    padding: 22px;
-    text-align: left;
-    color: var(--text);
-    transition: transform .15s, border-color .15s, background .15s;
-    display: flex; flex-direction: column; gap: 8px;
+    --c: #a855f7; position: relative; display: flex; flex-direction: column; border-radius: 20px; overflow: hidden;
+    background: linear-gradient(180deg, rgba(30, 36, 70, .62), rgba(16, 20, 40, .6));
+    border: 1px solid var(--line);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .07), 0 14px 30px rgba(0, 0, 0, .35);
+    transition: transform .25s cubic-bezier(.2,.8,.2,1), border-color .25s, box-shadow .25s, opacity .22s ease, scale .22s ease;
   }
-  a.card { text-decoration: none; }
-  .card:hover { transform: translateY(-4px); border-color: var(--accent); background: var(--panel2); }
-  .card .emoji { font-size: 40px; }
-  .card h2 { font-size: 20px; }
-  .card p { color: var(--muted); font-size: 14px; line-height: 1.45; flex: 1; }
-  .card .best { font-size: 13px; color: var(--accent2); }
-  footer { text-align: center; color: #6f645b; font-size: 12px; padding: 0 16px 32px; }
+  .card:hover, .card:focus-visible {
+    transform: translateY(-8px);
+    border-color: color-mix(in srgb, var(--c) 85%, white 15%);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--c) 60%, transparent), 0 0 22px color-mix(in srgb, var(--c) 45%, transparent), 0 0 60px color-mix(in srgb, var(--c) 22%, transparent), 0 22px 40px rgba(0, 0, 0, .45);
+    outline: none;
+  }
+  .card.out { opacity: 0; scale: .94; }
+  .card[hidden] { display: none; }
 
+  /* 상단 일러스트 */
+  .art {
+    position: relative; height: 150px; overflow: hidden; display: grid; place-items: center;
+    background:
+      radial-gradient(120% 90% at 50% 110%, color-mix(in srgb, var(--c) 40%, transparent), transparent 60%),
+      radial-gradient(60% 70% at 20% 0%, color-mix(in srgb, var(--c) 22%, transparent), transparent 70%),
+      linear-gradient(180deg, rgba(255, 255, 255, .02), rgba(0, 0, 0, .1));
+    border-bottom: 1px solid var(--line);
+  }
+  .art::before { /* 바닥 원근 그리드 */
+    content: ""; position: absolute; left: -20%; right: -20%; bottom: -40%; height: 80%;
+    background-image: linear-gradient(color-mix(in srgb, var(--c) 30%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--c) 30%, transparent) 1px, transparent 1px);
+    background-size: 26px 26px; transform: perspective(220px) rotateX(62deg); opacity: .35;
+    -webkit-mask-image: linear-gradient(transparent, #000 60%); mask-image: linear-gradient(transparent, #000 60%);
+  }
+  .orb { /* 입체 원형 백드롭 */
+    position: absolute; width: 104px; height: 104px; border-radius: 50%; left: 50%; top: 50%; transform: translate(-30%, -52%);
+    background: radial-gradient(circle at 32% 28%, color-mix(in srgb, var(--c) 30%, white 70%), var(--c) 38%, color-mix(in srgb, var(--c) 40%, #0b0e22) 100%);
+    box-shadow: 0 0 34px color-mix(in srgb, var(--c) 70%, transparent), inset -10px -14px 24px rgba(0, 0, 0, .35);
+    opacity: .9;
+  }
+  .tile { /* 입체 카드형 백드롭 */
+    position: absolute; width: 70px; height: 70px; border-radius: 18px; left: 50%; top: 50%; transform: translate(-115%, -38%) rotate(-12deg);
+    background: linear-gradient(145deg, rgba(255, 255, 255, .28), rgba(255, 255, 255, .05));
+    border: 1px solid rgba(255, 255, 255, .3); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, .35);
+  }
+  .emo { position: relative; font-size: 62px; line-height: 1; transform: translate(14px, -4px); filter: drop-shadow(0 8px 10px rgba(0, 0, 0, .45)) drop-shadow(0 0 16px color-mix(in srgb, var(--c) 55%, transparent)); transition: transform .3s cubic-bezier(.2,1.4,.4,1); }
+  .emo2 { position: absolute; left: 50%; top: 50%; transform: translate(-128%, -36%) rotate(-12deg); font-size: 36px; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .4)); transition: transform .3s cubic-bezier(.2,1.4,.4,1); }
+  .card:hover .emo { transform: translate(14px, -10px) scale(1.08) rotate(-4deg); }
+  .card:hover .emo2 { transform: translate(-138%, -44%) rotate(-20deg); }
+
+  /* 본문 */
+  .body { padding: 16px 16px 14px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+  .body h2 { font-size: 18px; font-weight: 900; color: #fff; line-height: 1.3; letter-spacing: -.01em; }
+  .body p { font-size: 13.5px; line-height: 1.6; color: var(--sub); flex: 1; }
+  .badges { display: flex; flex-wrap: wrap; gap: 6px; }
+  .bdg { font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; color: #cfd3ea; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .1); white-space: nowrap; }
+  .bdg.ppl { color: #fff; background: color-mix(in srgb, var(--c) 30%, transparent); border-color: color-mix(in srgb, var(--c) 60%, transparent); }
+  .how { font-size: 12.5px; color: var(--dim); line-height: 1.5; padding-top: 10px; border-top: 1px solid var(--line); }
+
+  .empty { text-align: center; color: var(--sub); padding: 40px 0; }
+  footer { position: relative; z-index: 1; text-align: center; color: #646a88; font-size: 13px; line-height: 1.7; padding: 0 20px 40px; }
+
+  @media (max-width: 479px) {
+    .art { height: 140px; }
+    .tab { padding: 10px 18px; font-size: 15px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
+  }
 </style>
 </head>
 <body>
+<div class="space" id="space" aria-hidden="true"></div>
 
-<!-- ================= 홈 ================= -->
-<main id="home">
-  <header class="top">
+<div class="wrap">
+  <header>
     <svg class="logo" viewBox="0 0 100 100" aria-hidden="true">
-      <g fill="#d97757">
+      <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffb070"/><stop offset=".45" stop-color="#ff4fb8"/><stop offset="1" stop-color="#a855f7"/></linearGradient></defs>
+      <g fill="url(#lg)">
         <rect x="46" y="6" width="8" height="38" rx="4"/>
         <rect x="46" y="6" width="8" height="38" rx="4" transform="rotate(45 50 50)"/>
         <rect x="46" y="6" width="8" height="38" rx="4" transform="rotate(90 50 50)"/>
@@ -82,29 +191,115 @@
         <rect x="46" y="6" width="8" height="38" rx="4" transform="rotate(315 50 50)"/>
       </g>
     </svg>
-    <h1><span>클로드</span> 게임 모음집</h1>
-    <p>친구들과, 혹은 혼자서. 브라우저에서 바로 여는 게임</p>
+    <h1>클로드 게임 모음집</h1>
+    <p class="tagline">친구들과, 혹은 혼자서. 브라우저에서 바로 여는 게임</p>
   </header>
-  <section class="grid" id="grid"></section>
-  <footer>Claude와 함께 만든 게임 모음 · 서버가 잠들어 있으면 처음 열 때 1분쯤 걸려요</footer>
-</main>
+
+  <nav class="tabs" id="tabs" role="tablist" aria-label="인원수 필터"></nav>
+  <main class="grid" id="grid" aria-live="polite"></main>
+  <p class="empty" id="empty" hidden>이 인원에 맞는 게임이 아직 없어요</p>
+</div>
+<footer>Claude와 함께 만든 게임 모음 · 여럿이 하는 게임은 메인 화면(TV·프로젝터)에서 열고 친구들은 폰으로 들어와요<br>외부 서버 게임은 서버가 잠들어 있으면 처음 열 때 1분쯤 걸려요</footer>
 
 <script>
+// cats: 이 게임이 보이는 탭 — '1' 1인(AI·봇으로 혼자 가능 포함), '2' 2인, '3' 3인 이상, 'party' 단체/파티
+// c: 카드 포인트 컬러, emo2: 상단 일러스트의 보조 소품
 const GAMES = [
-  { id: 'nosplash', emoji: '🏊', name: '물소리 금지', desc: '1인칭 잠입 공포. 불 꺼진 수영장, 물에 발이 닿는 순간 물속의 구조요원이 튀어나온다. 숙이고, 돌을 던져 따돌리고, 탈출하라', url: 'no-splash.html', tag: '🎧 혼자 · 헤드폰 필수 · 그래픽 무거움 (PC 추천)' },
-  { id: 'chickenrun', emoji: '🐔', name: '치킨 런: 멈춰야 산다', desc: '치솟는 배수, 언제 터질지 모르는 닭. 터지기 전에 폰으로 [지금 탈출하기!]를 누르면 배수×100점, 욕심내면 0점. 5라운드 눈치싸움', url: 'chicken-run.html?role=host', tag: '👥 여럿이 · 📱 폰 QR 입장 · 메인 화면(프로젝터)에서 열어요' },
-  { id: 'bluffdice', emoji: '🎲', name: '블러핑 다이스 100', desc: '내 주사위는 나만 몰래 엿본다! 20초 동안 콜·레이즈·다이로 눈치싸움, 가장 높은 합계가 판돈 독식. 프로젝터 + 스마트폰 실시간 베팅 파티 게임', url: 'bluffing-dice.html', tag: '👥 여럿이 · 🤖 AI와도 · 메인 화면(TV/프로젝터)에서 열어요' },
-  { id: 'bombrelay', emoji: '💣', name: '시한폭탄 릴레이', desc: '초성에 맞는 단어를 쳐서 폭탄을 넘겨라! 퓨즈가 다 타면 쥐고 있던 사람이 펑. 친구들은 폰으로 QR 입장, 사람이 모자라면 AI와 대결', url: 'bomb-relay.html?role=host', tag: '👥 여럿이 · 🤖 AI와 혼자서도 · 메인 화면(TV)에서 열어요' },
-  { id: 'synchro', emoji: '🎯', name: 'Synchro 100', desc: '15초 안에 모두와 같은 단어를! 단체 모임용 이심전심 파티 게임', url: 'https://synchro100.onrender.com/host', tag: '👥 여럿이 · 진행자 화면으로 이동' },
-  { id: 'sumolseon', emoji: '🕯️', name: '수몰선: 마지막 동창회', desc: '내일 정오, 마을이 물에 잠긴다. 5인 실시간 머더미스터리 (AI 봇으로 빈자리 채우기 가능)', url: 'https://sumolseon.onrender.com', tag: '👥 5인 · 첫 접속은 서버가 깨어나는 데 1분쯤 걸려요' },
-  { id: 'nightshift', emoji: '🌙', name: '끝나지 않는 야간 근무', desc: '끝없이 이어지는 매장 속에서 비상구를 찾아 탈출하라', url: 'https://endless-night-shift.onrender.com', tag: '🎧 혼자 · 새 창에서 열려요' },
+  { id: 'chamepop', cats: ['2', '3', 'party'], c: '#2ef2c2', emoji: '🦎', emo2: '🌈', name: '카멜레온 컬러 팡!', ppl: '2~24인', extra: ['⚡ 순발력', '🙋 호스트도 참여'],
+    desc: '글자 색깔? 글자 의미? 4초 안에 폰으로 팡! 5연속 콤보면 남의 버튼을 뒤섞는 카멜레온 습격까지', how: '📺 프로젝터에서 열고 📱 QR·카톡 링크로 입장', url: 'chameleon-pop.html' },
+  { id: 'shadowtag', cats: ['2', '3'], c: '#a855f7', emoji: '🕵️', emo2: '👤', name: '그림자 술래잡기', ppl: '2~16인', extra: ['👀 심리·추격'],
+    desc: '누가 술래인지 모르는 30초! 폰 속 3×3 방을 오가며 몰래 숨어든 술래를 피하라. 옆방에 술래가 오면 폰이 심장처럼 뛴다', how: '📺 메인 화면에서 열고 📱 QR·카톡 링크로 입장', url: 'shadow-tag.html?role=host' },
+  { id: 'nosplash', cats: ['1'], c: '#3b8bff', emoji: '🏊', emo2: '🎧', name: '물소리 금지', ppl: '1인', extra: ['🎧 헤드폰 필수', '💻 PC 추천'],
+    desc: '1인칭 잠입 공포. 불 꺼진 수영장, 물에 발이 닿는 순간 물속의 구조요원이 튀어나온다. 숙이고, 돌을 던져 따돌리고, 탈출하라', how: '그래픽이 무거워요 · 혼자 집중해서', url: 'no-splash.html' },
+  { id: 'chickenrun', cats: ['2', '3', 'party'], c: '#ff8a3d', emoji: '🐔', emo2: '💥', name: '치킨 런: 멈춰야 산다', ppl: '2~40인', extra: ['📈 눈치싸움'],
+    desc: '치솟는 배수, 언제 터질지 모르는 닭. 터지기 전에 [지금 탈출하기!]를 누르면 배수×100점, 욕심내면 0점', how: '📺 프로젝터에서 열고 📱 QR·링크로 입장', url: 'chicken-run.html?role=host' },
+  { id: 'bluffdice', cats: ['1', '2', '3', 'party'], c: '#ff4fb8', emoji: '🎲', emo2: '🪙', name: '블러핑 다이스 100', ppl: '1~16인', extra: ['🤖 AI와 혼자도', '🙋 호스트도 참여', '🃏 베팅·블러핑'],
+    desc: '내 주사위는 나만 몰래 엿본다! 20초 동안 콜·레이즈·다이로 눈치싸움, 가장 높은 합계가 판돈 독식', how: '📺 메인 화면(TV·프로젝터)에서 열고 📱 QR·카톡 링크로 입장', url: 'bluffing-dice.html' },
+  { id: 'bombrelay', cats: ['1', '2', '3'], c: '#ff5a4e', emoji: '💣', emo2: '⏱️', name: '시한폭탄 릴레이', ppl: '2인~', extra: ['🤖 AI와 혼자도', '🔤 초성 단어'],
+    desc: '초성에 맞는 단어를 쳐서 폭탄을 넘겨라! 퓨즈가 다 타면 쥐고 있던 사람이 펑', how: '📺 메인 화면(TV)에서 열고 📱 QR로 입장', url: 'bomb-relay.html?role=host' },
+  { id: 'synchro', cats: ['3', 'party'], c: '#ff5e8a', emoji: '🎯', emo2: '💞', name: 'Synchro 100', ppl: '단체', extra: ['💞 이심전심'],
+    desc: '15초 안에 모두와 같은 단어를! 단체 모임용 이심전심 파티 게임', how: '진행자 화면으로 이동 · 외부 서버', url: 'https://synchro100.onrender.com/host' },
+  { id: 'sumolseon', cats: ['1', '2', '3'], c: '#ffb547', emoji: '🕯️', emo2: '🏚️', name: '수몰선: 마지막 동창회', ppl: '5인', extra: ['🤖 빈자리는 AI 봇', '🕵️ 머더미스터리'],
+    desc: '내일 정오, 마을이 물에 잠긴다. 5인 실시간 머더미스터리', how: '첫 접속은 서버가 깨어나는 데 1분쯤 걸려요', url: 'https://sumolseon.onrender.com' },
+  { id: 'nightshift', cats: ['1'], c: '#7c83ff', emoji: '🌙', emo2: '🚪', name: '끝나지 않는 야간 근무', ppl: '1인', extra: ['🎧 공포'],
+    desc: '끝없이 이어지는 매장 속에서 비상구를 찾아 탈출하라', how: '새 창에서 열려요 · 외부 서버', url: 'https://endless-night-shift.onrender.com' },
 ];
-document.getElementById('grid').innerHTML = GAMES.map(g => `<a class="card" href="${g.url}" target="_blank" rel="noopener">
-  <div class="emoji">${g.emoji}</div>
-  <h2>${g.name}</h2>
-  <p>${g.desc}</p>
-  <div class="best">${g.tag}</div>
-</a>`).join('');
+const TABS = [
+  { id: 'all', label: '전체' },
+  { id: '1', label: '1인' },
+  { id: '2', label: '2인' },
+  { id: '3', label: '3인+' },
+  { id: 'party', label: '단체/파티' },
+];
+const esc = s => String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+const $ = id => document.getElementById(id);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// 별빛
+(() => {
+  const sp = $('space'), n = innerWidth < 600 ? 45 : 90;
+  let h = '';
+  for (let i = 0; i < n; i++) {
+    h += `<i class="star${Math.random() < .12 ? ' big' : ''}" style="left:${(Math.random() * 100).toFixed(2)}%;top:${(Math.random() * 100).toFixed(2)}%;--d:${(3 + Math.random() * 5).toFixed(1)}s;--del:${(-Math.random() * 6).toFixed(1)}s"></i>`;
+  }
+  sp.innerHTML = h;
+})();
+
+// 카드
+$('grid').innerHTML = GAMES.map(g => `
+  <a class="card" data-id="${g.id}" style="--c:${g.c}" href="${esc(g.url)}" target="_blank" rel="noopener">
+    <div class="art" aria-hidden="true"><span class="orb"></span><span class="tile"></span><span class="emo2">${g.emo2}</span><span class="emo">${g.emoji}</span></div>
+    <div class="body">
+      <h2>${esc(g.name)}</h2>
+      <p>${esc(g.desc)}</p>
+      <div class="badges"><span class="bdg ppl">👥 ${esc(g.ppl)}</span>${g.extra.map(x => `<span class="bdg">${esc(x)}</span>`).join('')}</div>
+      <div class="how">${esc(g.how)}</div>
+    </div>
+  </a>`).join('');
+
+// 탭
+const count = id => id === 'all' ? GAMES.length : GAMES.filter(g => g.cats.includes(id)).length;
+$('tabs').innerHTML = TABS.map(t => `<button class="tab" role="tab" data-tab="${t.id}" aria-selected="false">${t.label}<span class="n">${count(t.id)}</span></button>`).join('');
+
+let current = null, timer = 0;
+function select(id, animate = true) {
+  if (id === current) return;
+  current = id;
+  document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === id)));
+  try { localStorage.setItem('gamebox-tab', id); } catch (e) {}
+  const cards = [...document.querySelectorAll('.card')];
+  const want = c => id === 'all' || GAMES.find(g => g.id === c.dataset.id).cats.includes(id);
+  clearTimeout(timer);
+  const apply = () => {
+    let shown = 0;
+    cards.forEach(c => {
+      const ok = want(c);
+      c.hidden = !ok;
+      if (ok) { shown++; c.classList.add('out'); }
+    });
+    $('empty').hidden = shown > 0;
+    requestAnimationFrame(() => requestAnimationFrame(() => cards.forEach((c, i) => {
+      if (c.hidden) return;
+      c.style.transitionDelay = animate && !reduce ? `${Math.min(i, 8) * 30}ms` : '0ms';
+      c.classList.remove('out');
+    })));
+    // 등장 지연은 호버 반응에 남지 않도록 지움
+    setTimeout(() => cards.forEach(c => { c.style.transitionDelay = ''; }), 600);
+  };
+  if (!animate || reduce) { apply(); return; }
+  cards.forEach(c => { c.style.transitionDelay = '0ms'; if (!c.hidden) c.classList.add('out'); });
+  timer = setTimeout(apply, 200);
+}
+$('tabs').onclick = e => { const b = e.target.closest('.tab'); if (b) select(b.dataset.tab); };
+$('tabs').onkeydown = e => {
+  if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+  const ids = TABS.map(t => t.id), i = ids.indexOf(current);
+  const next = ids[(i + (e.key === 'ArrowRight' ? 1 : ids.length - 1)) % ids.length];
+  select(next); document.querySelector(`.tab[data-tab="${next}"]`).focus();
+};
+let saved = 'all';
+try { const v = localStorage.getItem('gamebox-tab'); if (TABS.some(t => t.id === v)) saved = v; } catch (e) {}
+select(saved, false);
 </script>
 </body>
 </html>
