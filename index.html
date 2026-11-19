@@ -2,111 +2,231 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>클로드 게임 모음집</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1c130d">
+<title>클로드 보드게임카페</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Gaegu:wght@700&family=Noto+Sans+KR:wght@500;700;900&display=swap">
 <style>
+  /* 보드게임카페: 어두운 원목 벽 + 칠판 간판 + 선반 위에 세워 둔 게임 상자 */
   :root {
-    --bg: #1a1714;
-    --panel: #26211d;
-    --panel2: #312a25;
-    --text: #f4ede6;
-    --muted: #a99d92;
+    color-scheme: dark;
+    --wall: #1c130d;
+    --wood: #6b4528;
+    --woodLight: #8d5f39;
+    --woodDark: #3d2615;
+    --chalk: #23302a;
+    --chalkLine: #f4efe4;
+    --paper: #f7efe1;
+    --ink: #2b1d12;
+    --muted: #b9a58f;
     --accent: #d97757;
-    --accent2: #e8a87c;
-    --good: #7fbf7f;
-    --bad: #e06c6c;
+    --display: "Black Han Sans", "Noto Sans KR", sans-serif;
+    --hand: "Gaegu", "Noto Sans KR", cursive;
+    --body: "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; }
+  html { scroll-behavior: smooth; }
   body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", sans-serif;
+    background:
+      radial-gradient(900px 500px at 50% -10%, #ffb46a22, transparent 70%),
+      repeating-linear-gradient(90deg, #1f150e 0 120px, #1a110b 120px 122px, #21170f 122px 240px),
+      var(--wall);
+    color: var(--paper); font-family: var(--body); min-height: 100vh;
     -webkit-tap-highlight-color: transparent;
   }
-  button { font: inherit; cursor: pointer; }
+  a { color: inherit; }
+  button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; }
+  :focus-visible { outline: 3px solid #ffd27a; outline-offset: 3px; border-radius: 8px; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
 
-  /* ---------- 홈 ---------- */
-  header.top {
-    text-align: center;
-    padding: 48px 16px 24px;
-  }
-  .logo {
-    width: 64px; height: 64px; margin: 0 auto 16px;
-    animation: spin 12s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  header.top h1 { font-size: clamp(28px, 6vw, 44px); letter-spacing: -0.02em; }
-  header.top h1 span { color: var(--accent); }
-  header.top p { color: var(--muted); margin-top: 8px; }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 0 16px; }
 
-  .grid {
-    max-width: 1000px; margin: 0 auto; padding: 16px 16px 64px;
-    display: grid; gap: 16px;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  /* ---------- 간판 (칠판) ---------- */
+  .sign { margin: 36px auto 10px; max-width: 760px; position: relative; text-align: center; }
+  .sign::before, .sign::after { content: ""; position: absolute; top: -36px; width: 2px; height: 40px; background: #9c8a72; }
+  .sign::before { left: 22%; transform: rotate(8deg); } .sign::after { right: 22%; transform: rotate(-8deg); }
+  .board {
+    background: radial-gradient(ellipse at 30% 20%, #33443b, var(--chalk) 70%);
+    border: 14px solid var(--wood); border-radius: 10px; padding: 26px 20px 22px;
+    box-shadow: inset 0 0 40px #0008, 0 0 0 2px var(--woodDark), 0 18px 40px #000a;
+    border-image: linear-gradient(135deg, var(--woodLight), var(--wood) 40%, var(--woodDark)) 1;
   }
-  .card {
-    background: var(--panel);
-    border: 1px solid #3a322c;
-    border-radius: 18px;
-    padding: 22px;
-    text-align: left;
-    color: var(--text);
-    transition: transform .15s, border-color .15s, background .15s;
-    display: flex; flex-direction: column; gap: 8px;
-  }
-  a.card { text-decoration: none; }
-  .card:hover { transform: translateY(-4px); border-color: var(--accent); background: var(--panel2); }
-  .card .emoji { font-size: 40px; }
-  .card h2 { font-size: 20px; }
-  .card p { color: var(--muted); font-size: 14px; line-height: 1.45; flex: 1; }
-  .card .best { font-size: 13px; color: var(--accent2); }
-  footer { text-align: center; color: #6f645b; font-size: 12px; padding: 0 16px 32px; }
+  .board .small { font-family: var(--hand); font-size: 22px; color: #cfe6d4; }
+  .board h1 { font-family: var(--display); font-weight: 400; font-size: clamp(34px, 7vw, 58px); color: var(--chalkLine); letter-spacing: -.01em; line-height: 1.1; text-shadow: 0 0 1px #fff8, 2px 2px 0 #0003; }
+  .board h1 span { color: #ffb38a; }
+  .board p { font-family: var(--hand); font-size: clamp(18px, 3.4vw, 23px); color: #dfe9e1; margin-top: 8px; }
 
+  /* ---------- 몇 분이세요? ---------- */
+  .ask { text-align: center; margin: 28px 0 8px; }
+  .ask h2 { font-family: var(--hand); font-size: 26px; color: #ffd9a8; font-weight: 700; }
+  .chips { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
+  .chip {
+    padding: 10px 18px; border-radius: 999px; font-weight: 900; font-size: 16px;
+    background: #2e2016; border: 2px solid #5a3e28; color: var(--muted); transition: transform .12s, background .15s, color .15s, border-color .15s;
+  }
+  .chip:hover { transform: translateY(-2px); color: var(--paper); }
+  .chip[aria-pressed="true"] { background: var(--accent); border-color: #ffb38a; color: #fff; box-shadow: 0 6px 18px #d9775755; }
+  .askNote { margin-top: 10px; color: var(--muted); font-size: 14px; min-height: 1.4em; }
+
+  /* ---------- 선반 ---------- */
+  .shelf { margin: 34px 0 10px; scroll-margin-top: 16px; }
+  .shelfHead { display: flex; align-items: flex-end; gap: 14px; margin-bottom: 14px; flex-wrap: wrap; }
+  .plate {
+    font-family: var(--display); font-weight: 400; font-size: clamp(22px, 3.6vw, 30px);
+    background: linear-gradient(180deg, var(--woodLight), var(--wood)); color: #fff4e3;
+    padding: 8px 20px 6px; border-radius: 8px; box-shadow: inset 0 -4px 0 var(--woodDark), 0 6px 14px #0007;
+    text-shadow: 0 2px 0 #0005;
+  }
+  .shelfHead p { color: var(--muted); font-size: 15px; padding-bottom: 6px; }
+  .cabinet {
+    background: linear-gradient(180deg, #2a1c12, #23170f);
+    border: 10px solid var(--wood); border-top-width: 12px; border-radius: 6px;
+    border-image: linear-gradient(180deg, var(--woodLight), var(--wood) 30%, var(--woodDark)) 1;
+    box-shadow: inset 0 14px 30px #0009, 0 14px 30px #0008;
+    padding: 22px 18px 0; overflow: hidden;
+  }
+  .row { display: grid; gap: 22px 18px; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+  /* 각 칸 아래 선반 판자 */
+  .slot { position: relative; padding-bottom: 22px; display: flex; }
+  .slot::after {
+    content: ""; position: absolute; left: -18px; right: -2000px; bottom: 0; height: 14px;
+    background: linear-gradient(180deg, var(--woodLight), var(--wood) 60%, var(--woodDark));
+    box-shadow: 0 6px 10px #0008;
+  }
+
+  /* ---------- 게임 상자 ---------- */
+  .box {
+    --h: 20; position: relative; z-index: 1; width: 100%; text-decoration: none; display: flex; flex-direction: column;
+    background: var(--paper); color: var(--ink); border-radius: 8px 8px 4px 4px; overflow: hidden;
+    box-shadow: 6px 0 0 hsl(var(--h) 45% 32%), 0 10px 0 -2px #0005, 0 14px 24px #0007;
+    transition: transform .18s cubic-bezier(.2,.9,.3,1.3), box-shadow .18s, opacity .2s, filter .2s;
+  }
+  .box:hover, .box:focus-visible { transform: translateY(-10px) rotate(-1.2deg); box-shadow: 6px 0 0 hsl(var(--h) 45% 32%), 0 24px 30px #0009; }
+  .lid {
+    background:
+      radial-gradient(circle at 80% 15%, #ffffff40, transparent 45%),
+      linear-gradient(135deg, hsl(var(--h) 75% 58%), hsl(calc(var(--h) + 25) 70% 42%));
+    color: #fff; padding: 16px 16px 14px; position: relative; min-height: 132px; display: flex; flex-direction: column; justify-content: flex-end;
+  }
+  .lid .art { position: absolute; right: 10px; top: 6px; font-size: 62px; filter: drop-shadow(0 4px 0 #0003); transform: rotate(8deg); }
+  .lid h3 { font-family: var(--display); font-weight: 400; font-size: 23px; line-height: 1.15; text-shadow: 0 2px 0 #0004; padding-right: 54px; }
+  .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .bdg { font-size: 12px; font-weight: 900; padding: 3px 8px; border-radius: 999px; background: #0000002e; border: 1px solid #ffffff55; white-space: nowrap; }
+  .bdg.ppl { background: #fff; color: hsl(var(--h) 60% 30%); border-color: #fff; }
+  .info { padding: 12px 16px 14px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .info p { font-size: 14px; line-height: 1.5; color: #4b3a2c; flex: 1; }
+  .info .how { font-size: 12.5px; font-weight: 700; color: hsl(var(--h) 50% 34%); border-top: 1.5px dashed #d8c8b2; padding-top: 8px; }
+  .box.dim { opacity: .28; filter: grayscale(.8); }
+  .box.dim:hover { opacity: .6; }
+  .box.pick { outline: 3px solid #ffd27a; outline-offset: 2px; }
+
+  footer { text-align: center; color: #8a7764; font-size: 13px; padding: 34px 16px 40px; line-height: 1.7; }
+
+  @media (max-width: 520px) {
+    .cabinet { padding: 18px 12px 0; border-width: 8px; }
+    .slot::after { left: -12px; }
+    .row { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
-
-<!-- ================= 홈 ================= -->
-<main id="home">
-  <header class="top">
-    <svg class="logo" viewBox="0 0 100 100" aria-hidden="true">
-      <g fill="#d97757">
-        <rect x="46" y="6" width="8" height="38" rx="4"/>
-        <rect x="46" y="6" width="8" height="38" rx="4" transform="rotate(45 50 50)"/>
-        <rect x="46" y="6" width="8" height="38" rx="4" transform="rotate(90 50 50)"/>
-        <rect x="46" y="6" width="8" height="38" rx="4" transform="rotate(135 50 50)"/>
-        <rect x="46" y="6" width="8" height="38" rx="4" transform="rotate(180 50 50)"/>
-        <rect x="46" y="6" width="8" height="38" rx="4" transform="rotate(225 50 50)"/>
-        <rect x="46" y="6" width="8" height="38" rx="4" transform="rotate(270 50 50)"/>
-        <rect x="46" y="6" width="8" height="38" rx="4" transform="rotate(315 50 50)"/>
-      </g>
-    </svg>
-    <h1><span>클로드</span> 게임 모음집</h1>
-    <p>친구들과, 혹은 혼자서. 브라우저에서 바로 여는 게임</p>
+<div class="wrap">
+  <header class="sign">
+    <div class="board">
+      <div class="small">☕ 어서 오세요!</div>
+      <h1><span>클로드</span> 보드게임카페</h1>
+      <p>인원수에 맞는 선반에서 골라 보세요. 전부 브라우저에서 바로 열려요</p>
+    </div>
   </header>
-  <section class="grid" id="grid"></section>
-  <footer>Claude와 함께 만든 게임 모음 · 서버가 잠들어 있으면 처음 열 때 1분쯤 걸려요</footer>
-</main>
+
+  <section class="ask" aria-label="인원 선택">
+    <h2>몇 분이서 오셨어요?</h2>
+    <div class="chips" id="chips"></div>
+    <div class="askNote" id="askNote" aria-live="polite"></div>
+  </section>
+
+  <main id="shelves"></main>
+</div>
+<footer>Claude와 함께 만든 게임 모음 · 여럿이 하는 게임은 메인 화면(TV·프로젝터)에서 열고 친구들은 폰으로 들어와요<br>외부 서버 게임은 서버가 잠들어 있으면 처음 열 때 1분쯤 걸려요</footer>
 
 <script>
+// min/max: 인원 필터에 쓰는 범위 (AI·봇으로 빈자리를 채울 수 있으면 min을 낮춤)
 const GAMES = [
-  { id: 'chamepop', emoji: '🦎', name: '카멜레온 컬러 팡!', desc: '글자 색깔? 글자 의미? 메인 화면의 글자를 보고 4초 안에 폰으로 팡! 5연속 콤보면 남의 버튼을 뒤섞는 카멜레온 습격까지. 10문제 초고속 순발력 대결', url: 'chameleon-pop.html', tag: '👥 여럿이 · 📱 QR·카톡 링크 입장 · 호스트도 참여 · 메인 화면(프로젝터)에서 열어요' },
-  { id: 'shadowtag', emoji: '🕵️', name: '그림자 술래잡기', desc: '누가 술래인지 모르는 30초! 폰 속 3×3 방을 오가며 몰래 숨어든 술래를 피하라. 옆방에 술래가 오면 폰이 붉게 맥박치며 심장이 뛴다. 3라운드 실시간 눈치싸움', url: 'shadow-tag.html?role=host', tag: '👥 여럿이 · 📱 폰 QR·카톡 링크 입장 · 메인 화면(프로젝터)에서 열어요' },
-  { id: 'nosplash', emoji: '🏊', name: '물소리 금지', desc: '1인칭 잠입 공포. 불 꺼진 수영장, 물에 발이 닿는 순간 물속의 구조요원이 튀어나온다. 숙이고, 돌을 던져 따돌리고, 탈출하라', url: 'no-splash.html', tag: '🎧 혼자 · 헤드폰 필수 · 그래픽 무거움 (PC 추천)' },
-  { id: 'chickenrun', emoji: '🐔', name: '치킨 런: 멈춰야 산다', desc: '치솟는 배수, 언제 터질지 모르는 닭. 터지기 전에 폰으로 [지금 탈출하기!]를 누르면 배수×100점, 욕심내면 0점. 5라운드 눈치싸움', url: 'chicken-run.html?role=host', tag: '👥 여럿이 · 📱 폰 QR 입장 · 메인 화면(프로젝터)에서 열어요' },
-  { id: 'bluffdice', emoji: '🎲', name: '블러핑 다이스 100', desc: '내 주사위는 나만 몰래 엿본다! 20초 동안 콜·레이즈·다이로 눈치싸움, 가장 높은 합계가 판돈 독식. 프로젝터 + 스마트폰 실시간 베팅 파티 게임', url: 'bluffing-dice.html', tag: '👥 여럿이 · 메인 화면(TV/프로젝터)에서 열어요' },
-  { id: 'bombrelay', emoji: '💣', name: '시한폭탄 릴레이', desc: '초성에 맞는 단어를 쳐서 폭탄을 넘겨라! 퓨즈가 다 타면 쥐고 있던 사람이 펑. 친구들은 폰으로 QR 입장, 사람이 모자라면 AI와 대결', url: 'bomb-relay.html?role=host', tag: '👥 여럿이 · 🤖 AI와 혼자서도 · 메인 화면(TV)에서 열어요' },
-  { id: 'synchro', emoji: '🎯', name: 'Synchro 100', desc: '15초 안에 모두와 같은 단어를! 단체 모임용 이심전심 파티 게임', url: 'https://synchro100.onrender.com/host', tag: '👥 여럿이 · 진행자 화면으로 이동' },
-  { id: 'sumolseon', emoji: '🕯️', name: '수몰선: 마지막 동창회', desc: '내일 정오, 마을이 물에 잠긴다. 5인 실시간 머더미스터리 (AI 봇으로 빈자리 채우기 가능)', url: 'https://sumolseon.onrender.com', tag: '👥 5인 · 첫 접속은 서버가 깨어나는 데 1분쯤 걸려요' },
-  { id: 'nightshift', emoji: '🌙', name: '끝나지 않는 야간 근무', desc: '끝없이 이어지는 매장 속에서 비상구를 찾아 탈출하라', url: 'https://endless-night-shift.onrender.com', tag: '🎧 혼자 · 새 창에서 열려요' },
+  { id: 'nosplash', shelf: 'solo', h: 200, emoji: '🏊', name: '물소리 금지', ppl: '1인', min: 1, max: 1, extra: ['🎧 헤드폰 필수', '💻 PC 추천'],
+    desc: '1인칭 잠입 공포. 불 꺼진 수영장, 물에 발이 닿는 순간 물속의 구조요원이 튀어나온다. 숙이고, 돌을 던져 따돌리고, 탈출하라', how: '그래픽이 무거워요 · 혼자 집중해서', url: 'no-splash.html' },
+  { id: 'nightshift', shelf: 'solo', h: 250, emoji: '🌙', name: '끝나지 않는 야간 근무', ppl: '1인', min: 1, max: 1, extra: ['🎧 공포'],
+    desc: '끝없이 이어지는 매장 속에서 비상구를 찾아 탈출하라', how: '새 창에서 열려요 · 외부 서버', url: 'https://endless-night-shift.onrender.com' },
+
+  { id: 'sumolseon', shelf: 'small', h: 215, emoji: '🕯️', name: '수몰선: 마지막 동창회', ppl: '5인', min: 1, max: 5, extra: ['🤖 빈자리는 AI 봇', '🕵️ 머더미스터리'],
+    desc: '내일 정오, 마을이 물에 잠긴다. 5인 실시간 머더미스터리', how: '첫 접속은 서버가 깨어나는 데 1분쯤 걸려요', url: 'https://sumolseon.onrender.com' },
+  { id: 'bluffdice', shelf: 'small', h: 140, emoji: '🎲', name: '블러핑 다이스 100', ppl: '2~16인', min: 2, max: 16, extra: ['🃏 베팅·블러핑'],
+    desc: '내 주사위는 나만 몰래 엿본다! 20초 동안 콜·레이즈·다이로 눈치싸움, 가장 높은 합계가 판돈 독식', how: '📺 메인 화면(TV·프로젝터)에서 열고 📱 폰으로 입장', url: 'bluffing-dice.html' },
+  { id: 'shadowtag', shelf: 'small', h: 265, emoji: '🕵️', name: '그림자 술래잡기', ppl: '2~16인', min: 2, max: 16, extra: ['👀 심리·추격'],
+    desc: '누가 술래인지 모르는 30초! 폰 속 3×3 방을 오가며 몰래 숨어든 술래를 피하라. 옆방에 술래가 오면 폰이 심장처럼 뛴다', how: '📺 메인 화면에서 열고 📱 QR·카톡 링크로 입장', url: 'shadow-tag.html?role=host' },
+  { id: 'bombrelay', shelf: 'small', h: 350, emoji: '💣', name: '시한폭탄 릴레이', ppl: '2인~', min: 1, max: 99, extra: ['🤖 AI와 혼자도', '🔤 초성 단어'],
+    desc: '초성에 맞는 단어를 쳐서 폭탄을 넘겨라! 퓨즈가 다 타면 쥐고 있던 사람이 펑', how: '📺 메인 화면(TV)에서 열고 📱 QR로 입장', url: 'bomb-relay.html?role=host' },
+
+  { id: 'chickenrun', shelf: 'party', h: 95, emoji: '🐔', name: '치킨 런: 멈춰야 산다', ppl: '2~40인', min: 2, max: 40, extra: ['📈 눈치싸움'],
+    desc: '치솟는 배수, 언제 터질지 모르는 닭. 터지기 전에 [지금 탈출하기!]를 누르면 배수×100점, 욕심내면 0점', how: '📺 프로젝터에서 열고 📱 QR·링크로 입장', url: 'chicken-run.html?role=host' },
+  { id: 'chamepop', shelf: 'party', h: 120, emoji: '🦎', name: '카멜레온 컬러 팡!', ppl: '2~24인', min: 2, max: 24, extra: ['⚡ 순발력', '🙋 호스트도 참여'],
+    desc: '글자 색깔? 글자 의미? 4초 안에 폰으로 팡! 5연속 콤보면 남의 버튼을 뒤섞는 카멜레온 습격까지', how: '📺 프로젝터에서 열고 📱 QR·카톡 링크로 입장', url: 'chameleon-pop.html' },
+  { id: 'synchro', shelf: 'party', h: 175, emoji: '🎯', name: 'Synchro 100', ppl: '단체', min: 3, max: 99, extra: ['💞 이심전심'],
+    desc: '15초 안에 모두와 같은 단어를! 단체 모임용 이심전심 파티 게임', how: '진행자 화면으로 이동 · 외부 서버', url: 'https://synchro100.onrender.com/host' },
 ];
-document.getElementById('grid').innerHTML = GAMES.map(g => `<a class="card" href="${g.url}" target="_blank" rel="noopener">
-  <div class="emoji">${g.emoji}</div>
-  <h2>${g.name}</h2>
-  <p>${g.desc}</p>
-  <div class="best">${g.tag}</div>
-</a>`).join('');
+const SHELVES = [
+  { id: 'solo',  plate: '🎧 1인석', sub: '혼자 조용히, 몰입해서 즐기는 게임' },
+  { id: 'small', plate: '🎲 4~8인 테이블', sub: '친구 몇 명이 둘러앉아 하는 심리·두뇌 게임 (2명부터 가능한 것도 있어요)' },
+  { id: 'party', plate: '🎉 단체 파티 · 8인 이상', sub: '회식·MT·단체 모임에서 프로젝터 하나로 다 같이' },
+];
+const HEADS = [
+  { id: 'all', label: '전체 보기' },
+  { id: 1, label: '혼자요' },
+  { id: 3, label: '2~3명' },
+  { id: 6, label: '4~8명' },
+  { id: 12, label: '9명 이상' },
+];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+document.getElementById('shelves').innerHTML = SHELVES.map(sh => `
+  <section class="shelf" id="shelf-${sh.id}">
+    <div class="shelfHead"><h2 class="plate">${sh.plate}</h2><p>${sh.sub}</p></div>
+    <div class="cabinet"><div class="row">
+      ${GAMES.filter(g => g.shelf === sh.id).map(g => `<div class="slot">
+        <a class="box" data-id="${g.id}" style="--h:${g.h}" href="${esc(g.url)}" target="_blank" rel="noopener">
+          <div class="lid"><span class="art" aria-hidden="true">${g.emoji}</span><h3>${esc(g.name)}</h3>
+            <div class="badges"><span class="bdg ppl">👥 ${esc(g.ppl)}</span>${g.extra.map(x => `<span class="bdg">${esc(x)}</span>`).join('')}</div></div>
+          <div class="info"><p>${esc(g.desc)}</p><div class="how">${esc(g.how)}</div></div>
+        </a></div>`).join('')}
+    </div></div>
+  </section>`).join('');
+
+// 몇 분이세요? → 맞는 게임만 밝게, 해당 선반으로 스크롤
+const chips = document.getElementById('chips');
+chips.innerHTML = HEADS.map(h => `<button class="chip" data-n="${h.id}" aria-pressed="false">${h.label}</button>`).join('');
+const RANGE = { 1: [1, 1], 3: [2, 3], 6: [4, 8], 12: [9, 99] };
+function pick(n, scroll) {
+  chips.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.n === String(n))));
+  let count = 0;
+  document.querySelectorAll('.box').forEach(el => {
+    const g = GAMES.find(x => x.id === el.dataset.id);
+    const ok = n === 'all' || (g.min <= RANGE[n][1] && g.max >= RANGE[n][0]);
+    el.classList.toggle('dim', !ok); el.classList.toggle('pick', ok && n !== 'all');
+    if (ok) count++;
+  });
+  const note = document.getElementById('askNote');
+  note.textContent = n === 'all' ? '' : count ? `딱 맞는 게임 ${count}개를 밝게 표시했어요` : '맞는 게임이 아직 없어요';
+  try { localStorage.setItem('cafe-heads', String(n)); } catch (e) {}
+  if (scroll && n !== 'all') {
+    const first = document.querySelector('.box.pick');
+    if (first) first.closest('.shelf').scrollIntoView({ block: 'start' });
+  }
+}
+chips.onclick = e => { const c = e.target.closest('.chip'); if (c) pick(c.dataset.n === 'all' ? 'all' : +c.dataset.n, true); };
+let saved = 'all';
+try { const v = localStorage.getItem('cafe-heads'); if (v && (v === 'all' || RANGE[v])) saved = v === 'all' ? 'all' : +v; } catch (e) {}
+pick(saved, false);
 </script>
 </body>
 </html>
