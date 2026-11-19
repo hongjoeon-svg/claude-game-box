@@ -459,6 +459,71 @@ body.selfOn .board .foot { display: none; }
 .selfJoin input:focus { border-color: var(--gold); }
 .selfJoin small { flex-basis: 100%; color: var(--muted); font-size: 12px; line-height: 1.5; }
 .selfJoin.joined input { display: none; }
+/* ---------- 참가자 폰: 테이블 현황 ---------- */
+.pTable { background: var(--panel); border: 1px solid rgba(255,255,255,.08); border-radius: 18px; padding: 10px 10px 6px; }
+.ptHead { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 900; color: var(--gold); padding: 0 4px 8px; }
+.ptHead span:last-child { color: var(--muted); font-weight: 700; font-size: 12px; }
+.ptRow { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto 52px; align-items: center; gap: 8px; padding: 7px 6px; border-top: 1px solid rgba(255,255,255,.06); }
+.ptRow .av { width: 30px; height: 30px; font-size: 13px; }
+.ptName { font-weight: 700; font-size: 15px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+.ptRow.me { background: rgba(230,192,99,.1); border-radius: 10px; }
+.ptRow.me .ptName::after { content: '나'; font-size: 10px; background: var(--gold); color: #2a1a04; border-radius: 6px; padding: 1px 5px; }
+.ptRow.folded { opacity: .5; }
+.ptRow.win { background: rgba(230,192,99,.18); border-radius: 10px; box-shadow: inset 0 0 0 2px var(--gold); }
+.ptSt { font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 99px; background: rgba(255,255,255,.08); white-space: nowrap; }
+.st-call { background: rgba(59,130,246,.25); color: #bcd6ff; }
+.st-raise { background: rgba(239,68,68,.3); color: #ffd0c4; }
+.st-need { background: rgba(245,158,11,.25); color: #ffe2a8; }
+.st-allin { background: rgba(230,192,99,.3); color: var(--gold2); }
+.st-fold, .st-auto, .st-bust { color: #9ca3af; }
+.ptDice { display: inline-flex; gap: 4px; }
+.ptDice svg { width: 28px; height: 28px; display: block; }
+.ptSum { font-family: var(--display); font-weight: 400; font-size: 22px; color: var(--gold2); margin-left: 6px; min-width: 24px; text-align: right; }
+.ptMid { display: flex; align-items: center; }
+.ptWin { font-size: 11px; background: var(--gold); color: #2a1a04; border-radius: 6px; padding: 1px 6px; flex: none; }
+.ptBet { font-size: 12px; color: var(--gold); text-align: right; }
+.diceZone.compact { flex: none; height: 120px; min-height: 0; }
+.diceZone.compact .bigDie { max-width: 84px; }
+.diceZone.compact .peekSum { bottom: 6px; font-size: 20px; }
+#player.embed .pTable { display: none; }
+
+/* ---------- 호스트를 폰처럼 작은 화면으로 열었을 때 ---------- */
+body.hcompact #hGame { height: auto; min-height: 100dvh; display: flex; flex-direction: column; overflow: visible; }
+body.hcompact .topbar { position: sticky; top: 0; z-index: 25; grid-template-columns: auto 1fr; gap: 6px 14px; padding: 10px 12px; background: #050a08; box-shadow: 0 6px 16px rgba(0,0,0,.6); }
+body.hcompact .timerBox { grid-column: 1 / -1; order: 3; }
+body.hcompact .potBox { text-align: right; }
+body.hcompact .potBig { font-size: 40px; }
+body.hcompact .secs { font-size: 30px; }
+body.hcompact .phaseLbl { font-size: 16px; }
+body.hcompact .roundBox .rNum { font-size: 28px; }
+body.hcompact #tableWrap { overflow: visible; padding: 12px; display: flex; flex-direction: column; gap: 14px; }
+body.hcompact .felt { display: none; }
+body.hcompact #center { position: static; transform: none; gap: 14px; justify-content: center; padding: 14px 12px; border-radius: 20px;
+  background: radial-gradient(ellipse at 50% 40%, #1c7a51, var(--felt2)); border: 6px solid var(--wood); }
+body.hcompact .thermo { width: 44px; height: 130px; }
+body.hcompact .thermoLbl { display: none; }
+body.hcompact .cInfo { min-width: 0; flex: 1; gap: 6px; }
+body.hcompact .heatLbl { font-size: 24px; }
+body.hcompact .cMsg { font-size: 13px; }
+body.hcompact #hToasts { min-height: 0; }
+body.hcompact .toast { font-size: 13px; padding: 6px 12px; white-space: normal; }
+body.hcompact #seats { position: static; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 30px 10px; padding-top: 22px; pointer-events: auto; }
+body.hcompact .seat { position: relative; transform: none; width: auto; left: auto; top: auto; }
+body.hcompact .flames { top: -26px; font-size: 22px; }
+body.hcompact .flames span:nth-child(2) { font-size: 26px; }
+body.hcompact .bubble { font-size: 13px; bottom: calc(100% + 18px); padding: 5px 10px; }
+body.hcompact .crown { top: -30px; font-size: 30px; }
+body.hcompact #hBanner { position: fixed; font-size: 40px; white-space: normal; width: 92vw; }
+body.hcompact .hostCtl { position: static; opacity: 1; flex-wrap: wrap; }
+body.hcompact .board { border-left: 0; border-top: 1px solid var(--line); overflow: visible; }
+body.hcompact .board ol { overflow: visible; }
+body.hcompact.selfOn .board { padding-bottom: 16px; }
+body.hcompact.selfOn .board .foot { display: block; }
+body.hcompact.selfOn #hGame { padding-bottom: 58dvh; }
+body.hcompact.selfOn.selfMin #hGame { padding-bottom: 56px; }
+body.hcompact #player.embed { left: 0; right: 0; bottom: 0; width: auto; max-height: 58dvh; border-radius: 18px 18px 0 0; border-width: 2px 0 0; }
+body.hcompact #player.embed .diceZone { height: 120px; }
+@media (max-height: 520px) { body.hcompact .topbar { position: static; } }
 @media (max-width: 900px) {
   #hLobby { grid-template-columns: 1fr; }
 }
@@ -646,6 +711,7 @@ body.selfOn .board .foot { display: none; }
       <button class="act raise" id="pRaise">레이즈<small>+200P</small></button>
     </div>
     <div class="resCard hidden" id="pRes"></div>
+    <div class="pTable" id="pTable"><div class="ptHead"><span>👥 테이블 현황</span><span id="pTableSub"></span></div><div id="pTableList"></div></div>
   </div>
 
   <div class="pScreen pCenter hidden" id="pFinal">
@@ -1289,11 +1355,21 @@ const Host = {
     const lastRaiserName = this.players.get(this.lastRaiser)?.name || '';
     const alive = [...this.players.values()].filter(p => p.active && p.status !== 'fold').length;
     const r = this.result;
+    // 폰의 '테이블 현황'용: 각자 상태와 베팅액, 승부 공개 때만 주사위
+    const table = this.seatOrder().map(p => {
+      const fold = p.active && p.status === 'fold';
+      const st = !p.active ? (p.pts < CFG.ante && this.round > 0 ? 'bust' : 'wait')
+        : fold ? (p.autoFold ? 'auto' : 'fold')
+        : this.phase === 'bet' && p.contrib < this.bet && p.pts > 0 ? 'need' : p.status;
+      const row = [p.name, st, p.active ? p.contrib : 0, p.pts];
+      if (this.phase === 'show' && p.active) row.push(p.dice, r && r.winners.includes(p.id) ? 1 : 0);
+      return row;
+    });
     for (const p of this.players.values()) {
       const msg = {
         t: 'st', phase: this.phase, round: this.round, rounds: CFG.rounds, left, dur: this.phaseDur,
         lockLeft: Math.max(0, left - CFG.lock), pot: this.pot, bet: this.bet, raiseSeq: this.raiseSeq,
-        lastRaiser: lastRaiserName, alive, count: this.players.size, top: top.slice(0, 5),
+        lastRaiser: lastRaiserName, alive, count: this.players.size, top: top.slice(0, 5), table,
         me: {
           name: p.name, pts: p.pts, contrib: p.contrib, status: p.status, active: p.active, dice: p.dice,
           need: Math.min(this.need(p), p.pts), fullNeed: this.need(p), canRaise: this.canRaise(p), autoFold: !!p.autoFold,
@@ -1362,7 +1438,10 @@ const Host = {
   layoutSeats() {
     const ps = this.seatOrder();
     const wrap = $('tableWrap'), W = wrap.clientWidth, H = wrap.clientHeight;
-    const key = ps.map(p => p.id).join(',') + '|' + W + 'x' + H;
+    // 폰처럼 작은 화면에서는 타원 테이블 대신 카드 목록으로
+    const compact = innerWidth < 820 || innerHeight < 520;
+    document.body.classList.toggle('hcompact', compact);
+    const key = ps.map(p => p.id).join(',') + '|' + W + 'x' + H + (compact ? 'c' : '');
     const seats = $('seats');
     // 카드 생성/삭제
     const have = new Map([...seats.children].map(el => [el.dataset.id, el]));
@@ -1379,6 +1458,10 @@ const Host = {
     have.forEach(el => el.remove());
     if (key === this.seatKey) return;
     this.seatKey = key;
+    if (compact) {
+      for (const el of seats.children) { el.style.left = el.style.top = el.style.scale = ''; el.classList.remove('sm', 'xs'); }
+      return;
+    }
     const n = ps.length, size = n <= 8 ? '' : n <= 12 ? 'sm' : 'xs';
     const cw = size === '' ? 170 : size === 'sm' ? 140 : 118;
     const scale = Math.min(1, W / 1200 + .25);
@@ -1810,6 +1893,9 @@ const Player = {
     $('pCall').classList.toggle('sel', inPlay && me.fullNeed === 0 && (me.status === 'call' || me.status === 'allin'));
     $('pRaise').classList.toggle('sel', inPlay && me.fullNeed === 0 && me.status === 'raise');
 
+    this.renderTable(s, showRes);
+    $('pDice').classList.toggle('compact', s.phase === 'show');
+
     // 안내 문구
     if (Date.now() < (this.alertHold || 0)) return;
     let msg = '', cls = '';
@@ -1825,6 +1911,25 @@ const Player = {
       if (locked && me.status !== 'fold' && me.fullNeed === 0) msg += ' · ⛔ 레이즈 마감';
     } else if (s.phase === 'show') msg = me.status === 'fold' ? (me.autoFold ? '⏰ 레이즈를 못 따라와 자동 다이됐어요' : '🏳️ 다이한 라운드') : '🃏 승부 공개!';
     const a = $('pAlert'); a.innerHTML = msg; a.className = 'pAlert ' + cls;
+  },
+  // 다른 사람들의 상태(베팅 중)와 주사위 결과(승부 공개)를 폰에서도 보여 줌
+  renderTable(s, revealed) {
+    const rows = (s.table || []).map(([name, st, bet, pts, dice, win]) => ({ name, st, bet, pts, dice, win, sum: dice ? dice[0] + dice[1] : 0 }));
+    const showDice = s.phase === 'show' && revealed;
+    if (showDice) rows.sort((a, b) => (b.dice ? 1 : 0) - (a.dice ? 1 : 0) || ((a.st === 'fold' || a.st === 'auto') - (b.st === 'fold' || b.st === 'auto')) || b.sum - a.sum);
+    const lbl = { none: s.phase === 'roll' ? '🎲 굴리는 중' : '🤔 고민 중', call: '✋ 콜', raise: '🔥 레이즈', allin: '💰 올인', need: '⚠️ 응답 대기', fold: '🏳️ 다이', auto: '⏰ 자동 다이', wait: '다음 판 참여', bust: '💸 파산' };
+    $('pTableSub').textContent = showDice ? '🃏 모두의 주사위 공개' : s.phase === 'show' ? '🥁 곧 공개' : `생존 ${s.alive}명`;
+    $('pTableList').innerHTML = rows.map(r => {
+      const folded = r.st === 'fold' || r.st === 'auto';
+      let mid;
+      if (s.phase === 'show' && r.dice) {
+        mid = showDice ? `<span class="ptMid"><span class="ptDice">${dieSVG(r.dice[0])}${dieSVG(r.dice[1])}</span><b class="ptSum">${r.sum}</b></span>`
+          : `<span class="ptMid"><span class="ptDice">${dieBackSVG()}${dieBackSVG()}</span></span>`;
+      } else mid = `<span class="ptSt st-${r.st}">${lbl[r.st] || ''}</span>`;
+      const tagTxt = showDice && r.win ? '<span class="ptWin">👑 승</span>' : showDice && folded ? `<span class="ptSt st-fold">${lbl[r.st]}</span>` : '';
+      return `<div class="ptRow ${r.name === s.me.name ? 'me' : ''} ${folded ? 'folded' : ''} ${showDice && r.win ? 'win' : ''}">
+        ${avatar(r.name)}<span class="ptName">${esc(r.name)}${tagTxt}</span>${mid}<span class="ptBet num">${r.bet ? fmt(r.bet) + 'P' : ''}</span></div>`;
+    }).join('');
   },
   paintTimer() {
     const s = this.st; if (!s || !['roll', 'bet', 'show'].includes(s.phase)) return;
