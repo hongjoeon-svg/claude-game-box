@@ -252,6 +252,12 @@ section { position: relative; z-index: 1; }
 /* ---------- 참가자 ---------- */
 #player { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; padding: max(12px, env(safe-area-inset-top)) 14px max(14px, env(safe-area-inset-bottom)); max-width: 520px; margin: 0 auto; }
 .pScreen { flex: 1; display: flex; flex-direction: column; gap: 14px; }
+/* 폰 화면(카톡 인앱 브라우저 포함) 높이에 딱 맞추기: 게임 화면은 스크롤 없이 한 화면에 */
+#player:not(.embed) { height: 100vh; height: 100dvh; overflow-y: auto; }
+#player:not(.embed) #pGame { min-height: 0; }
+.pMid { position: relative; display: flex; flex-direction: column; gap: 6px; }
+.gridWrap { flex: 1 1 auto; min-height: 150px; display: grid; place-items: center; container-type: size; }
+#player.embed .gridWrap { container-type: normal; min-height: 0; }
 #pJoin { justify-content: center; text-align: center; gap: 16px; }
 #pJoin .title { font-size: 46px; }
 .field { display: flex; flex-direction: column; gap: 6px; text-align: left; }
@@ -270,14 +276,14 @@ section { position: relative; z-index: 1; }
 
 #pGame { gap: 10px; position: relative; }
 .pTop { display: flex; align-items: stretch; gap: 8px; }
-.roleBadge { flex: 1.2; border-radius: 14px; padding: 8px 12px; display: flex; flex-direction: column; justify-content: center; font-family: var(--display); font-size: 24px; line-height: 1.05; border: 2px solid; }
+.roleBadge { flex: 1.3; min-width: 0; border-radius: 14px; padding: 8px 10px; display: flex; flex-direction: column; justify-content: center; font-family: var(--display); font-size: clamp(17px, 6vw, 24px); line-height: 1.05; border: 2px solid; white-space: nowrap; }
 .roleBadge small { font-family: "Noto Sans KR", sans-serif; font-size: 11px; font-weight: 700; opacity: .85; }
 .roleBadge.shadow { background: rgba(255, 59, 78, .18); border-color: var(--red); color: #ffd0d5; box-shadow: 0 0 20px rgba(255, 59, 78, .35); }
 .roleBadge.runner { background: rgba(59, 158, 255, .16); border-color: var(--blue); color: #d4e9ff; box-shadow: 0 0 20px rgba(59, 158, 255, .3); }
 .roleBadge.none { background: rgba(255, 255, 255, .05); border-color: #3a4a45; color: var(--muted); }
-.stat { flex: 1; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 8px 10px; text-align: center; }
+.stat { flex: 1; min-width: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 8px 10px; text-align: center; }
 .stat small { display: block; font-size: 11px; color: var(--muted); }
-.stat b { font-family: var(--mono); font-size: 22px; color: var(--radar2); font-weight: 400; }
+.stat b { font-family: var(--mono); font-size: clamp(17px, 5.6vw, 22px); color: var(--radar2); font-weight: 400; }
 .pTimer { height: 8px; border-radius: 8px; background: rgba(255, 255, 255, .08); overflow: hidden; position: relative; }
 .pTimer i { position: absolute; inset: 0; transform-origin: left; background: linear-gradient(90deg, var(--radar), #b2ffde); }
 .pTimer.urgent i { background: linear-gradient(90deg, var(--red), #ff9aa3); }
@@ -286,7 +292,8 @@ section { position: relative; z-index: 1; }
 .pInfo .secs { font-family: var(--mono); font-size: 16px; color: var(--radar2); }
 .pMsg { text-align: center; font-weight: 700; font-size: 15px; min-height: 22px; color: var(--radar2); }
 .pMsg.r { color: var(--red2); }
-.grid9 { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 8px; width: 100%; max-width: 440px; margin: 0 auto; aspect-ratio: 1; }
+.grid9 { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 8px; width: min(100%, 440px); margin: 0 auto; aspect-ratio: 1; }
+@container (min-height: 1px) { .grid9 { width: min(100cqw, 100cqh, 440px); height: min(100cqw, 100cqh, 440px); } }
 .cell { position: relative; border-radius: 16px; border: 1px solid var(--line); background: rgba(5, 16, 13, .85); display: grid; place-items: center; font-family: var(--mono); font-size: 26px; color: rgba(46, 242, 160, .3); touch-action: manipulation; user-select: none; -webkit-user-select: none; transition: transform .1s, background .2s, border-color .2s; }
 .cell .lbl { position: absolute; top: 6px; left: 9px; font-size: 14px; }
 .cell .icon { font-size: 40px; line-height: 1; filter: drop-shadow(0 0 10px currentColor); }
@@ -308,7 +315,7 @@ section { position: relative; z-index: 1; }
 .cdBar i { display: block; height: 100%; width: 100%; background: var(--radar); transform-origin: left; }
 .cdBar.wait i { background: var(--amber); }
 .cdTxt { width: 74px; text-align: right; font-weight: 700; }
-.pDanger { position: absolute; left: 0; right: 0; top: 0; z-index: 5; background: linear-gradient(90deg, #7a0012, #d0001f, #7a0012); color: #fff; font-weight: 900; text-align: center; padding: 12px 10px; border-radius: 14px; font-size: 17px; box-shadow: 0 0 30px rgba(255, 30, 50, .8); animation: dangerBlink .6s ease-in-out infinite; }
+.pDanger { position: absolute; inset: -2px 0; display: flex; align-items: center; justify-content: center; z-index: 5; background: linear-gradient(90deg, #7a0012, #d0001f, #7a0012); color: #fff; font-weight: 900; text-align: center; padding: 10px 8px; border-radius: 14px; font-size: clamp(14px, 4.4vw, 17px); line-height: 1.3; box-shadow: 0 0 30px rgba(255, 30, 50, .8); animation: dangerBlink .6s ease-in-out infinite; }
 @keyframes dangerBlink { 50% { filter: brightness(1.4); transform: scale(1.02); } }
 .dangerFrame { position: fixed; inset: 0; pointer-events: none; z-index: 50; box-shadow: inset 0 0 0 0 rgba(255, 20, 40, 0); }
 .dangerFrame.on { animation: framePulse .9s ease-in-out infinite; }
@@ -364,6 +371,16 @@ section { position: relative; z-index: 1; }
 .cover b { color: var(--text); font-size: 15px; }
 .peekBtn { border: 1px solid var(--radar); background: rgba(46, 242, 160, .15); color: var(--radar2); border-radius: 12px; padding: 12px 16px; font-weight: 900; user-select: none; -webkit-user-select: none; touch-action: none; }
 
+@media (max-height: 640px) {
+  #player:not(.embed) { padding-top: max(8px, env(safe-area-inset-top)); padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+  #pGame { gap: 6px; }
+  .roleBadge { padding: 5px 8px; } .stat { padding: 5px 8px; }
+  .pMsg { font-size: 14px; min-height: 18px; }
+  .grid9 { gap: 6px; }
+  .cell .icon { font-size: 32px; }
+  .roleCard { width: min(220px, 70%); } .roleCard .ic { font-size: 54px; } .roleCard b { font-size: 34px; } .roleCard p { font-size: 13px; }
+  #pJoin { justify-content: flex-start; gap: 10px; } #pJoin .logoRadar { width: 70px; height: 70px; } #pJoin .logoRadar::after { font-size: 30px; } #pJoin .title { font-size: 36px; }
+}
 @media (max-width: 1100px) {
   .hMain { grid-template-columns: 250px 1fr 260px; gap: 14px; padding: 14px; }
 }
@@ -378,6 +395,11 @@ section { position: relative; z-index: 1; }
   .phaseTxt { order: 5; flex-basis: 100%; }
   .resGrid { grid-template-columns: 1fr; }
   .pod { width: 30%; }
+  .radarWrap { order: 1; } .hLeft { order: 2; overflow: visible; } .hBoard { order: 3; }
+  .hBoard .card { min-height: 0; }
+  .breaking { width: 92vw; padding: 14px 16px; }
+  .breaking b { white-space: normal; font-size: clamp(26px, 8vw, 40px); }
+  #player.embed .grid9 { max-width: 300px; }
 }
 </style>
 </head>
@@ -428,6 +450,7 @@ section { position: relative; z-index: 1; }
           <button class="btn btnKakao" id="hKakao">💬 카톡으로 초대</button>
           <button class="btn" id="hCopy">📋 링크 복사</button>
         </div>
+        <div class="invLbl" style="color:var(--amber)">📌 카톡으로 보낸 뒤엔 <b>꼭 이 화면으로 돌아와 켜 두세요.</b> 호스트 화면이 꺼지거나 다른 앱에 가 있으면 친구가 입장할 수 없어요. (돌아오면 기다리던 친구가 자동으로 들어와요)</div>
       </div>
       <div class="net" id="hNet"><i></i><span>연결 준비 중…</span></div>
       <button class="btnGhost" id="hLocalTab">🪟 이 컴퓨터에서 참가자 창 새로 열기<br><small>같은 브라우저 탭끼리 연결돼요 · 노트북 화면으로 몰래 참여하거나 혼자 테스트할 때</small></button>
@@ -565,13 +588,15 @@ section { position: relative; z-index: 1; }
       <div class="stat"><small>생존자</small><b id="pAlive">0</b></div>
       <div class="stat"><small>내 점수</small><b id="pScore">0</b></div>
     </div>
-    <div class="pTimer" id="pTimerBar"><i id="pTimerFill"></i></div>
-    <div class="pInfo"><span id="pRoundTxt">ROUND 1/3</span><span class="secs" id="pSecs">30초</span></div>
-    <div class="pMsg" id="pMsg"></div>
-    <div class="grid9" id="pGrid"></div>
+    <div class="pMid">
+      <div class="pTimer" id="pTimerBar"><i id="pTimerFill"></i></div>
+      <div class="pInfo"><span id="pRoundTxt">ROUND 1/3</span><span class="secs" id="pSecs">30초</span></div>
+      <div class="pMsg" id="pMsg"></div>
+      <div class="pDanger hidden" id="pDanger">⚠️ 경고! 바로 옆방에 술래가 있습니다!</div>
+    </div>
+    <div class="gridWrap"><div class="grid9" id="pGrid"></div></div>
     <div class="cdWrap"><span>⚡ 이동</span><div class="cdBar" id="pCdBar"><i id="pCdFill"></i></div><span class="cdTxt" id="pCdTxt">준비</span></div>
     <div class="pInfo"><span id="pHotTxt">🔥 밀집: -</span><span id="pHintTxt">👣 발자국: -</span></div>
-    <div class="pDanger hidden" id="pDanger">⚠️ 경고! 바로 옆방에 술래가 있습니다!</div>
     <div class="pOver hidden" id="pIntro"></div>
     <div class="pOver hidden" id="pCaught"></div>
     <div class="pOver hidden" id="pRes"></div>
@@ -745,7 +770,13 @@ document.querySelectorAll('.roleBtn').forEach(b => b.onclick = () => {
    - 중계 서버(MQTT over WebSocket): P2P가 막히는 망(회사 와이파이·LTE 등)을 위한 연결. 둘 다 동시에 열어 두고 되는 쪽으로 붙어요
    - BroadcastChannel: 같은 브라우저 여러 탭끼리 (노트북 창으로 몰래 참여 / 로컬 테스트)
    ========================================================= */
-const RELAYS = ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt'];
+// 중계 서버 여러 곳: 회사 와이파이·통신사가 8084/8884 포트를 막아도 443 포트(shiftr) 쪽으로 붙도록
+const RELAYS = [
+  { url: 'wss://broker.emqx.io:8084/mqtt' },
+  { url: 'wss://broker.hivemq.com:8884/mqtt' },
+  { url: 'wss://public.cloud.shiftr.io', username: 'public', password: 'public' },
+];
+const relayOpts = (r, id) => ({ clientId: id + Math.random().toString(36).slice(2, 10), clean: true, connectTimeout: 8000, reconnectPeriod: 2500, keepalive: 20, ...(r.username ? { username: r.username, password: r.password } : {}) });
 const topicHost = code => `shadowtag1/${code}/host`;
 const topicPlayer = (code, pid) => `shadowtag1/${code}/p/${pid}`;
 const randCode = () => { const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; return Array.from({ length: 4 }, () => A[Math.floor(Math.random() * A.length)]).join(''); };
@@ -769,8 +800,23 @@ const HostNet = {
     this.openRelays();
     setInterval(() => {
       const t = Date.now();
-      for (const [pid, l] of this.links) if ((l.via === 'mqtt' || l.via === 'bc') && t - l.seen > 12000) { this.links.delete(pid); this.onLeave(pid); }
+      // 호스트 화면이 잠깐 꺼졌다 돌아온 직후엔 모두가 끊긴 것처럼 보이므로 잠시 기다려 줌
+      if (t - this.wokeAt < 15000) return;
+      for (const [pid, l] of this.links) if ((l.via === 'mqtt' || l.via === 'bc') && t - l.seen > 15000) { this.links.delete(pid); this.onLeave(pid, false); }
     }, 2000);
+    // 폰으로 호스트를 열고 카톡으로 공유하러 나갔다 돌아오면 연결을 바로 되살림
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') this.wake(); });
+    window.addEventListener('online', () => this.wake());
+    window.addEventListener('pageshow', () => this.wake());
+  },
+  wokeAt: 0, peerOpened: false,
+  wake() {
+    this.wokeAt = Date.now();
+    for (const c of this.relays) { try { if (!c.connected && !c.reconnecting) c.reconnect(); } catch (e) {} }
+    const p = this.peer;
+    if (!p || p.destroyed) this.openPeer();
+    else if (p.disconnected) { try { p.reconnect(); } catch (e) { this.openPeer(); } }
+    Host.requestWake();
   },
   changeCode() {
     const old = this.code;
@@ -792,14 +838,16 @@ const HostNet = {
     pid = String(pid || '').slice(0, 40); if (!pid) return;
     const cur = this.links.get(pid);
     if (msg.t === 'join') {
-      if (cur && cur.conn && cur.conn !== link.conn) { try { cur.conn.close(); } catch (e) {} }
+      // 같은 사람이 P2P로 다시 붙었을 때만 예전 P2P 연결을 닫음 (중계 서버로 온 입장 신호로는 닫지 않음)
+      if (cur && cur.conn && link.conn && cur.conn !== link.conn) { try { cur.conn.close(); } catch (e) {} }
       this.links.set(pid, { ...link, seen: Date.now() });
     } else if (!cur || cur.via !== link.via || (link.conn && cur.conn !== link.conn) || (link.client && cur.client !== link.client)) {
-      if (!Host.players.has(pid)) return;
       this.links.set(pid, { ...link, seen: Date.now() });
+      // 호스트가 모르는 참가자(호스트 화면이 새로고침됐거나 끊겨서 빠진 사람): 다시 입장 신호를 보내 달라고 요청
+      if (!Host.players.has(pid)) { if (msg.t !== 'bye') this.send(pid, { t: 'rejoin' }); this.links.delete(pid); return; }
     } else cur.seen = Date.now();
-    if (msg.t === 'ping') { Host.onPing(pid); return; }
-    if (msg.t === 'bye') { this.links.delete(pid); this.onLeave(pid); return; }
+    if (msg.t === 'ping') { this.send(pid, { t: 'pong' }); Host.onPing(pid); return; }
+    if (msg.t === 'bye') { this.links.delete(pid); this.onLeave(pid, true); return; }
     this.onMsg(pid, msg);
   },
   openBC() {
@@ -811,8 +859,8 @@ const HostNet = {
   async openRelays() {
     if (!(await waitFor(() => window.mqtt, 8000))) { this.st.mqtt = 'off'; this.status(); return; }
     let fails = 0;
-    for (const url of RELAYS) {
-      const c = mqtt.connect(url, { clientId: 'st-h-' + Math.random().toString(36).slice(2, 10), clean: true, connectTimeout: 8000, reconnectPeriod: 3000, keepalive: 30 });
+    for (const r of RELAYS) {
+      const c = mqtt.connect(r.url, relayOpts(r, 'st-h-'));
       c.on('connect', () => { c.subscribe(topicHost(this.code)); c._ok = true; this.st.mqtt = 'on'; this.status(); });
       c.on('close', () => { c._ok = false; if (!this.relays.some(x => x._ok)) { this.st.mqtt = 'off'; this.status(); } });
       c.on('error', () => { if (++fails >= RELAYS.length && !this.relays.some(x => x._ok)) { this.st.mqtt = 'off'; this.status(); } });
@@ -826,15 +874,24 @@ const HostNet = {
   },
   openPeer() {
     if (typeof Peer === 'undefined') { this.st.peer = 'off'; this.status(); return; }
+    try { if (this.peer && !this.peer.destroyed) this.peer.destroy(); } catch (e) {}
     const peer = new Peer(PREFIX + this.code);
     this.peer = peer;
-    peer.on('open', () => { this.st.peer = 'on'; this.status(); });
+    peer.on('open', () => { this.peerOpened = true; this.st.peer = 'on'; this.status(); });
     peer.on('error', err => {
-      if (err.type === 'unavailable-id') { peer.destroy(); this.changeCode(); this.openPeer(); return; }
+      if (peer !== this.peer) return;
+      if (err.type === 'unavailable-id') {
+        peer.destroy();
+        // 처음 열 때 코드가 겹치면 새 코드로. 이미 카톡으로 링크를 보낸 뒤라면 코드를 바꾸지 않고 같은 코드로 다시 시도
+        if (!this.peerOpened) { this.changeCode(); this.openPeer(); }
+        else setTimeout(() => { if (peer === this.peer) this.openPeer(); }, 3000);
+        return;
+      }
       if (err.type === 'peer-unavailable') return;
       this.st.peer = 'off'; this.status();
+      if (['network', 'server-error', 'socket-error', 'socket-closed'].includes(err.type)) setTimeout(() => { if (peer === this.peer) this.wake(); }, 4000);
     });
-    peer.on('disconnected', () => { setTimeout(() => { if (!peer.destroyed) peer.reconnect(); }, 1000); });
+    peer.on('disconnected', () => { setTimeout(() => { if (peer === this.peer && !peer.destroyed && peer.disconnected) { try { peer.reconnect(); } catch (e) {} } }, 1000); });
     peer.on('connection', conn => {
       conn.on('data', msg => {
         if (msg && msg.t === 'join') conn._pid = String(msg.pid || '').slice(0, 40);
@@ -885,6 +942,7 @@ const Host = {
     const raf = () => { this.paint(); requestAnimationFrame(raf); };
     requestAnimationFrame(raf);
     this.renderLobby();
+    this.requestWake();
   },
   setNet(s, txt) { $('hNet').className = 'net ' + s; $('hNet').querySelector('span').textContent = txt; },
   joinUrl(local) {
@@ -914,6 +972,8 @@ const Host = {
     HostNet.accept(pid, { t: 'join', pid, name }, { via: 'self' });
     Player.startEmbedded(pid, this.players.get(pid)?.name || name);
   },
+  // 프로젝터·폰 화면이 꺼지지 않게
+  async requestWake() { try { if ('wakeLock' in navigator && document.visibilityState === 'visible') this.wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} },
   onPing(pid) {
     const p = this.players.get(pid);
     if (p && !p.connected) { p.connected = true; this.broadcast(); this.render(); }
@@ -928,6 +988,16 @@ const Host = {
   addPlayer(pid, rawName) {
     let p = this.players.get(pid);
     if (!p) {
+      // 카톡 링크를 다시 눌러 새 창으로 들어온 경우: 끊긴 같은 닉네임 자리를 이어받음
+      const nm = String(rawName || '').replace(/[<>]/g, '').trim().slice(0, 8);
+      const old = [...this.players.values()].find(q => !q.connected && q.name === nm && q.pid !== 'host-self');
+      if (old) {
+        this.players.delete(old.pid); HostNet.links.delete(old.pid);
+        if (this.shadow === old.pid) this.shadow = pid;
+        old.pid = pid; this.players.set(pid, old); p = old;
+      }
+    }
+    if (!p) {
       if (this.players.size >= CFG.maxPlayers) { HostNet.send(pid, { t: 'full' }); return; }
       let name = String(rawName || '').replace(/[<>]/g, '').trim().slice(0, 8) || '익명';
       const base = name; let n = 2;
@@ -941,10 +1011,11 @@ const Host = {
     this.sendTo(p);
     this.render();
   },
-  onLeave(pid) {
+  onLeave(pid, explicit) {
     const p = this.players.get(pid); if (!p) return;
     p.connected = false;
-    if (this.phase === 'lobby') this.players.delete(pid);
+    // 대기실: 스스로 나간 사람만 지우고, 신호가 끊긴 사람은 흐리게 두었다가 돌아오면 그대로 이어감
+    if (this.phase === 'lobby' && explicit) this.players.delete(pid);
     else if ((this.phase === 'play' || this.phase === 'intro') && p.role === 'shadow') this.endRound('shadowLeft');
     this.render(); this.broadcast();
   },
@@ -1161,7 +1232,7 @@ const Host = {
     $('hCount').textContent = ps.filter(p => p.connected).length;
     $('hStart').disabled = this.connected().length < CFG.minPlayers;
     $('hStart').textContent = this.connected().length < CFG.minPlayers ? '2명 이상 모이면 시작' : '게임 시작 ▶';
-    $('hList').innerHTML = ps.length ? ps.map(p => `<div class="pChip ${p.connected ? '' : 'off'}">${avatar(p.name)}<span class="nm">${esc(p.name)}</span>${p.pid === 'host-self' ? '<span class="tag">호스트</span>' : ''}</div>`).join('')
+    $('hList').innerHTML = ps.length ? ps.map(p => `<div class="pChip ${p.connected ? '' : 'off'}">${avatar(p.name)}<span class="nm">${esc(p.name)}</span>${p.pid === 'host-self' ? '<span class="tag">호스트</span>' : p.connected ? '' : '<span class="tag">연결 끊김</span>'}</div>`).join('')
       : '<div class="emptyList" style="grid-column:1/-1">📱 QR을 찍거나 카톡 링크를 눌러 입장하세요</div>';
     show($('hSelfBox'), !this.players.has('host-self'));
   },
@@ -1233,7 +1304,7 @@ const Host = {
    ========================================================= */
 const Player = {
   embed: false, covered: false, peeking: false, pid: '', code: '', name: '', local: false, via: 'mqtt',
-  relay: null, relayTry: [], pingTimer: null, peerTimer: null, peer: null, conn: null, bc: null,
+  relay: null, relayTry: [], pingTimer: null, lastRx: 0, lastDial: 0, lastRelay: 0, hintShown: false, peer: null, conn: null, bc: null,
   joined: false, st: null, deadline: 0, cdUntil: 0, pending: null, danger: false, dangerTimer: null,
   lastCatchSeq: -1, lastPhase: '', lastRound: 0, wasCaught: false, reconnTimer: null, joinTimer: null, wake: null,
 
@@ -1296,7 +1367,6 @@ const Player = {
     $('pName').onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) this.join(); };
     this.bindCommon();
     window.addEventListener('beforeunload', () => { if (this.joined) this.send({ t: 'bye' }); });
-    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && this.joined) this.requestWake(); });
     setTimeout(() => (room ? $('pName') : $('pCode')).focus(), 50);
   },
   screen(id) { ['pJoin', 'pWait', 'pGame', 'pFinal'].forEach(s => show($(s), s === id)); },
@@ -1317,18 +1387,60 @@ const Player = {
     }
     try { if (!this.local) localStorage.setItem('shadowtag-name', this.name); } catch (e) {}
     $('pJoinBtn').disabled = true; $('pJoinBtn').textContent = '연결 중…'; this.err('');
+    this.joinStart = Date.now(); this.hintShown = false;
     if (this.local) this.connectLocal(); else this.connectOnline();
-    clearTimeout(this.joinTimer);
-    this.joinTimer = setTimeout(() => {
-      if (this.joined) return;
-      $('pErr').innerHTML = this.local ? '방을 찾을 수 없어요. 호스트 창이 같은 브라우저에 열려 있는지 확인하세요.'
-        : '방을 찾을 수 없어요.<br>· 방 코드가 메인 화면과 같은지<br>· 메인 화면(호스트)이 켜져 있는지 확인하고 다시 눌러 주세요.<br>· 계속 안 되면 와이파이를 끄고 LTE/5G로 해 보세요.';
-      this.resetJoinBtn();
-    }, 15000);
+    // 호스트가 답할 때까지 입장 신호를 2초마다 계속 다시 보냄
+    // (호스트 폰이 카톡 공유하러 잠깐 나가 있어도, 돌아오는 순간 바로 입장돼요)
+    clearInterval(this.joinTimer);
+    this.joinTimer = setInterval(() => {
+      if (this.joined) { clearInterval(this.joinTimer); return; }
+      this.sendJoinAll();
+      if (!this.local && Date.now() - this.joinStart > 6000) this.reconnect(true);
+      if (Date.now() - this.joinStart > 12000 && !this.hintShown) {
+        this.hintShown = true;
+        $('pErr').innerHTML = this.local ? '아직 방을 못 찾았어요. 호스트 창이 같은 브라우저에 열려 있는지 확인하세요.'
+          : '아직 방을 못 찾았어요 · <b>계속 연결 시도 중…</b><br>· 방 코드가 메인 화면과 같은지 확인<br>· 메인 화면(호스트)이 <b>켜진 채 그 화면에 머물러 있는지</b> 확인<br>&nbsp;&nbsp;(호스트 폰이 카톡 등 다른 앱에 가 있으면 연결이 멈춰요)<br>· 계속 안 되면 와이파이를 끄고 LTE/5G로 해 보세요';
+        $('pJoinBtn').disabled = false; $('pJoinBtn').textContent = '다시 시도';
+      }
+    }, 2000);
     clearInterval(this.pingTimer);
-    this.pingTimer = setInterval(() => { if (this.joined) this.send({ t: 'ping' }); }, 4000);
+    this.pingTimer = setInterval(() => this.heartbeat(), 3000);
+    if (!this.netBound) {
+      this.netBound = true;
+      const back = () => { if (document.visibilityState === 'visible' && this.code) { this.requestWake(); this.reconnect(false); } };
+      document.addEventListener('visibilitychange', back);
+      window.addEventListener('online', back);
+      window.addEventListener('pageshow', back);
+    }
   },
   joinMsg() { return { t: 'join', pid: this.pid, name: this.name }; },
+  // 열려 있는 모든 경로로 입장 신호 보내기
+  sendJoinAll() {
+    const m = this.joinMsg();
+    try {
+      if (this.local) { if (this.bc) this.bc.postMessage({ from: this.pid, msg: m }); return; }
+      if (this.conn && this.conn.open) this.conn.send(m);
+      if (this.relay && this.relay.connected) this.relay.publish(topicHost(this.code), JSON.stringify({ from: this.pid, msg: m }), { qos: 1 });
+    } catch (e) {}
+  },
+  // 입장 후: 3초마다 ping, 9초 넘게 호스트 응답이 없으면 연결을 되살림
+  heartbeat() {
+    if (!this.joined || this.embed) return;
+    this.send({ t: 'ping' });
+    if (Date.now() - this.lastRx > 9000) { show($('pConn')); this.reconnect(false); }
+  },
+  reconnect(quiet) {
+    if (this.embed) return;
+    if (this.local) { this.sendJoinAll(); return; }
+    const now = Date.now();
+    // P2P: 서버 연결이 끊겼으면 다시, 호스트와의 통로가 없으면 8초에 한 번씩 다시 걸기
+    if (!this.peer || this.peer.destroyed) this.connectPeer();
+    else if (this.peer.disconnected) { try { this.peer.reconnect(); } catch (e) {} }
+    else if (this.peer.open && (!this.conn || !this.conn.open) && now - (this.lastDial || 0) > 8000) this.dial();
+    // 중계 서버: 붙어 있는 곳이 없으면 10초에 한 번씩 새로 연결
+    if ((!this.relay || !this.relay.connected) && window.mqtt && now - (this.lastRelay || 0) > 10000) { this.endRelays(); this.connectRelay(); }
+    if (!quiet) this.sendJoinAll();
+  },
   connectLocal() {
     if (typeof BroadcastChannel === 'undefined') { this.err('이 브라우저는 같은 브라우저 연결을 지원하지 않아요'); this.resetJoinBtn(); return; }
     this.via = 'bc';
@@ -1339,31 +1451,27 @@ const Player = {
   },
   // P2P(PeerJS)와 중계 서버를 동시에 시도하고, 먼저 응답이 온 쪽을 씀
   async connectOnline() {
+    if (this.conn) { try { this.conn.close(); } catch (e) {} this.conn = null; }
     this.connectPeer();
     this.endRelays();
-    clearTimeout(this.peerTimer);
-    // P2P가 3초 안에 안 붙으면 중계 서버도 시도
-    this.peerTimer = setTimeout(async () => {
-      if (this.joined && this.via === 'peer') return;
-      if (await waitFor(() => window.mqtt, 4000)) this.connectRelay();
-    }, 3000);
+    if (await waitFor(() => window.mqtt, 6000)) this.connectRelay();
   },
   endRelays() { (this.relayTry || []).forEach(c => { try { c.end(true); } catch (e) {} }); this.relayTry = []; this.relay = null; },
   connectRelay() {
-    this.relayTry = RELAYS.map(url => {
-      const c = mqtt.connect(url, { clientId: 'st-p-' + Math.random().toString(36).slice(2, 10), clean: true, connectTimeout: 8000, reconnectPeriod: 2000, keepalive: 30 });
-      const topic = topicPlayer(this.code, this.pid);
+    this.lastRelay = Date.now();
+    const topic = topicPlayer(this.code, this.pid);
+    const list = RELAYS.map(r => {
+      const c = mqtt.connect(r.url, relayOpts(r, 'st-p-'));
       c.on('connect', () => {
-        if (this.relay && this.relay !== c) { try { c.end(true); } catch (e) {} return; }
+        if (this.relayTry !== list) { try { c.end(true); } catch (e) {} return; }
+        // 가장 먼저 연결된 중계 서버 하나만 씀
+        if (this.relay && this.relay !== c && this.relay.connected) { try { c.end(true); } catch (e) {} return; }
         this.relay = c;
-        this.relayTry.filter(x => x !== c).forEach(x => { try { x.end(true); } catch (e) {} });
+        list.filter(x => x !== c).forEach(x => { try { x.end(true); } catch (e) {} });
         c.subscribe(topic, { qos: 0 }, () => {
-          // 이미 P2P로 들어와 있으면 중계 서버로는 다시 입장하지 않음
-          if (!(this.joined && this.via === 'peer')) c.publish(topicHost(this.code), JSON.stringify({ from: this.pid, msg: this.joinMsg() }), { qos: 1 });
+          if (!this.joined || this.via !== 'peer') c.publish(topicHost(this.code), JSON.stringify({ from: this.pid, msg: this.joinMsg() }), { qos: 1 });
         });
-        if (this.joined && this.via === 'mqtt') show($('pConn'), false);
       });
-      c.on('offline', () => { if (this.relay === c && this.joined && this.via === 'mqtt') show($('pConn')); });
       c.on('message', (t, buf) => {
         if (t !== topic) return;
         let m; try { m = JSON.parse(buf.toString()); } catch (e) { return; }
@@ -1371,43 +1479,39 @@ const Player = {
       });
       return c;
     });
+    this.relayTry = list;
   },
   connectPeer() {
     if (typeof Peer === 'undefined') return;
     if (!this.peer || this.peer.destroyed) {
-      this.peer = new Peer();
-      this.peer.on('open', () => this.dial());
-      this.peer.on('error', () => { if (this.joined && this.via === 'peer') this.scheduleReconnect(); });
-      this.peer.on('disconnected', () => { if (!this.peer.destroyed) this.peer.reconnect(); });
+      const peer = new Peer();
+      this.peer = peer;
+      peer.on('open', () => this.dial());
+      peer.on('error', () => { if (peer === this.peer && this.joined) setTimeout(() => this.reconnect(true), 2000); });
+      peer.on('disconnected', () => { setTimeout(() => { if (peer === this.peer && !peer.destroyed && peer.disconnected) { try { peer.reconnect(); } catch (e) {} } }, 1000); });
     } else if (this.peer.open) this.dial();
   },
   dial() {
+    if (!this.peer || !this.peer.open) return;
+    this.lastDial = Date.now();
     const conn = this.peer.connect(PREFIX + this.code, { reliable: true });
     this.conn = conn;
-    const to = setTimeout(() => { if (!conn.open && this.joined && this.via === 'peer') this.scheduleReconnect(); }, 10000);
-    conn.on('open', () => { clearTimeout(to); conn.send(this.joinMsg()); });
+    conn.on('open', () => { if (this.conn === conn) conn.send(this.joinMsg()); });
     conn.on('data', m => this.onMsg(m, 'peer'));
     conn.on('close', () => {
       if (this.conn !== conn || !this.joined || this.via !== 'peer') return;
       // P2P가 끊기면 중계 서버로 넘어감
       if (this.relay && this.relay.connected) { this.via = 'mqtt'; this.relay.publish(topicHost(this.code), JSON.stringify({ from: this.pid, msg: this.joinMsg() }), { qos: 1 }); }
-      else { show($('pConn')); this.scheduleReconnect(); }
+      else { show($('pConn')); this.reconnect(false); }
     });
-  },
-  scheduleReconnect() {
-    if (this.reconnTimer) return;
-    show($('pConn'));
-    this.reconnTimer = setTimeout(() => {
-      this.reconnTimer = null; this.connectPeer();
-      if (!this.relayTry.length && window.mqtt) this.connectRelay();
-    }, 2000);
   },
   send(msg) {
     try {
       if (this.via === 'self') setTimeout(() => HostNet.accept(this.pid, msg, { via: 'self' }), 0);
       else if (this.via === 'bc') this.bc.postMessage({ from: this.pid, msg });
-      else if (this.via === 'peer') { if (this.conn && this.conn.open) this.conn.send(msg); }
+      else if (this.via === 'peer' && this.conn && this.conn.open) this.conn.send(msg);
       else if (this.relay && this.relay.connected) this.relay.publish(topicHost(this.code), JSON.stringify({ from: this.pid, msg }), { qos: msg.t === 'ping' ? 0 : 1 });
+      else if (this.conn && this.conn.open) this.conn.send(msg);
     } catch (e) {}
   },
 
@@ -1431,14 +1535,18 @@ const Player = {
   onMsg(m, via) {
     if (!m || typeof m !== 'object') return;
     if (via) this.via = via;
+    this.lastRx = Date.now();
+    show($('pConn'), false);
+    if (m.t === 'pong') return;
+    if (m.t === 'rejoin') { this.send(this.joinMsg()); return; }
     if (m.t === 'welcome') {
-      if (!this.joined) { this.joined = true; clearTimeout(this.joinTimer); PSFX.join(); vibrate(40); this.requestWake(); }
+      if (!this.joined) { this.joined = true; clearInterval(this.joinTimer); this.err(''); PSFX.join(); vibrate(40); this.requestWake(); }
       this.name = m.name;
       if (!this.st) this.screen('pWait');
-    } else if (m.t === 'full') { this.err('방이 가득 찼어요 (최대 16명)'); this.resetJoinBtn(); }
+    } else if (m.t === 'full') { clearInterval(this.joinTimer); this.err('방이 가득 찼어요 (최대 16명)'); this.resetJoinBtn(); }
     else if (m.t === 'nack') { this.cdUntil = Date.now() + (m.cdLeft || 0); this.pending = null; this.render(); }
     else if (m.t === 'st') {
-      if (!this.joined) { this.joined = true; clearTimeout(this.joinTimer); this.requestWake(); }
+      if (!this.joined) { this.joined = true; clearInterval(this.joinTimer); this.err(''); this.requestWake(); }
       show($('pConn'), false);
       this.deadline = Date.now() + m.left;
       // 서버 위치가 오면 예상 위치 정리
@@ -1490,6 +1598,7 @@ const Player = {
   },
   stopDanger() { this.danger = false; clearInterval(this.dangerTimer); vibrate(0); },
   toast(t) {
+    if (this.embed) return;
     const d = document.createElement('div'); d.className = 'pToast'; d.textContent = t;
     document.body.appendChild(d); setTimeout(() => d.remove(), 2700);
   },
