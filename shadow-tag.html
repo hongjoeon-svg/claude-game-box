@@ -1,0 +1,1626 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#04070a">
+<title>그림자 술래잡기</title>
+<meta name="description" content="링크 누르고 닉네임만 입력하면 바로 입장! 3×3 방을 오가며 몰래 숨어든 술래를 피하는 실시간 눈치싸움 파티 게임">
+<meta property="og:type" content="website">
+<meta property="og:title" content="🕵️ 그림자 술래잡기 같이 해요!">
+<meta property="og:description" content="링크 누르고 닉네임만 입력하면 바로 입장. 누가 술래인지 모르는 30초, 옆방에서 심장이 뛴다">
+<meta property="og:image" content="https://hongjoeon-svg.github.io/claude-game-box/shadow-tag-og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://hongjoeon-svg.github.io/claude-game-box/shadow-tag.html">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #04070a;
+  --bg2: #08110f;
+  --panel: rgba(8, 20, 17, .82);
+  --line: rgba(46, 242, 160, .2);
+  --line2: rgba(46, 242, 160, .45);
+  --text: #e8f5ef;
+  --muted: #84a096;
+  --radar: #2ef2a0;
+  --radar2: #9dffd6;
+  --red: #ff3b4e;
+  --red2: #ff7a85;
+  --blue: #3b9eff;
+  --blue2: #8cc8ff;
+  --amber: #ffb547;
+  --display: "Black Han Sans", "Noto Sans KR", -apple-system, sans-serif;
+  --mono: "Share Tech Mono", ui-monospace, monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  background: radial-gradient(ellipse at 50% 30%, #0b1a16 0%, var(--bg) 70%) fixed, var(--bg);
+  color: var(--text);
+  font-family: "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+}
+body::before {
+  /* 레이더 스캔라인 */
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background: repeating-linear-gradient(0deg, rgba(46, 242, 160, .025) 0 1px, transparent 1px 4px);
+}
+button { font: inherit; cursor: pointer; color: inherit; }
+input { font: inherit; }
+.hidden { display: none !important; }
+section { position: relative; z-index: 1; }
+
+/* ---------- 공통 버튼 ---------- */
+.btn {
+  border: 1px solid var(--line2); background: rgba(46, 242, 160, .08); color: var(--radar2);
+  border-radius: 12px; padding: 10px 14px; font-weight: 700; font-size: 14px;
+  transition: background .15s, transform .1s;
+}
+.btn:hover { background: rgba(46, 242, 160, .18); }
+.btn:active { transform: scale(.97); }
+.btnMain {
+  border: 0; border-radius: 16px; padding: 16px 26px; font-family: var(--display); font-size: 24px; letter-spacing: .02em;
+  background: linear-gradient(180deg, #4dffb5, #16c47f); color: #022014; box-shadow: 0 0 30px rgba(46, 242, 160, .35);
+}
+.btnMain:disabled { filter: grayscale(1) brightness(.5); box-shadow: none; cursor: not-allowed; }
+.btnKakao { background: #fee500; color: #191600; border-color: #fee500; }
+.btnKakao:hover { background: #ffef5c; }
+.btnGhost { background: transparent; border: 1px dashed var(--line2); color: var(--muted); border-radius: 12px; padding: 10px 12px; font-size: 13px; text-align: left; }
+.btnGhost:hover { color: var(--text); }
+.title { font-family: var(--display); font-weight: 400; line-height: 1; letter-spacing: .01em; }
+.title em { font-style: normal; color: var(--radar); text-shadow: 0 0 22px rgba(46, 242, 160, .6); }
+.title .shadowTxt { color: var(--red); text-shadow: 0 0 22px rgba(255, 59, 78, .6); }
+
+/* ---------- 역할 선택 ---------- */
+#roleSelect { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 26px; padding: 32px 16px; text-align: center; }
+#roleSelect .title { font-size: clamp(44px, 9vw, 86px); }
+.sub { color: var(--muted); font-size: 15px; }
+.roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; width: min(720px, 100%); }
+.roleBtn { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 24px 20px; text-align: left; display: flex; flex-direction: column; gap: 8px; transition: transform .15s, border-color .15s; }
+.roleBtn:hover { transform: translateY(-3px); border-color: var(--radar); }
+.roleBtn .ic { font-size: 38px; }
+.roleBtn b { font-size: 19px; }
+.roleBtn span { color: var(--muted); font-size: 14px; line-height: 1.5; }
+.rulesMini { max-width: 720px; color: var(--muted); font-size: 13.5px; line-height: 1.7; background: rgba(0, 0, 0, .3); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px; text-align: left; }
+.rulesMini b { color: var(--text); }
+.logoRadar { width: 120px; height: 120px; border-radius: 50%; position: relative; border: 2px solid var(--line2); background: radial-gradient(circle, rgba(46, 242, 160, .12), transparent 70%); overflow: hidden; }
+.logoRadar::before { content: ""; position: absolute; inset: 0; background: conic-gradient(from 0deg, rgba(46, 242, 160, .55), transparent 25%); animation: sweep 2.6s linear infinite; }
+.logoRadar::after { content: "🕵️"; position: absolute; inset: 0; display: grid; place-items: center; font-size: 50px; }
+@keyframes sweep { to { transform: rotate(360deg); } }
+.pubNote { max-width: 720px; background: rgba(255, 181, 71, .1); border: 1px solid rgba(255, 181, 71, .5); border-radius: 14px; padding: 14px 18px; text-align: left; font-size: 14px; line-height: 1.55; }
+.pubNote b { color: var(--amber); }
+.pubNote p { color: var(--muted); margin: 6px 0 10px; }
+.invBtns { display: flex; gap: 8px; flex-wrap: wrap; }
+.invBtns > * { flex: 1; min-width: 110px; text-align: center; text-decoration: none; }
+
+/* ---------- 호스트: 로비 ---------- */
+#hLobby { min-height: 100vh; display: grid; grid-template-columns: minmax(300px, 400px) 1fr; gap: 28px; padding: 28px; }
+.lobbyLeft { display: flex; flex-direction: column; gap: 14px; align-items: stretch; }
+.lobbyLeft .title { font-size: clamp(40px, 4.4vw, 62px); text-align: center; }
+.qrBox { background: #fff; border-radius: 18px; padding: 14px; width: min(100%, 290px); aspect-ratio: 1; margin: 0 auto; display: grid; place-items: center; box-shadow: 0 0 40px rgba(46, 242, 160, .25); }
+.qrBox img, .qrBox canvas { width: 100% !important; height: auto !important; display: block; image-rendering: pixelated; }
+.codeBox { text-align: center; }
+.codeBox small { color: var(--muted); display: block; font-size: 13px; letter-spacing: .1em; }
+.codeBig { font-family: var(--mono); font-size: 58px; letter-spacing: .18em; color: var(--radar); text-shadow: 0 0 24px rgba(46, 242, 160, .55); }
+.invite { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.invLbl { font-size: 13px; color: var(--muted); }
+.urlTxt { font-family: var(--mono); font-size: 13px; color: var(--radar2); word-break: break-all; background: rgba(0, 0, 0, .35); border-radius: 8px; padding: 8px; }
+.net { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+.net i { width: 10px; height: 10px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 8px var(--amber); flex: none; }
+.net.on i { background: var(--radar); box-shadow: 0 0 8px var(--radar); }
+.net.off i { background: var(--red); box-shadow: 0 0 8px var(--red); }
+.lobbyRight { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.lobbyHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.lobbyHead h2 { font-family: var(--display); font-weight: 400; font-size: 34px; }
+.lobbyHead h2 span { color: var(--radar); }
+.selfJoin { display: flex; gap: 8px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; flex-wrap: wrap; }
+.selfJoin label { font-size: 14px; color: var(--muted); flex: 1 1 200px; }
+.selfJoin label b { color: var(--text); }
+.selfJoin input { background: rgba(0, 0, 0, .4); border: 1px solid var(--line2); border-radius: 10px; color: var(--text); padding: 9px 12px; width: 150px; }
+.pList { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; align-content: start; }
+.pChip { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px; display: flex; align-items: center; gap: 10px; animation: pop .35s ease-out; font-weight: 700; min-width: 0; }
+.pChip span.nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pChip.off { opacity: .4; }
+.pChip .tag { margin-left: auto; font-size: 11px; color: var(--amber); white-space: nowrap; }
+@keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.av { width: 30px; height: 30px; border-radius: 50%; display: inline-grid; place-items: center; flex: none; font-size: 14px; font-weight: 900; color: #fff; background: hsl(var(--h) 55% 38%); border: 1px solid hsl(var(--h) 70% 60%); }
+.emptyList { color: var(--muted); padding: 40px 0; text-align: center; border: 1px dashed var(--line); border-radius: 14px; }
+.rulesBox { background: rgba(0, 0, 0, .3); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; font-size: 14px; line-height: 1.75; color: var(--muted); margin-top: auto; }
+.rulesBox h3 { color: var(--text); font-size: 16px; margin-bottom: 6px; }
+.rulesBox b { color: var(--text); }
+.rulesBox .r { color: var(--red2); } .rulesBox .bl { color: var(--blue2); }
+
+/* ---------- 호스트: 게임 ---------- */
+#hGame { height: 100vh; display: grid; grid-template-rows: auto 1fr; overflow: hidden; }
+.hBar { display: flex; align-items: center; gap: 18px; padding: 14px 24px; border-bottom: 1px solid var(--line); background: rgba(0, 0, 0, .35); }
+.hBar .title { font-size: 30px; }
+.roundPill { font-family: var(--mono); font-size: 18px; border: 1px solid var(--line2); border-radius: 999px; padding: 5px 14px; color: var(--radar2); }
+.phaseTxt { color: var(--muted); font-size: 15px; flex: 1; text-align: center; }
+.hTimer { font-family: var(--mono); font-size: 54px; line-height: 1; color: var(--radar); text-shadow: 0 0 18px rgba(46, 242, 160, .6); min-width: 150px; text-align: right; }
+.hTimer.urgent { color: var(--red); text-shadow: 0 0 22px rgba(255, 59, 78, .8); animation: blink .5s steps(2) infinite; }
+@keyframes blink { 50% { opacity: .55; } }
+.hMain { display: grid; grid-template-columns: 300px 1fr 320px; gap: 20px; padding: 18px 22px; min-height: 0; }
+.hLeft, .hBoard { display: flex; flex-direction: column; gap: 14px; min-height: 0; }
+.hLeft { overflow-y: auto; }
+.flashIn { animation: pop .45s ease-out; }
+.hLeft.withSelf { gap: 10px; }
+.hLeft.withSelf .card { padding: 10px 14px; }
+.hLeft.withSelf .surv { font-size: 40px; }
+.hLeft.withSelf .survDots, .hLeft.withSelf .heatCard { display: none; }
+.hLeft.withSelf .hintBig { font-size: 28px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; }
+.card h4 { font-size: 13px; color: var(--muted); font-weight: 700; letter-spacing: .05em; margin-bottom: 8px; }
+.surv { font-family: var(--display); font-size: 64px; line-height: 1; color: var(--blue2); }
+.surv small { font-size: 26px; color: var(--muted); }
+.survDots { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+.survDots i { width: 14px; height: 14px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 8px var(--blue); transition: all .4s; }
+.survDots i.dead { background: #2a2f33; box-shadow: none; transform: scale(.7); }
+.hintBig { font-family: var(--display); font-size: 40px; color: var(--red2); line-height: 1.1; }
+.hintBig.none { color: var(--muted); font-size: 22px; font-family: inherit; font-weight: 700; }
+.hintBar { height: 4px; border-radius: 4px; background: rgba(255, 255, 255, .08); margin-top: 10px; overflow: hidden; }
+.hintBar i { display: block; height: 100%; background: var(--red); width: 0; }
+.heatBig { font-family: var(--display); font-size: 40px; color: var(--amber); line-height: 1.1; }
+.heatBig.none { color: var(--muted); font-size: 22px; font-family: inherit; font-weight: 700; }
+.hCtrl { display: flex; gap: 8px; margin-top: auto; }
+.hCtrl .btn { flex: 1; font-size: 13px; }
+#hSelfSlot:empty { display: none; }
+
+/* 레이더 맵 */
+.radarWrap { display: grid; place-items: center; min-height: 0; min-width: 0; position: relative; }
+.radar {
+  --size: min(calc(100vh - 150px), 100%);
+  width: var(--size); max-width: 100%; aspect-ratio: 1; position: relative; border-radius: 24px; padding: 14px;
+  background: radial-gradient(circle at 50% 50%, rgba(46, 242, 160, .08), rgba(0, 0, 0, .55) 75%); border: 2px solid var(--line2);
+  box-shadow: 0 0 60px rgba(46, 242, 160, .12), inset 0 0 80px rgba(0, 0, 0, .8);
+  display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 12px; overflow: hidden;
+}
+.radar .sweep { position: absolute; inset: -40%; background: conic-gradient(from 0deg, rgba(46, 242, 160, .22), transparent 18%); animation: sweep 4s linear infinite; pointer-events: none; z-index: 3; }
+.radar .rings { position: absolute; inset: 0; pointer-events: none; z-index: 2; background: repeating-radial-gradient(circle at 50% 50%, transparent 0 18%, rgba(46, 242, 160, .12) 18% 18.4%); }
+.room { position: relative; border-radius: 14px; border: 1px solid var(--line); background: rgba(5, 16, 13, .8); display: grid; place-items: center; overflow: hidden; z-index: 1; transition: border-color .3s, box-shadow .3s; }
+.room .no { font-family: var(--mono); font-size: clamp(30px, 6vh, 70px); color: rgba(46, 242, 160, .28); }
+.room .heat { position: absolute; inset: 0; background: radial-gradient(circle, rgba(255, 140, 40, .75), rgba(255, 60, 30, .25) 55%, transparent 75%); opacity: 0; transition: opacity .6s; animation: heatPulse 1.4s ease-in-out infinite; }
+.room.hot .heat { opacity: 1; }
+.room.hot { border-color: var(--amber); box-shadow: 0 0 30px rgba(255, 140, 40, .5); }
+.room.hot .no { color: rgba(255, 220, 180, .55); }
+@keyframes heatPulse { 50% { transform: scale(1.08); filter: brightness(1.25); } }
+.room .heatTag { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, .65); color: #ffd39a; font-weight: 900; border-radius: 999px; padding: 3px 12px; font-size: clamp(14px, 2.4vh, 22px); white-space: nowrap; display: none; z-index: 2; }
+.room.hot .heatTag { display: block; }
+.room .foot { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); background: rgba(80, 0, 10, .75); color: #ffc2c8; border: 1px solid var(--red); font-weight: 900; border-radius: 999px; padding: 3px 12px; font-size: clamp(13px, 2.2vh, 20px); white-space: nowrap; display: none; z-index: 2; }
+.room.hint .foot { display: block; animation: pop .4s ease-out; }
+.room.hint { border-color: var(--red); }
+.room.hint::after { content: ""; position: absolute; inset: 0; border-radius: 14px; border: 2px solid var(--red); animation: ring 1.6s ease-out infinite; }
+@keyframes ring { from { transform: scale(.6); opacity: 1; } to { transform: scale(1.1); opacity: 0; } }
+.room.bust { animation: bust .25s steps(2) 8; }
+@keyframes bust { 50% { background: rgba(255, 30, 50, .65); } }
+
+/* 리더보드 */
+.board { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 6px; }
+.bRow { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: rgba(0, 0, 0, .3); border: 1px solid transparent; transition: transform .3s; }
+.bRow .rk { font-family: var(--mono); font-size: 18px; width: 26px; text-align: center; color: var(--muted); }
+.bRow:nth-child(1) .rk { color: #ffd54a; } .bRow:nth-child(2) .rk { color: #cfd8dc; } .bRow:nth-child(3) .rk { color: #e0a070; }
+.bRow .nm { flex: 1; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bRow .sc { font-family: var(--mono); font-size: 18px; color: var(--radar2); }
+.bRow.caught { opacity: .5; }
+.bRow.caught .nm::after { content: " ⛓"; }
+.bRow.off .nm { text-decoration: line-through; }
+.boardNote { font-size: 12px; color: var(--muted); }
+
+/* 오버레이 */
+.hOver { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; background: rgba(2, 5, 6, .86); backdrop-filter: blur(4px); text-align: center; padding: 24px; }
+.hOver .title { font-size: clamp(50px, 8vw, 110px); }
+.introCount { font-family: var(--mono); font-size: 150px; color: var(--radar); text-shadow: 0 0 40px rgba(46, 242, 160, .7); line-height: 1; margin-top: 20px; }
+.overSub { font-size: 22px; color: var(--muted); margin-top: 14px; line-height: 1.6; }
+.overSub b { color: var(--text); }
+.resCard { max-width: 900px; width: 100%; display: flex; flex-direction: column; gap: 18px; align-items: center; }
+.resShadow { font-family: var(--display); font-size: clamp(36px, 5vw, 64px); }
+.resShadow b { font-weight: 400; color: var(--red); text-shadow: 0 0 24px rgba(255, 59, 78, .7); }
+.resGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; text-align: left; }
+.resGrid .card { font-size: 17px; line-height: 1.8; }
+.resGrid .card h4 { font-size: 15px; }
+.resLine { display: flex; justify-content: space-between; gap: 10px; }
+.resLine .pt { font-family: var(--mono); color: var(--radar2); }
+.podium { display: flex; align-items: flex-end; justify-content: center; gap: 18px; margin: 30px 0 20px; }
+.pod { width: 190px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.pod .bar { width: 100%; border-radius: 14px 14px 0 0; background: linear-gradient(180deg, rgba(46, 242, 160, .35), rgba(46, 242, 160, .05)); border: 1px solid var(--line2); border-bottom: 0; display: grid; place-items: start center; padding-top: 10px; font-family: var(--display); font-size: 40px; }
+.pod .nm { font-weight: 900; font-size: 22px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pod .sc { font-family: var(--mono); color: var(--radar2); font-size: 20px; }
+.pod.p1 .bar { height: 190px; background: linear-gradient(180deg, rgba(255, 213, 74, .45), rgba(255, 213, 74, .05)); border-color: #ffd54a; }
+.pod.p2 .bar { height: 140px; } .pod.p3 .bar { height: 105px; }
+.finalRest { color: var(--muted); font-size: 16px; line-height: 1.8; max-width: 800px; }
+.finalBtns { display: flex; gap: 12px; justify-content: center; margin-top: 22px; flex-wrap: wrap; }
+
+/* 속보 팝업 + 사이렌 */
+.breaking { position: fixed; left: 50%; top: 18%; transform: translate(-50%, -50%) scale(.6); z-index: 40; opacity: 0; pointer-events: none;
+  background: linear-gradient(90deg, #6a0010, #c3001d, #6a0010); border: 3px solid #ffd0d5; border-radius: 18px; padding: 18px 40px; text-align: center; box-shadow: 0 0 80px rgba(255, 30, 50, .8); }
+.breaking small { display: block; font-family: var(--mono); color: #ffd0d5; letter-spacing: .3em; font-size: 16px; }
+.breaking b { font-family: var(--display); font-weight: 400; font-size: clamp(34px, 5vw, 64px); color: #fff; white-space: nowrap; }
+.breaking.on { animation: breakIn 3.2s ease-out forwards; }
+@keyframes breakIn { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.5); } 8% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); } 14% { transform: translate(-50%, -50%) scale(1); } 85% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1); } }
+.siren { position: fixed; inset: 0; pointer-events: none; z-index: 35; opacity: 0; }
+.siren i { position: absolute; top: 0; bottom: 0; width: 45%; }
+.siren .l { left: 0; background: radial-gradient(ellipse at 0% 50%, rgba(255, 20, 40, .7), transparent 70%); animation: sirenL .45s steps(2) infinite; }
+.siren .r { right: 0; background: radial-gradient(ellipse at 100% 50%, rgba(30, 110, 255, .7), transparent 70%); animation: sirenL .45s steps(2) infinite reverse; }
+.siren.on { animation: sirenFade 3s forwards; }
+@keyframes sirenL { 50% { opacity: .1; } }
+@keyframes sirenFade { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
+
+/* ---------- 참가자 ---------- */
+#player { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; padding: max(12px, env(safe-area-inset-top)) 14px max(14px, env(safe-area-inset-bottom)); max-width: 520px; margin: 0 auto; }
+.pScreen { flex: 1; display: flex; flex-direction: column; gap: 14px; }
+#pJoin { justify-content: center; text-align: center; gap: 16px; }
+#pJoin .title { font-size: 46px; }
+.field { display: flex; flex-direction: column; gap: 6px; text-align: left; }
+.field label { font-size: 13px; color: var(--muted); }
+.field input { background: rgba(0, 0, 0, .45); border: 1px solid var(--line2); border-radius: 14px; color: var(--text); padding: 14px 16px; font-size: 20px; outline: none; }
+.field input:focus { border-color: var(--radar); box-shadow: 0 0 0 3px rgba(46, 242, 160, .2); }
+#pCode { font-family: var(--mono); letter-spacing: .3em; text-transform: uppercase; text-align: center; font-size: 30px; }
+.pErr { color: var(--red2); font-size: 14px; min-height: 20px; line-height: 1.6; }
+.pErr a { color: var(--amber); }
+.localChk { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 6px; justify-content: center; }
+#pWait { justify-content: center; align-items: center; text-align: center; }
+.waitBig { font-family: var(--display); font-size: 34px; }
+.waitSub { color: var(--muted); font-size: 15px; line-height: 1.6; }
+.scan { width: 160px; height: 160px; border-radius: 50%; border: 2px solid var(--line2); position: relative; overflow: hidden; background: radial-gradient(circle, rgba(46, 242, 160, .1), transparent 70%); }
+.scan::before { content: ""; position: absolute; inset: 0; background: conic-gradient(rgba(46, 242, 160, .5), transparent 25%); animation: sweep 2.4s linear infinite; }
+
+#pGame { gap: 10px; position: relative; }
+.pTop { display: flex; align-items: stretch; gap: 8px; }
+.roleBadge { flex: 1.2; border-radius: 14px; padding: 8px 12px; display: flex; flex-direction: column; justify-content: center; font-family: var(--display); font-size: 24px; line-height: 1.05; border: 2px solid; }
+.roleBadge small { font-family: "Noto Sans KR", sans-serif; font-size: 11px; font-weight: 700; opacity: .85; }
+.roleBadge.shadow { background: rgba(255, 59, 78, .18); border-color: var(--red); color: #ffd0d5; box-shadow: 0 0 20px rgba(255, 59, 78, .35); }
+.roleBadge.runner { background: rgba(59, 158, 255, .16); border-color: var(--blue); color: #d4e9ff; box-shadow: 0 0 20px rgba(59, 158, 255, .3); }
+.roleBadge.none { background: rgba(255, 255, 255, .05); border-color: #3a4a45; color: var(--muted); }
+.stat { flex: 1; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 8px 10px; text-align: center; }
+.stat small { display: block; font-size: 11px; color: var(--muted); }
+.stat b { font-family: var(--mono); font-size: 22px; color: var(--radar2); font-weight: 400; }
+.pTimer { height: 8px; border-radius: 8px; background: rgba(255, 255, 255, .08); overflow: hidden; position: relative; }
+.pTimer i { position: absolute; inset: 0; transform-origin: left; background: linear-gradient(90deg, var(--radar), #b2ffde); }
+.pTimer.urgent i { background: linear-gradient(90deg, var(--red), #ff9aa3); }
+.pInfo { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--muted); }
+.pInfo b { color: var(--text); }
+.pInfo .secs { font-family: var(--mono); font-size: 16px; color: var(--radar2); }
+.pMsg { text-align: center; font-weight: 700; font-size: 15px; min-height: 22px; color: var(--radar2); }
+.pMsg.r { color: var(--red2); }
+.grid9 { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 8px; width: 100%; max-width: 440px; margin: 0 auto; aspect-ratio: 1; }
+.cell { position: relative; border-radius: 16px; border: 1px solid var(--line); background: rgba(5, 16, 13, .85); display: grid; place-items: center; font-family: var(--mono); font-size: 26px; color: rgba(46, 242, 160, .3); touch-action: manipulation; user-select: none; -webkit-user-select: none; transition: transform .1s, background .2s, border-color .2s; }
+.cell .lbl { position: absolute; top: 6px; left: 9px; font-size: 14px; }
+.cell .icon { font-size: 40px; line-height: 1; filter: drop-shadow(0 0 10px currentColor); }
+.cell.can { border-color: var(--radar); color: var(--radar); background: rgba(46, 242, 160, .1); box-shadow: inset 0 0 18px rgba(46, 242, 160, .2); animation: canPulse 1.4s ease-in-out infinite; }
+.cell.can::after { content: "이동"; position: absolute; bottom: 8px; font-family: "Noto Sans KR", sans-serif; font-size: 12px; font-weight: 700; }
+.cell.can:active { transform: scale(.94); background: rgba(46, 242, 160, .3); }
+.cell.cd { animation: none; opacity: .45; }
+.cell.cd::after { content: "대기"; }
+.cell.me { border-width: 2px; color: #fff; }
+.cell.me.runner { border-color: var(--blue); background: rgba(59, 158, 255, .2); color: var(--blue2); }
+.cell.me.shadow { border-color: var(--red); background: rgba(255, 59, 78, .2); color: var(--red2); }
+.cell.pend { border-style: dashed; }
+.cell.hotc::before { content: "🔥"; position: absolute; top: 4px; right: 7px; font-size: 16px; }
+.cell.hintc { box-shadow: inset 0 0 0 2px rgba(255, 59, 78, .55); }
+.cell.hintc .lbl::after { content: " 👣"; }
+@keyframes canPulse { 50% { box-shadow: inset 0 0 26px rgba(46, 242, 160, .38); } }
+.cdWrap { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
+.cdBar { flex: 1; height: 10px; border-radius: 10px; background: rgba(255, 255, 255, .08); overflow: hidden; }
+.cdBar i { display: block; height: 100%; width: 100%; background: var(--radar); transform-origin: left; }
+.cdBar.wait i { background: var(--amber); }
+.cdTxt { width: 74px; text-align: right; font-weight: 700; }
+.pDanger { position: absolute; left: 0; right: 0; top: 0; z-index: 5; background: linear-gradient(90deg, #7a0012, #d0001f, #7a0012); color: #fff; font-weight: 900; text-align: center; padding: 12px 10px; border-radius: 14px; font-size: 17px; box-shadow: 0 0 30px rgba(255, 30, 50, .8); animation: dangerBlink .6s ease-in-out infinite; }
+@keyframes dangerBlink { 50% { filter: brightness(1.4); transform: scale(1.02); } }
+.dangerFrame { position: fixed; inset: 0; pointer-events: none; z-index: 50; box-shadow: inset 0 0 0 0 rgba(255, 20, 40, 0); }
+.dangerFrame.on { animation: framePulse .9s ease-in-out infinite; }
+@keyframes framePulse { 0%, 100% { box-shadow: inset 0 0 18px 6px rgba(255, 20, 40, .55); } 18% { box-shadow: inset 0 0 70px 26px rgba(255, 20, 40, .95); } 36% { box-shadow: inset 0 0 22px 8px rgba(255, 20, 40, .55); } 52% { box-shadow: inset 0 0 60px 22px rgba(255, 20, 40, .85); } }
+.pFlash { position: fixed; inset: 0; pointer-events: none; z-index: 49; }
+.pFlash.red { animation: flashR .9s ease-out; }
+.pFlash.green { animation: flashG .7s ease-out; }
+@keyframes flashR { from { background: rgba(255, 20, 40, .7); } to { background: transparent; } }
+@keyframes flashG { from { background: rgba(46, 242, 160, .45); } to { background: transparent; } }
+.pOver { position: absolute; inset: 0; z-index: 8; border-radius: 18px; background: rgba(3, 7, 8, .93); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 12px; padding: 20px; }
+.roleCard { width: min(280px, 80%); aspect-ratio: 3/4; border-radius: 22px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; animation: flipIn .7s cubic-bezier(.2, 1.4, .4, 1); border: 3px solid; }
+.roleCard .ic { font-size: 74px; }
+.roleCard b { font-family: var(--display); font-weight: 400; font-size: 44px; }
+.roleCard p { font-size: 14px; line-height: 1.55; padding: 0 16px; }
+.roleCard.shadow { background: radial-gradient(circle at 50% 30%, #5a0010, #1a0005); border-color: var(--red); color: #ffd0d5; box-shadow: 0 0 60px rgba(255, 59, 78, .6); }
+.roleCard.runner { background: radial-gradient(circle at 50% 30%, #0a3462, #030d1c); border-color: var(--blue); color: #d4e9ff; box-shadow: 0 0 60px rgba(59, 158, 255, .5); }
+@keyframes flipIn { from { transform: rotateY(90deg) scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
+.overBig { font-family: var(--display); font-size: 40px; line-height: 1.15; }
+.overBig.r { color: var(--red); text-shadow: 0 0 22px rgba(255, 59, 78, .7); }
+.overBig.g { color: var(--radar); }
+.overPts { font-family: var(--mono); font-size: 40px; color: var(--radar2); }
+.overSmall { color: var(--muted); font-size: 14px; line-height: 1.6; }
+.overSmall b { color: var(--text); }
+.pToast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 60; background: rgba(110, 0, 18, .95); border: 1px solid var(--red); color: #fff; font-weight: 900; padding: 10px 18px; border-radius: 999px; font-size: 15px; white-space: nowrap; animation: toast 2.6s forwards; pointer-events: none; }
+@keyframes toast { 0% { opacity: 0; transform: translate(-50%, 20px); } 10%, 85% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; } }
+.pConn { position: fixed; top: 0; left: 0; right: 0; z-index: 70; background: var(--amber); color: #201300; text-align: center; font-weight: 700; padding: 8px; font-size: 14px; }
+#pFinal { justify-content: center; align-items: center; text-align: center; }
+.top3 { width: 100%; display: flex; flex-direction: column; gap: 6px; }
+
+/* 호스트 화면 속 '내 컨트롤러' (호스트 참여) */
+#player.embed { min-height: 0; padding: 0; max-width: none; margin: 0; background: var(--panel); border: 1px solid var(--line2); border-radius: 16px; overflow: hidden; }
+#player.embed .pScreen { padding: 10px; gap: 8px; }
+#player.embed #pWait { padding: 16px 10px; }
+#player.embed #pWait .scan { width: 70px; height: 70px; }
+#player.embed #pWait .waitBig { font-size: 20px; }
+#player.embed .grid9 { max-width: 240px; gap: 5px; }
+#player.embed .cell { border-radius: 10px; font-size: 16px; }
+#player.embed .cell .icon { font-size: 24px; }
+#player.embed .cell .lbl { font-size: 11px; top: 3px; left: 6px; }
+#player.embed .cell.can::after { font-size: 10px; bottom: 3px; }
+#player.embed .roleBadge { font-size: 17px; padding: 6px 8px; }
+#player.embed .stat b { font-size: 16px; }
+#player.embed .pDanger { font-size: 13px; padding: 8px; }
+#player.embed .roleCard { width: 150px; }
+#player.embed .roleCard .ic { font-size: 40px; } #player.embed .roleCard b { font-size: 28px; } #player.embed .roleCard p { display: none; }
+#player.embed .overBig { font-size: 24px; } #player.embed .overPts { font-size: 26px; }
+#player.embed .pOver { border-radius: 0; }
+.embHead { display: none; align-items: center; gap: 6px; padding: 8px 12px; border-bottom: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+.embHead b { color: var(--text); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.embHead button { font-size: 12px; padding: 4px 8px; border-radius: 8px; border: 1px solid var(--line2); background: transparent; color: var(--radar2); }
+#player.embed .embHead { display: flex; }
+.cover { position: absolute; inset: 0; z-index: 9; background: repeating-linear-gradient(45deg, #071210 0 10px, #0a1916 10px 20px); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; padding: 14px; font-size: 13px; color: var(--muted); }
+.cover b { color: var(--text); font-size: 15px; }
+.peekBtn { border: 1px solid var(--radar); background: rgba(46, 242, 160, .15); color: var(--radar2); border-radius: 12px; padding: 12px 16px; font-weight: 900; user-select: none; -webkit-user-select: none; touch-action: none; }
+
+@media (max-width: 1100px) {
+  .hMain { grid-template-columns: 250px 1fr 260px; gap: 14px; padding: 14px; }
+}
+@media (max-width: 860px) {
+  #hLobby { grid-template-columns: 1fr; padding: 16px; }
+  #hGame { height: auto; min-height: 100vh; overflow: visible; }
+  .hMain { grid-template-columns: 1fr; }
+  .radar { --size: min(92vw, 70vh); }
+  .hBar { flex-wrap: wrap; padding: 10px 16px; }
+  .hBar .title { font-size: 22px; }
+  .hTimer { font-size: 40px; min-width: 0; }
+  .phaseTxt { order: 5; flex-basis: 100%; }
+  .resGrid { grid-template-columns: 1fr; }
+  .pod { width: 30%; }
+}
+</style>
+</head>
+<body>
+
+<!-- ================= 역할 선택 ================= -->
+<section id="roleSelect">
+  <div class="logoRadar"></div>
+  <div>
+    <h1 class="title"><span class="shadowTxt">그림자</span> <em>술래잡기</em></h1>
+    <p class="sub" style="margin-top:10px">SHADOW TAG · 프로젝터 + 스마트폰 실시간 심리·추격 파티 게임</p>
+  </div>
+  <div class="pubNote hidden" data-pubnote>
+    <b>⚠️ 친구들과 하려면 공개 주소로 여세요</b>
+    <p>지금 연 claude.ai 화면은 친구 폰과 연결이 막히고, 링크도 초대받아 로그인한 사람만 열 수 있어요. 아래 주소는 로그인 없이 누구나 링크·QR로 바로 들어와요.</p>
+    <div class="invBtns"><a class="btn" data-publink target="_blank" rel="noopener">공개 주소로 열기 ↗</a><button class="btn" data-pubcopy>주소 복사</button></div>
+  </div>
+  <div class="roles">
+    <button class="roleBtn" data-role="host">
+      <div class="ic">📺</div><b>호스트 (메인 전광판)</b>
+      <span>프로젝터·TV에 띄우는 다크 레이더 화면. 방을 만들고 QR·카톡 링크로 참가자를 받아요. 호스트도 함께 플레이할 수 있어요.</span>
+    </button>
+    <button class="roleBtn" data-role="player">
+      <div class="ic">📱</div><b>참가자 (모바일)</b>
+      <span>내 역할은 내 폰에만! 3×3 방을 오가며 술래를 피하거나, 술래가 되어 몰래 덮쳐요.</span>
+    </button>
+  </div>
+  <div class="rulesMini">
+    <b>룰 요약</b> · 총 3라운드 · 라운드당 30초<br>
+    🕵️ 매 라운드 1명이 몰래 <b style="color:var(--red2)">술래</b>, 나머지는 <b style="color:var(--blue2)">도망자</b> →
+    🗺️ 1~9번 방 중 상하좌우 옆방으로만 이동 (1.5초 쿨타임) →
+    ⚡ 술래와 같은 방이 되면 즉시 검거!<br>
+    도망자: 1초 생존마다 +20점, 끝까지 살아남으면 +300 · 술래: 검거 1명당 +250, 전원 검거 시 +500
+  </div>
+</section>
+
+<!-- ================= 호스트 ================= -->
+<section id="host" class="hidden">
+  <div id="hLobby">
+    <div class="lobbyLeft">
+      <h1 class="title"><span class="shadowTxt">그림자</span><br><em>술래잡기</em></h1>
+      <div class="qrBox" id="hQr"></div>
+      <div class="codeBox"><small>방 코드</small><span class="codeBig" id="hCode">····</span></div>
+      <div class="invite">
+        <div class="invLbl">🔗 초대 링크 · 카톡방에 보내면 누르기만 해도 입장</div>
+        <div class="urlTxt" id="hUrl"></div>
+        <div class="invBtns">
+          <button class="btn btnKakao" id="hKakao">💬 카톡으로 초대</button>
+          <button class="btn" id="hCopy">📋 링크 복사</button>
+        </div>
+      </div>
+      <div class="net" id="hNet"><i></i><span>연결 준비 중…</span></div>
+      <button class="btnGhost" id="hLocalTab">🪟 이 컴퓨터에서 참가자 창 새로 열기<br><small>같은 브라우저 탭끼리 연결돼요 · 노트북 화면으로 몰래 참여하거나 혼자 테스트할 때</small></button>
+    </div>
+    <div class="lobbyRight">
+      <div class="pubNote hidden" data-pubnote>
+        <b>⚠️ 친구들과 하려면 공개 주소로 여세요</b>
+        <p>지금 연 claude.ai 화면은 친구 폰과 연결이 막히고, 링크도 초대받아 로그인한 사람만 열 수 있어요.</p>
+        <div class="invBtns"><a class="btn" data-publink target="_blank" rel="noopener">공개 주소로 열기 ↗</a><button class="btn" data-pubcopy>주소 복사</button></div>
+      </div>
+      <div class="lobbyHead">
+        <h2>참가자 <span id="hCount">0</span>명</h2>
+        <button class="btnMain" id="hStart" disabled>게임 시작 ▶</button>
+      </div>
+      <div class="selfJoin" id="hSelfBox">
+        <label>🎮 <b>호스트도 같이 하기</b><br><small>이 화면 구석에 내 컨트롤러가 생겨요. 역할·위치는 가리개로 가려지고 꾹 누를 때만 보여요.</small></label>
+        <input type="text" id="hSelfName" maxlength="8" placeholder="내 닉네임" autocomplete="off">
+        <button class="btn" id="hSelfJoin">참여하기</button>
+      </div>
+      <div class="pList" id="hList"></div>
+      <div class="rulesBox">
+        <h3>📜 게임 방법</h3>
+        ① 라운드가 시작되면 각자 폰에 비밀 역할이 떠요. 1명은 <b class="r">술래(Shadow)</b>, 나머지는 <b class="bl">도망자(Runner)</b>.<br>
+        ② 모두 1~9번 방 중 무작위로 시작해요. 폰의 3×3 지도에서 <b>상하좌우 옆방</b>을 눌러 이동 (이동 후 1.5초 쿨타임).<br>
+        ③ 술래와 같은 방이 되는 순간 <b>즉시 검거!</b> 술래가 바로 옆방에 오면 도망자 폰이 붉게 맥박치며 심장이 뛰어요.<br>
+        ④ 메인 화면엔 <b>🔥 도망자가 가장 몰린 방(2명 이상)</b>과 <b>👣 5초마다 갱신되는 술래 발자국</b>만 떠요. 서로 눈치를 보세요!<br>
+        💯 도망자: 생존 1초당 +20, 30초 생존 +300 · 술래: 검거당 +250, 전원 검거 +500 · 3라운드 합산 1위가 우승
+      </div>
+    </div>
+  </div>
+
+  <div id="hGame" class="hidden">
+    <header class="hBar">
+      <div class="title"><span class="shadowTxt">그림자</span> <em>술래잡기</em></div>
+      <div class="roundPill" id="hRound">ROUND 1/3</div>
+      <div class="phaseTxt" id="hPhase"></div>
+      <div class="hTimer" id="hTimer">00:30</div>
+    </header>
+    <div class="hMain">
+      <div class="hLeft">
+        <div class="card">
+          <h4>🏃 생존 도망자</h4>
+          <div class="surv" id="hSurv">0<small>/0</small></div>
+          <div class="survDots" id="hDots"></div>
+        </div>
+        <div class="card">
+          <h4>👣 술래 발자국 (5초마다 갱신)</h4>
+          <div class="hintBig none" id="hHint">탐지 중…</div>
+          <div class="hintBar"><i id="hHintBar"></i></div>
+        </div>
+        <div class="card heatCard">
+          <h4>🔥 밀집도 열기</h4>
+          <div class="heatBig none" id="hHeat">-</div>
+        </div>
+        <div id="hSelfSlot"></div>
+        <div class="hCtrl">
+          <button class="btn" id="hSkip">⏭ 다음</button>
+          <button class="btn" id="hQuit">⏹ 로비로</button>
+        </div>
+      </div>
+      <div class="radarWrap">
+        <div class="radar" id="hRadar">
+          <div class="rings"></div>
+          <div class="sweep"></div>
+        </div>
+      </div>
+      <aside class="hBoard">
+        <div class="card" style="flex:1;display:flex;flex-direction:column;min-height:0">
+          <h4>🏆 누적 점수</h4>
+          <div class="board" id="hBoard"></div>
+          <div class="boardNote" id="hBoardNote">점수는 라운드가 끝날 때 반영돼요 (술래가 들키지 않도록)</div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="hOver hidden" id="hIntro">
+      <div>
+        <div class="roundPill" id="hIntroRound" style="display:inline-block;font-size:24px">ROUND 1</div>
+        <h1 class="title" style="margin-top:18px">폰에서 <span class="shadowTxt">역할</span>을 확인하세요</h1>
+        <div class="overSub">이 중 <b>한 명</b>이 <b style="color:var(--red2)">술래</b>입니다. 표정 관리!</div>
+        <div class="introCount" id="hIntroCount">5</div>
+      </div>
+    </div>
+    <div class="hOver hidden" id="hResult">
+      <div class="resCard">
+        <div class="roundPill" id="hResRound" style="font-size:20px">ROUND 1 결과</div>
+        <div class="resShadow" id="hResShadow"></div>
+        <div class="overSub" id="hResSum" style="margin-top:0"></div>
+        <div class="resGrid">
+          <div class="card"><h4>⛓ 검거된 도망자</h4><div id="hResCaught"></div></div>
+          <div class="card"><h4>🏃 끝까지 살아남은 도망자</h4><div id="hResSurv"></div></div>
+        </div>
+        <div class="overSub" id="hResNext" style="font-size:17px"></div>
+      </div>
+    </div>
+    <div class="hOver hidden" id="hFinal">
+      <div style="width:100%;max-width:1000px">
+        <h1 class="title">🏆 최종 <em>결과</em></h1>
+        <div class="podium" id="hPodium"></div>
+        <div class="finalRest" id="hFinalRest" style="margin:0 auto"></div>
+        <div class="finalBtns">
+          <button class="btnMain" id="hAgain">🔁 한 판 더</button>
+          <button class="btn" id="hToLobby" style="font-size:18px;padding:14px 22px">로비로</button>
+        </div>
+      </div>
+    </div>
+    <div class="breaking" id="hBreak"><small>BREAKING NEWS</small><b id="hBreakTxt"></b></div>
+    <div class="siren" id="hSiren"><i class="l"></i><i class="r"></i></div>
+  </div>
+</section>
+
+<!-- ================= 참가자 ================= -->
+<section id="player" class="hidden">
+  <div class="embHead"><span>🎮 내 컨트롤러 ·</span><b id="pEmbName"></b><button id="pCoverTog">가리개 끄기</button></div>
+
+  <div class="pScreen" id="pJoin">
+    <div class="logoRadar" style="margin:0 auto"></div>
+    <h1 class="title"><span class="shadowTxt">그림자</span> <em>술래잡기</em></h1>
+    <div class="field"><label>방 코드 (메인 화면에 표시된 4자리)</label><input id="pCode" maxlength="4" autocomplete="off" inputmode="latin" placeholder="ABCD"></div>
+    <div class="field"><label>닉네임</label><input id="pName" maxlength="8" autocomplete="off" placeholder="최대 8자"></div>
+    <button class="btnMain" id="pJoinBtn">입장하기</button>
+    <div class="pErr" id="pErr"></div>
+    <label class="localChk"><input type="checkbox" id="pLocal"> 같은 브라우저 탭으로 연결 (로컬 테스트)</label>
+  </div>
+
+  <div class="pScreen hidden" id="pWait">
+    <div class="scan"></div>
+    <div class="waitBig" id="pWaitTitle">입장 완료!</div>
+    <div class="waitSub" id="pWaitSub">메인 화면을 보며 시작을 기다려 주세요.<br>화면이 꺼지지 않게 해 두면 좋아요.</div>
+  </div>
+
+  <div class="pScreen hidden" id="pGame">
+    <div class="pTop">
+      <div class="roleBadge none" id="pRole"><small>내 역할</small>대기</div>
+      <div class="stat"><small>생존자</small><b id="pAlive">0</b></div>
+      <div class="stat"><small>내 점수</small><b id="pScore">0</b></div>
+    </div>
+    <div class="pTimer" id="pTimerBar"><i id="pTimerFill"></i></div>
+    <div class="pInfo"><span id="pRoundTxt">ROUND 1/3</span><span class="secs" id="pSecs">30초</span></div>
+    <div class="pMsg" id="pMsg"></div>
+    <div class="grid9" id="pGrid"></div>
+    <div class="cdWrap"><span>⚡ 이동</span><div class="cdBar" id="pCdBar"><i id="pCdFill"></i></div><span class="cdTxt" id="pCdTxt">준비</span></div>
+    <div class="pInfo"><span id="pHotTxt">🔥 밀집: -</span><span id="pHintTxt">👣 발자국: -</span></div>
+    <div class="pDanger hidden" id="pDanger">⚠️ 경고! 바로 옆방에 술래가 있습니다!</div>
+    <div class="pOver hidden" id="pIntro"></div>
+    <div class="pOver hidden" id="pCaught"></div>
+    <div class="pOver hidden" id="pRes"></div>
+    <div class="cover hidden" id="pCover">
+      <b>🙈 가리개 ON</b>
+      <span>프로젝터에 내 역할이 비치지 않도록 가려 뒀어요.</span>
+      <button class="peekBtn" id="pPeek">👁 꾹 누르는 동안 보기</button>
+      <span>방향키(←↑→↓)로도 이동할 수 있어요</span>
+    </div>
+  </div>
+
+  <div class="pScreen hidden" id="pFinal">
+    <div style="font-size:70px">🏆</div>
+    <div class="waitBig" id="pFinRank">1위</div>
+    <div class="overPts" id="pFinPts"></div>
+    <div class="top3" id="pFinTop"></div>
+    <div class="waitSub">호스트가 다시 시작하면 자동으로 이어져요</div>
+  </div>
+  <div class="pConn hidden" id="pConn">⚠️ 연결이 끊겼어요. 재연결 중…</div>
+</section>
+<div class="dangerFrame" id="pFrame"></div>
+<div class="pFlash" id="pFlash"></div>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js" onerror="var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js';document.head.appendChild(s)"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+'use strict';
+/* =========================================================
+   공통
+   ========================================================= */
+const PREFIX = 'shadowtag-v1-';
+// 로그인 없이 누구나 들어오는 공개 주소 (GitHub Pages)
+const PUBLIC_URL = 'https://hongjoeon-svg.github.io/claude-game-box/shadow-tag.html';
+const IN_ARTIFACT = !!(window.claude && typeof window.claude.use === 'function') || /claude\.ai|claudeusercontent/.test(location.hostname);
+const CFG = { rounds: 3, intro: 5000, play: 30000, result: 9000, cd: 1500, hintEvery: 5000, heatEvery: 2000, maxPlayers: 16, minPlayers: 2 };
+const PTS = { perSec: 20, survive: 300, catch: 250, sweep: 500 };
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmt = n => Math.round(n).toLocaleString('ko-KR');
+const show = (el, on = true) => el.classList.toggle('hidden', !on);
+const vibrate = p => { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} };
+const params = new URLSearchParams(location.search);
+const hueOf = name => { let h = 0; for (const c of String(name)) h = (h * 31 + c.codePointAt(0)) % 360; return h; };
+const avatar = name => `<span class="av" style="--h:${hueOf(name)}">${esc([...String(name)][0] || '?')}</span>`;
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+// 3×3 방: 상하좌우로 붙은 방
+function neighbors(r) {
+  const row = Math.floor((r - 1) / 3), col = (r - 1) % 3, out = [];
+  if (row > 0) out.push(r - 3); if (row < 2) out.push(r + 3);
+  if (col > 0) out.push(r - 1); if (col < 2) out.push(r + 1);
+  return out;
+}
+const adjacent = (a, b) => neighbors(a).includes(b);
+function retrigger(el, cls) { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+function copyText(text, btn) {
+  const label = btn ? btn.textContent : '';
+  const done = ok => { if (!btn) return; btn.textContent = ok ? '✅ 복사됨' : '주소를 길게 눌러 복사하세요'; setTimeout(() => btn.textContent = label, 1800); };
+  const fallback = () => {
+    try {
+      const ta = document.createElement('textarea'); ta.value = text; ta.style.cssText = 'position:fixed;opacity:0';
+      document.body.appendChild(ta); ta.select(); const ok = document.execCommand('copy'); ta.remove(); done(ok);
+    } catch (e) { done(false); }
+  };
+  try { navigator.clipboard.writeText(text).then(() => done(true), fallback); } catch (e) { fallback(); }
+}
+// 카톡 공유: 폰에선 공유 시트(카카오톡 선택), PC에선 초대 문구+링크를 복사해서 카톡방에 붙여넣기
+function shareKakao(url, btn) {
+  const text = '🕵️ 그림자 술래잡기 같이 해요! 링크 누르고 닉네임만 입력하면 바로 입장';
+  if (navigator.share) navigator.share({ title: '그림자 술래잡기', text, url }).catch(() => {});
+  else {
+    copyText(text + '\n' + url, null);
+    if (btn) { const l = btn.textContent; btn.textContent = '✅ 복사됨 · 카톡방에 붙여넣기'; setTimeout(() => btn.textContent = l, 2200); }
+  }
+}
+
+/* ---------- 사운드 (Web Audio, 외부 파일 없음) ---------- */
+function makeSFX() {
+  return {
+    ctx: null, master: null, muted: false,
+    init() {
+      if (!this.ctx) {
+        try {
+          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+          this.master = this.ctx.createGain(); this.master.gain.value = .9; this.master.connect(this.ctx.destination);
+        } catch (e) {}
+      }
+      if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+    },
+    tone(freq, dur = .1, type = 'square', vol = .15, slide = 0, at = 0) {
+      const c = this.ctx; if (!c || this.muted) return;
+      const t = c.currentTime + at, o = c.createOscillator(), g = c.createGain();
+      o.type = type; o.frequency.setValueAtTime(freq, t);
+      if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, freq + slide), t + dur);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .008); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g).connect(this.master); o.start(t); o.stop(t + dur + .03);
+    },
+    noise(dur = .05, freq = 3000, q = 1.5, vol = .3, at = 0, type = 'bandpass') {
+      const c = this.ctx; if (!c || this.muted) return;
+      const t = c.currentTime + at, len = Math.max(1, Math.floor(c.sampleRate * dur));
+      const buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2);
+      const src = c.createBufferSource(); src.buffer = buf;
+      const f = c.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
+      const g = c.createGain(); g.gain.value = vol;
+      src.connect(f).connect(g).connect(this.master); src.start(t);
+    },
+    // 심장박동 '두근-두근': 낮은 사인파 쿵 + 저역 노이즈
+    thump(at, vol) {
+      this.tone(62, .2, 'sine', vol, -22, at);
+      this.tone(124, .07, 'sine', vol * .35, -50, at);
+      this.noise(.09, 120, 1, vol * .7, at, 'lowpass');
+    },
+    heartbeat(fast) { if (!this.ctx) return; this.thump(0, .95); this.thump(fast ? .2 : .26, .7); },
+    // 검거: 귀를 찌르는 하강 경보음
+    alarm() {
+      if (!this.ctx) return;
+      for (let i = 0; i < 4; i++) { this.tone(1250, .18, 'sawtooth', .22, -500, i * .22); this.tone(1262, .18, 'square', .1, -500, i * .22); }
+      this.noise(.6, 900, .8, .4, 0, 'lowpass');
+      this.tone(55, 1.1, 'sawtooth', .3, -20, .05);
+    },
+    // 사이렌 (메인 화면)
+    siren(len = 2.4) {
+      const c = this.ctx; if (!c || this.muted) return;
+      const t = c.currentTime, o = c.createOscillator(), o2 = c.createOscillator(), g = c.createGain(), lfo = c.createOscillator(), lg = c.createGain();
+      o.type = 'sawtooth'; o2.type = 'square'; o.frequency.value = 750; o2.frequency.value = 752;
+      lfo.frequency.value = 2.2; lg.gain.value = 260; lfo.connect(lg); lg.connect(o.frequency); lg.connect(o2.frequency);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(.16, t + .05); g.gain.setValueAtTime(.16, t + len - .3); g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+      o.connect(g); o2.connect(g); g.connect(this.master);
+      [o, o2, lfo].forEach(x => { x.start(t); x.stop(t + len + .05); });
+      this.tone(90, .5, 'sine', .5, -50);
+      this.noise(.3, 2500, 1, .3);
+    },
+    catchOk() { this.tone(330, .1, 'square', .15); this.tone(495, .1, 'square', .15, 0, .1); this.tone(660, .25, 'square', .16, 0, .2); this.noise(.15, 300, 1, .3, 0, 'lowpass'); },
+    move() { this.tone(520, .05, 'triangle', .1, 300); this.noise(.04, 2200, 3, .08); },
+    deny() { this.tone(180, .1, 'square', .1); },
+    tick(hi) { this.tone(hi ? 1400 : 900, .05, 'square', .09); },
+    ping() { this.tone(1800, .5, 'sine', .07, -200); this.tone(900, .7, 'sine', .04, 0, .02); },
+    horn() { [0, .12].forEach(a => { this.tone(220, .45, 'sawtooth', .14, 0, a); this.tone(330, .45, 'sawtooth', .1, 0, a); }); this.noise(.3, 600, 1, .25, 0, 'lowpass'); },
+    buzzer() { this.tone(140, .9, 'sawtooth', .22); this.tone(147, .9, 'square', .12); },
+    reveal() { this.tone(90, .6, 'sine', .5, -30); this.noise(.5, 400, .7, .3, 0, 'lowpass'); [392, 466, 554].forEach((f, i) => this.tone(f, .5, 'triangle', .1, 0, .15 + i * .12)); },
+    fanfare() {
+      const notes = [[523, 0, .14], [523, .15, .1], [523, .26, .1], [659, .38, .3], [784, .7, .14], [659, .86, .12], [784, 1, .7]];
+      for (const [f, at, d] of notes) { this.tone(f, d + .1, 'sawtooth', .12, 0, at); this.tone(f * 1.005, d + .1, 'square', .06, 0, at); }
+      [262, 330, 392].forEach(f => this.tone(f, 1.1, 'triangle', .1, 0, 1));
+    },
+    join() { this.tone(880, .08, 'triangle', .15); this.tone(1320, .12, 'triangle', .12, 0, .08); },
+  };
+}
+const SFX = makeSFX();   // 메인 화면용
+const PSFX = makeSFX();  // 참가자용 (호스트 참여 시 가리개 상태면 음소거)
+
+/* =========================================================
+   라우팅
+   ========================================================= */
+function startRole(role) {
+  show($('roleSelect'), false);
+  if (role === 'host') Host.start(); else Player.start();
+}
+document.querySelectorAll('.roleBtn').forEach(b => b.onclick = () => {
+  SFX.init();
+  const role = b.dataset.role;
+  try { const u = new URL(location.href); u.searchParams.set('role', role); history.replaceState(null, '', u); } catch (e) {}
+  startRole(role);
+});
+
+/* =========================================================
+   네트워크
+   - PeerJS(WebRTC): 호스트 ↔ 참가자 P2P 연결
+   - 중계 서버(MQTT over WebSocket): P2P가 막히는 망(회사 와이파이·LTE 등)을 위한 연결. 둘 다 동시에 열어 두고 되는 쪽으로 붙어요
+   - BroadcastChannel: 같은 브라우저 여러 탭끼리 (노트북 창으로 몰래 참여 / 로컬 테스트)
+   ========================================================= */
+const RELAYS = ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt'];
+const topicHost = code => `shadowtag1/${code}/host`;
+const topicPlayer = (code, pid) => `shadowtag1/${code}/p/${pid}`;
+const randCode = () => { const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; return Array.from({ length: 4 }, () => A[Math.floor(Math.random() * A.length)]).join(''); };
+function waitFor(test, ms) {
+  return new Promise(res => {
+    const t0 = Date.now();
+    const tick = () => { if (test()) res(true); else if (Date.now() - t0 > ms) res(false); else setTimeout(tick, 100); };
+    tick();
+  });
+}
+
+const HostNet = {
+  code: '', peer: null, bc: null, relays: [], links: new Map(),
+  st: { mqtt: 'wait', peer: 'wait' },
+  onMsg: null, onLeave: null, onStatus: null,
+  open(onMsg, onLeave, onStatus) {
+    this.onMsg = onMsg; this.onLeave = onLeave; this.onStatus = onStatus;
+    this.code = randCode();
+    this.openBC();
+    this.openPeer();
+    this.openRelays();
+    setInterval(() => {
+      const t = Date.now();
+      for (const [pid, l] of this.links) if ((l.via === 'mqtt' || l.via === 'bc') && t - l.seen > 12000) { this.links.delete(pid); this.onLeave(pid); }
+    }, 2000);
+  },
+  changeCode() {
+    const old = this.code;
+    this.code = randCode();
+    this.openBC();
+    for (const c of this.relays) { try { c.unsubscribe(topicHost(old)); c.subscribe(topicHost(this.code)); } catch (e) {} }
+    Host.showCode();
+  },
+  status() {
+    const { mqtt, peer } = this.st;
+    if (peer === 'on' && mqtt === 'on') this.onStatus('on', '온라인 연결됨 · P2P + 중계 서버');
+    else if (peer === 'on') this.onStatus('on', '온라인 연결됨 · P2P');
+    else if (mqtt === 'on') this.onStatus('on', '온라인 연결됨 · 중계 서버');
+    else if (mqtt === 'wait' || peer === 'wait') this.onStatus('', '온라인 연결 중…');
+    else this.onStatus('off', '온라인 연결 실패 · 인터넷을 확인하고 새로고침하세요 (같은 브라우저 창 연결은 가능)');
+  },
+  accept(pid, msg, link) {
+    if (!msg || typeof msg !== 'object') return;
+    pid = String(pid || '').slice(0, 40); if (!pid) return;
+    const cur = this.links.get(pid);
+    if (msg.t === 'join') {
+      if (cur && cur.conn && cur.conn !== link.conn) { try { cur.conn.close(); } catch (e) {} }
+      this.links.set(pid, { ...link, seen: Date.now() });
+    } else if (!cur || cur.via !== link.via || (link.conn && cur.conn !== link.conn) || (link.client && cur.client !== link.client)) {
+      if (!Host.players.has(pid)) return;
+      this.links.set(pid, { ...link, seen: Date.now() });
+    } else cur.seen = Date.now();
+    if (msg.t === 'ping') { Host.onPing(pid); return; }
+    if (msg.t === 'bye') { this.links.delete(pid); this.onLeave(pid); return; }
+    this.onMsg(pid, msg);
+  },
+  openBC() {
+    if (typeof BroadcastChannel === 'undefined') return;
+    try { this.bc && this.bc.close(); } catch (e) {}
+    this.bc = new BroadcastChannel('shadowtag-' + this.code);
+    this.bc.onmessage = e => { const d = e.data; if (!d || !d.from || d.to) return; this.accept(d.from, d.msg, { via: 'bc' }); };
+  },
+  async openRelays() {
+    if (!(await waitFor(() => window.mqtt, 8000))) { this.st.mqtt = 'off'; this.status(); return; }
+    let fails = 0;
+    for (const url of RELAYS) {
+      const c = mqtt.connect(url, { clientId: 'st-h-' + Math.random().toString(36).slice(2, 10), clean: true, connectTimeout: 8000, reconnectPeriod: 3000, keepalive: 30 });
+      c.on('connect', () => { c.subscribe(topicHost(this.code)); c._ok = true; this.st.mqtt = 'on'; this.status(); });
+      c.on('close', () => { c._ok = false; if (!this.relays.some(x => x._ok)) { this.st.mqtt = 'off'; this.status(); } });
+      c.on('error', () => { if (++fails >= RELAYS.length && !this.relays.some(x => x._ok)) { this.st.mqtt = 'off'; this.status(); } });
+      c.on('message', (topic, buf) => {
+        if (topic !== topicHost(this.code)) return;
+        let d; try { d = JSON.parse(buf.toString()); } catch (e) { return; }
+        if (d && d.from) this.accept(d.from, d.msg, { via: 'mqtt', client: c });
+      });
+      this.relays.push(c);
+    }
+  },
+  openPeer() {
+    if (typeof Peer === 'undefined') { this.st.peer = 'off'; this.status(); return; }
+    const peer = new Peer(PREFIX + this.code);
+    this.peer = peer;
+    peer.on('open', () => { this.st.peer = 'on'; this.status(); });
+    peer.on('error', err => {
+      if (err.type === 'unavailable-id') { peer.destroy(); this.changeCode(); this.openPeer(); return; }
+      if (err.type === 'peer-unavailable') return;
+      this.st.peer = 'off'; this.status();
+    });
+    peer.on('disconnected', () => { setTimeout(() => { if (!peer.destroyed) peer.reconnect(); }, 1000); });
+    peer.on('connection', conn => {
+      conn.on('data', msg => {
+        if (msg && msg.t === 'join') conn._pid = String(msg.pid || '').slice(0, 40);
+        if (conn._pid) this.accept(conn._pid, msg, { via: 'peer', conn });
+      });
+      conn.on('close', () => {
+        const pid = conn._pid;
+        if (pid && this.links.get(pid)?.conn === conn) { this.links.delete(pid); this.onLeave(pid); }
+      });
+    });
+  },
+  send(pid, msg) {
+    const l = this.links.get(pid); if (!l) return;
+    if (l.via === 'self') setTimeout(() => Player.onMsg(msg, 'self'), 0);
+    else if (l.via === 'bc') { try { this.bc.postMessage({ to: pid, msg }); } catch (e) {} }
+    else if (l.via === 'mqtt') { try { l.client.publish(topicPlayer(this.code, pid), JSON.stringify(msg)); } catch (e) {} }
+    else if (l.conn && l.conn.open) { try { l.conn.send(msg); } catch (e) {} }
+  },
+};
+
+/* =========================================================
+   호스트 (모든 판정을 여기서 하는 권위 서버)
+   ========================================================= */
+const Host = {
+  players: new Map(), // pid -> {pid,name,score,connected,role,room,alive,caughtAt,lastMove,rGain,shadowCount}
+  phase: 'lobby', round: 0, phaseEnd: 0, playStart: 0,
+  shadow: null, hint: 0, nextHint: 0, hot: null, nextHeat: 0,
+  catchSeq: 0, lastCatch: null, summary: null, finalList: null, lastTick: 0, lastBcast: 0, endTimer: null,
+
+  start() {
+    show($('host'));
+    HostNet.open((pid, m) => this.onMsg(pid, m), pid => this.onLeave(pid), (s, txt) => this.setNet(s, txt));
+    this.showCode();
+    this.buildRadar();
+    $('hStart').onclick = () => { SFX.init(); this.startGame(); };
+    $('hSelfJoin').onclick = () => this.selfJoin();
+    $('hSelfName').onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) this.selfJoin(); };
+    try { $('hSelfName').value = localStorage.getItem('shadowtag-name') || ''; } catch (e) {}
+    $('hLocalTab').onclick = () => window.open(this.joinUrl(true), '_blank');
+    $('hCopy').onclick = e => copyText(this.joinUrl(false), e.currentTarget);
+    $('hKakao').onclick = e => shareKakao(this.joinUrl(false), e.currentTarget);
+    $('hSkip').onclick = () => this.skip();
+    $('hQuit').onclick = () => { if (confirm('게임을 끝내고 로비로 돌아갈까요?')) this.toLobby(); };
+    $('hAgain').onclick = () => { SFX.init(); this.toLobby(); this.startGame(); };
+    $('hToLobby').onclick = () => this.toLobby();
+    document.addEventListener('pointerdown', () => SFX.init(), { once: true });
+    setInterval(() => this.loop(), 100);
+    const raf = () => { this.paint(); requestAnimationFrame(raf); };
+    requestAnimationFrame(raf);
+    this.renderLobby();
+  },
+  setNet(s, txt) { $('hNet').className = 'net ' + s; $('hNet').querySelector('span').textContent = txt; },
+  joinUrl(local) {
+    const base = !local && (IN_ARTIFACT || !/^https?:$/.test(location.protocol)) ? PUBLIC_URL : location.href;
+    const u = new URL(base); u.search = ''; u.hash = '';
+    u.searchParams.set('room', HostNet.code);
+    if (local) { u.searchParams.set('role', 'player'); u.searchParams.set('local', '1'); }
+    return u.toString();
+  },
+  showCode() {
+    const url = this.joinUrl(false);
+    $('hCode').textContent = HostNet.code;
+    $('hUrl').textContent = url;
+    const box = $('hQr'); box.innerHTML = '';
+    if (typeof QRCode !== 'undefined') {
+      try { new QRCode(box, { text: url, width: 512, height: 512, colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M }); }
+      catch (e) { box.innerHTML = '<div style="color:#333;padding:20px">QR을 만들지 못했어요. 방 코드로 입장하세요.</div>'; }
+    } else box.innerHTML = '<div style="color:#333;padding:20px;font-size:14px;text-align:center">QR 라이브러리를 불러오지 못했어요.<br>방 코드나 링크로 입장하세요.</div>';
+  },
+  selfJoin() {
+    const name = $('hSelfName').value.trim();
+    if (!name) { $('hSelfName').focus(); return; }
+    if (this.players.has('host-self')) return;
+    SFX.init(); PSFX.init();
+    const pid = 'host-self';
+    try { localStorage.setItem('shadowtag-name', name.slice(0, 8)); } catch (e) {}
+    HostNet.accept(pid, { t: 'join', pid, name }, { via: 'self' });
+    Player.startEmbedded(pid, this.players.get(pid)?.name || name);
+  },
+  onPing(pid) {
+    const p = this.players.get(pid);
+    if (p && !p.connected) { p.connected = true; this.broadcast(); this.render(); }
+  },
+
+  /* ---------- 접속 관리 ---------- */
+  onMsg(pid, m) {
+    if (!m || typeof m !== 'object') return;
+    if (m.t === 'join') this.addPlayer(pid, m.name);
+    else if (m.t === 'move') this.move(pid, m.to | 0);
+  },
+  addPlayer(pid, rawName) {
+    let p = this.players.get(pid);
+    if (!p) {
+      if (this.players.size >= CFG.maxPlayers) { HostNet.send(pid, { t: 'full' }); return; }
+      let name = String(rawName || '').replace(/[<>]/g, '').trim().slice(0, 8) || '익명';
+      const base = name; let n = 2;
+      while ([...this.players.values()].some(q => q.name === name)) name = base.slice(0, 6) + n++;
+      p = { pid, name, score: 0, connected: true, role: null, room: 0, alive: false, caughtAt: 0, lastMove: 0, rGain: 0, shadowCount: 0 };
+      this.players.set(pid, p);
+      SFX.join();
+    }
+    p.connected = true;
+    HostNet.send(pid, { t: 'welcome', name: p.name });
+    this.sendTo(p);
+    this.render();
+  },
+  onLeave(pid) {
+    const p = this.players.get(pid); if (!p) return;
+    p.connected = false;
+    if (this.phase === 'lobby') this.players.delete(pid);
+    else if ((this.phase === 'play' || this.phase === 'intro') && p.role === 'shadow') this.endRound('shadowLeft');
+    this.render(); this.broadcast();
+  },
+  connected() { return [...this.players.values()].filter(p => p.connected); },
+
+  /* ---------- 진행 ---------- */
+  startGame() {
+    if (this.connected().length < CFG.minPlayers) return;
+    for (const p of this.players.values()) { p.score = 0; p.shadowCount = 0; }
+    this.round = 0;
+    show($('hLobby'), false); show($('hGame'));
+    this.beginRound();
+  },
+  toLobby() {
+    clearTimeout(this.endTimer);
+    this.phase = 'lobby'; this.round = 0; this.summary = null; this.finalList = null;
+    for (const [pid, p] of this.players) { if (!p.connected) this.players.delete(pid); else { p.role = null; p.alive = false; } }
+    ['hIntro', 'hResult', 'hFinal'].forEach(id => show($(id), false));
+    show($('hGame'), false); show($('hLobby'));
+    this.renderLobby(); this.broadcast();
+  },
+  skip() {
+    if (this.phase === 'intro') this.beginPlay();
+    else if (this.phase === 'play') this.endRound('time');
+    else if (this.phase === 'result') this.afterResult();
+  },
+  beginRound() {
+    const ps = this.connected();
+    if (ps.length < CFG.minPlayers) { alert('참가자가 2명 이상 있어야 해요'); this.toLobby(); return; }
+    this.round++;
+    // 술래: 아직 술래를 덜 한 사람 중에서 무작위
+    const minCnt = Math.min(...ps.map(p => p.shadowCount));
+    const sh = pick(ps.filter(p => p.shadowCount === minCnt));
+    sh.shadowCount++;
+    this.shadow = sh.pid;
+    for (const p of this.players.values()) { p.role = null; p.alive = false; p.room = 0; p.rGain = 0; p.caughtAt = 0; p.lastMove = 0; }
+    // 위치: 술래 먼저, 도망자는 술래와 붙지 않은 방에서 무작위
+    sh.role = 'shadow'; sh.alive = true; sh.room = 1 + Math.floor(Math.random() * 9);
+    const safe = [1, 2, 3, 4, 5, 6, 7, 8, 9].filter(r => r !== sh.room && !adjacent(r, sh.room));
+    for (const p of ps) if (p !== sh) { p.role = 'runner'; p.alive = true; p.room = pick(safe); }
+    this.hint = 0; this.hot = null; this.lastCatch = null; this.summary = null;
+    this.phase = 'intro'; this.phaseEnd = Date.now() + CFG.intro;
+    show($('hResult'), false); show($('hFinal'), false); show($('hIntro'));
+    $('hIntroRound').textContent = `ROUND ${this.round} / ${CFG.rounds}`;
+    SFX.reveal();
+    this.render(); this.broadcast();
+  },
+  beginPlay() {
+    if (this.phase !== 'intro') return;
+    const now = Date.now();
+    this.phase = 'play'; this.playStart = now; this.phaseEnd = now + CFG.play;
+    this.nextHint = now + CFG.hintEvery; this.nextHeat = now;
+    show($('hIntro'), false);
+    SFX.horn();
+    this.updateHeat();
+    this.render(); this.broadcast();
+  },
+  runners() { return [...this.players.values()].filter(p => p.role === 'runner'); },
+  aliveRunners() { return this.runners().filter(p => p.alive); },
+  shadowP() { return this.players.get(this.shadow); },
+  elapsedSec() { return Math.min(CFG.play / 1000, Math.floor((Date.now() - this.playStart) / 1000)); },
+
+  move(pid, to) {
+    const p = this.players.get(pid); if (!p) return;
+    const now = Date.now();
+    if (this.phase !== 'play' || !p.role || !p.alive) return;
+    if (to < 1 || to > 9 || !adjacent(p.room, to)) { this.sendTo(p); return; }
+    const wait = p.lastMove + CFG.cd - 120 - now;
+    if (wait > 0) { HostNet.send(pid, { t: 'nack', cdLeft: wait + 120 }); this.sendTo(p); return; }
+    p.room = to; p.lastMove = now;
+    const sh = this.shadowP();
+    if (p.role === 'shadow') {
+      const hits = this.aliveRunners().filter(r => r.room === to);
+      if (hits.length) this.doCatch(hits, to);
+    } else if (sh && sh.room === to) this.doCatch([p], to); // 도망자가 술래 방으로 들어가도 검거
+    this.render(); this.broadcast();
+  },
+  doCatch(list, room) {
+    const now = Date.now(), secs = this.elapsedSec(), sh = this.shadowP();
+    for (const r of list) { r.alive = false; r.caughtAt = now; r.rGain = secs * PTS.perSec; r.caughtSecs = secs; }
+    if (sh) sh.rGain += PTS.catch * list.length;
+    this.catchSeq++;
+    this.lastCatch = { names: list.map(r => r.name), room, seq: this.catchSeq };
+    // 메인 화면 속보 + 사이렌
+    $('hBreakTxt').textContent = `⚡ ${list.map(r => r.name).join(', ')} 검거 완료!`;
+    retrigger($('hBreak'), 'on'); retrigger($('hSiren'), 'on');
+    const cell = this.cells[room]; if (cell) retrigger(cell, 'bust');
+    this.updateHeat();
+    SFX.siren(2.6);
+    if (!this.aliveRunners().length && this.runners().length) {
+      if (sh) sh.rGain += PTS.sweep;
+      this.allCaught = true;
+      this.phase = 'ending';
+      clearTimeout(this.endTimer);
+      this.endTimer = setTimeout(() => this.endRound('all'), 2200);
+    }
+  },
+  endRound(reason) {
+    if (!['play', 'intro', 'ending'].includes(this.phase)) return;
+    clearTimeout(this.endTimer);
+    const secs = this.phase === 'intro' ? 0 : this.elapsedSec();
+    const sh = this.shadowP();
+    const survivors = [];
+    for (const r of this.runners()) {
+      if (!r.alive) continue;
+      if (reason === 'time') { r.rGain = (CFG.play / 1000) * PTS.perSec + PTS.survive; survivors.push(r); }
+      else r.rGain = secs * PTS.perSec;
+    }
+    for (const p of this.players.values()) if (p.role) p.score += p.rGain;
+    const caught = this.runners().filter(r => !r.alive && r.caughtAt).sort((a, b) => a.caughtAt - b.caughtAt);
+    this.summary = {
+      round: this.round, reason, shadowName: sh ? sh.name : '?', shadowGain: sh ? sh.rGain : 0,
+      caught: caught.map(r => ({ name: r.name, secs: r.caughtSecs, gain: r.rGain })),
+      survivors: survivors.map(r => ({ name: r.name, gain: r.rGain })),
+      others: this.runners().filter(r => r.alive && reason !== 'time').map(r => ({ name: r.name, gain: r.rGain })),
+    };
+    this.allCaught = false;
+    this.phase = 'result'; this.phaseEnd = Date.now() + CFG.result;
+    SFX.buzzer(); setTimeout(() => SFX.reveal(), 700);
+    this.renderResult();
+    this.render(); this.broadcast();
+  },
+  afterResult() {
+    if (this.round >= CFG.rounds) this.toFinal(); else this.beginRound();
+  },
+  toFinal() {
+    this.phase = 'final';
+    this.finalList = [...this.players.values()].filter(p => p.connected || p.score > 0).sort((a, b) => b.score - a.score).map(p => ({ name: p.name, score: p.score, pid: p.pid }));
+    show($('hResult'), false); show($('hFinal'));
+    this.renderFinal();
+    SFX.fanfare();
+    this.render(); this.broadcast();
+  },
+
+  loop() {
+    const now = Date.now();
+    if (this.phase === 'intro') {
+      const s = Math.ceil((this.phaseEnd - now) / 1000);
+      $('hIntroCount').textContent = Math.max(1, s);
+      if (s !== this.lastTick && s <= 3 && s > 0) { this.lastTick = s; SFX.tick(false); }
+      if (now >= this.phaseEnd) this.beginPlay();
+    } else if (this.phase === 'play') {
+      if (now >= this.nextHint) {
+        this.nextHint += CFG.hintEvery;
+        const sh = this.shadowP();
+        if (sh) { this.hint = sh.room; SFX.ping(); this.renderHint(true); }
+        this.broadcast();
+      }
+      if (now >= this.nextHeat) { this.nextHeat = now + CFG.heatEvery; this.updateHeat(); this.broadcast(); }
+      const s = Math.ceil((this.phaseEnd - now) / 1000);
+      if (s !== this.lastTick && s <= 5 && s > 0) { this.lastTick = s; SFX.tick(s <= 3); }
+      if (now >= this.phaseEnd) { this.endRound('time'); return; }
+      if (now - this.lastBcast > 1000) this.broadcast();
+    } else if (this.phase === 'result') {
+      if (now >= this.phaseEnd) this.afterResult();
+      else $('hResNext').textContent = (this.round >= CFG.rounds ? '최종 결과까지 ' : `다음 라운드까지 `) + Math.ceil((this.phaseEnd - now) / 1000) + '초';
+    }
+  },
+  // 도망자가 가장 많이 몰린 방 (동률이면 그중 무작위). 혼자 숨은 사람은 드러내지 않도록 2명 이상일 때만
+  updateHeat() {
+    const cnt = Array(10).fill(0);
+    for (const r of this.aliveRunners()) cnt[r.room]++;
+    const max = Math.max(...cnt);
+    if (max < 2) { this.hot = null; }
+    else {
+      const rooms = []; for (let i = 1; i <= 9; i++) if (cnt[i] === max) rooms.push(i);
+      this.hot = { room: this.hot && rooms.includes(this.hot.room) ? this.hot.room : pick(rooms), n: max };
+    }
+    this.renderRadar();
+  },
+
+  /* ---------- 상태 전송 ---------- */
+  stFor(p) {
+    const now = Date.now();
+    const sh = this.shadowP();
+    const live = this.phase === 'play' || this.phase === 'ending';
+    let rGain = p.rGain;
+    if (live && p.role === 'runner' && p.alive) rGain = this.elapsedSec() * PTS.perSec;
+    const me = {
+      name: p.name, score: p.score, role: p.role, room: p.room, alive: p.alive, rGain,
+      caught: p.role === 'runner' && !p.alive && !!p.caughtAt, cdLeft: Math.max(0, p.lastMove + CFG.cd - now),
+    };
+    const danger = live && p.role === 'runner' && p.alive && sh && adjacent(sh.room, p.room);
+    const s = {
+      t: 'st', phase: this.phase, round: this.round, rounds: CFG.rounds, left: Math.max(0, this.phaseEnd - now),
+      dur: this.phase === 'intro' ? CFG.intro : this.phase === 'result' ? CFG.result : CFG.play,
+      alive: this.aliveRunners().length, runners: this.runners().length, players: this.connected().length,
+      me, danger: !!danger, hint: this.hint, hot: this.hot, catchSeq: this.catchSeq, lastCatch: this.lastCatch,
+    };
+    if (this.phase === 'result' && this.summary) s.sum = { shadowName: this.summary.shadowName, gain: p.rGain, reason: this.summary.reason, caughtN: this.summary.caught.length };
+    if (this.phase === 'final' && this.finalList) {
+      const rank = this.finalList.findIndex(x => x.pid === p.pid);
+      s.fin = { rank: rank + 1, total: this.finalList.length, top: this.finalList.slice(0, 3).map(x => ({ name: x.name, score: x.score })) };
+    }
+    return s;
+  },
+  sendTo(p) { if (p.connected) HostNet.send(p.pid, this.stFor(p)); },
+  broadcast() { this.lastBcast = Date.now(); for (const p of this.players.values()) this.sendTo(p); },
+
+  /* ---------- 화면 ---------- */
+  buildRadar() {
+    this.cells = {};
+    const radar = $('hRadar');
+    for (let r = 1; r <= 9; r++) {
+      const d = document.createElement('div');
+      d.className = 'room';
+      d.innerHTML = `<div class="heat"></div><span class="no">${r}</span><span class="heatTag"></span><span class="foot">👣 술래 발자국</span>`;
+      radar.appendChild(d); this.cells[r] = d;
+    }
+  },
+  render() { if (this.phase === 'lobby') this.renderLobby(); else this.renderGame(); },
+  renderLobby() {
+    const ps = [...this.players.values()];
+    $('hCount').textContent = ps.filter(p => p.connected).length;
+    $('hStart').disabled = this.connected().length < CFG.minPlayers;
+    $('hStart').textContent = this.connected().length < CFG.minPlayers ? '2명 이상 모이면 시작' : '게임 시작 ▶';
+    $('hList').innerHTML = ps.length ? ps.map(p => `<div class="pChip ${p.connected ? '' : 'off'}">${avatar(p.name)}<span class="nm">${esc(p.name)}</span>${p.pid === 'host-self' ? '<span class="tag">호스트</span>' : ''}</div>`).join('')
+      : '<div class="emptyList" style="grid-column:1/-1">📱 QR을 찍거나 카톡 링크를 눌러 입장하세요</div>';
+    show($('hSelfBox'), !this.players.has('host-self'));
+  },
+  renderGame() {
+    $('hRound').textContent = `ROUND ${this.round}/${CFG.rounds}`;
+    $('hPhase').textContent = { intro: '🎭 역할 배정 중…', play: '🕵️ 술래가 움직이고 있습니다', ending: '⚡ 전원 검거!', result: '📊 라운드 결과', final: '🏆 최종 결과' }[this.phase] || '';
+    const rs = this.runners(), alive = rs.filter(r => r.alive).length;
+    $('hSurv').innerHTML = `${alive}<small>/${rs.length}</small>`;
+    $('hDots').innerHTML = rs.map(r => `<i class="${r.alive ? '' : 'dead'}"></i>`).join('');
+    this.renderHint(false);
+    this.renderRadar();
+    // 리더보드: 라운드 중엔 라운드 시작 시점 점수 (술래가 들키지 않게)
+    const list = [...this.players.values()].filter(p => p.connected || p.score > 0).sort((a, b) => b.score - a.score);
+    $('hBoard').innerHTML = list.map((p, i) => `<div class="bRow ${p.role === 'runner' && !p.alive && p.caughtAt ? 'caught' : ''} ${p.connected ? '' : 'off'}"><span class="rk">${i + 1}</span>${avatar(p.name)}<span class="nm">${esc(p.name)}</span><span class="sc">${fmt(p.score)}</span></div>`).join('');
+  },
+  renderHint(fresh) {
+    const el = $('hHint');
+    if (this.hint) { el.className = 'hintBig'; el.textContent = `${this.hint}번 방`; if (fresh) retrigger(el, 'flashIn'); }
+    else { el.className = 'hintBig none'; el.textContent = this.phase === 'play' ? '탐지 중…' : '-'; }
+    const heat = $('hHeat');
+    if (this.hot && (this.phase === 'play' || this.phase === 'ending')) { heat.className = 'heatBig'; heat.textContent = `${this.hot.room}번 방 · ${this.hot.n}명`; }
+    else { heat.className = 'heatBig none'; heat.textContent = this.phase === 'play' ? '모두 흩어져 있음' : '-'; }
+  },
+  renderRadar() {
+    if (!this.cells) return;
+    const live = this.phase === 'play' || this.phase === 'ending';
+    for (let r = 1; r <= 9; r++) {
+      const c = this.cells[r];
+      const hot = live && this.hot && this.hot.room === r;
+      c.classList.toggle('hot', !!hot);
+      c.querySelector('.heatTag').textContent = hot ? `🔥 ${this.hot.n}명` : '';
+      c.classList.toggle('hint', live && this.hint === r);
+    }
+    this.renderHint(false);
+  },
+  renderResult() {
+    const s = this.summary; if (!s) return;
+    $('hResRound').textContent = `ROUND ${s.round} 결과`;
+    $('hResShadow').innerHTML = `이번 술래는… <b>${esc(s.shadowName)}</b>!`;
+    const why = { all: `⚡ 전원 검거! 술래 완승 (+${PTS.sweep} 보너스)`, time: '⏱ 30초 종료', shadowLeft: '🔌 술래가 나가서 라운드가 끝났어요' }[s.reason] || '';
+    $('hResSum').innerHTML = `${why} · 술래 획득 <b>+${fmt(s.shadowGain)}</b>점`;
+    $('hResCaught').innerHTML = s.caught.length ? s.caught.map(c => `<div class="resLine"><span>⛓ ${esc(c.name)} <small style="color:var(--muted)">(${c.secs}초 생존)</small></span><span class="pt">+${fmt(c.gain)}</span></div>`).join('') : '<span style="color:var(--muted)">아무도 잡히지 않았어요</span>';
+    const sv = s.survivors.concat(s.others);
+    $('hResSurv').innerHTML = sv.length ? sv.map(c => `<div class="resLine"><span>🏃 ${esc(c.name)}</span><span class="pt">+${fmt(c.gain)}</span></div>`).join('') : '<span style="color:var(--muted)">생존자 없음</span>';
+    show($('hResult'));
+  },
+  renderFinal() {
+    const l = this.finalList || [];
+    const order = [1, 0, 2];
+    $('hPodium').innerHTML = order.filter(i => l[i]).map(i => `<div class="pod p${i + 1}"><div style="font-size:36px">${['🥇', '🥈', '🥉'][i]}</div><div class="nm">${esc(l[i].name)}</div><div class="sc">${fmt(l[i].score)}점</div><div class="bar">${i + 1}</div></div>`).join('');
+    $('hFinalRest').innerHTML = l.slice(3).map((p, i) => `${i + 4}위 ${esc(p.name)} <b style="color:var(--radar2)">${fmt(p.score)}</b>`).join(' · ');
+  },
+  paint() {
+    if (this.phase === 'play' || this.phase === 'ending' || this.phase === 'intro') {
+      const left = this.phase === 'play' ? Math.max(0, this.phaseEnd - Date.now()) : this.phase === 'intro' ? CFG.play : 0;
+      const s = Math.ceil(left / 1000);
+      $('hTimer').textContent = `00:${String(s).padStart(2, '0')}`;
+      $('hTimer').classList.toggle('urgent', this.phase === 'play' && s <= 10);
+      if (this.phase === 'play') {
+        const k = 1 - Math.max(0, this.nextHint - Date.now()) / CFG.hintEvery;
+        $('hHintBar').style.width = (k * 100) + '%';
+      }
+    } else { $('hTimer').classList.remove('urgent'); $('hTimer').textContent = '00:00'; }
+  },
+};
+
+/* =========================================================
+   참가자
+   ========================================================= */
+const Player = {
+  embed: false, covered: false, peeking: false, pid: '', code: '', name: '', local: false, via: 'mqtt',
+  relay: null, relayTry: [], pingTimer: null, peerTimer: null, peer: null, conn: null, bc: null,
+  joined: false, st: null, deadline: 0, cdUntil: 0, pending: null, danger: false, dangerTimer: null,
+  lastCatchSeq: -1, lastPhase: '', lastRound: 0, wasCaught: false, reconnTimer: null, joinTimer: null, wake: null,
+
+  // 호스트 참여: 호스트 화면 왼쪽에 컨트롤러 패널로 표시 (가리개 기본 ON)
+  startEmbedded(pid, name) {
+    this.embed = true; this.covered = true; this.pid = pid; this.name = name; this.via = 'self'; this.joined = true;
+    const el = $('player');
+    el.classList.add('embed'); show(el);
+    $('hSelfSlot').appendChild(el);
+    document.querySelector('.hLeft').classList.add('withSelf');
+    $('pEmbName').textContent = name;
+    this.screen('pWait');
+    $('pWaitTitle').textContent = '참여 완료!';
+    $('pWaitSub').textContent = '게임이 시작되면 여기에 내 지도가 떠요';
+    $('pCoverTog').onclick = () => { this.covered = !this.covered; $('pCoverTog').textContent = this.covered ? '가리개 끄기' : '가리개 켜기'; this.render(); };
+    const peek = $('pPeek');
+    const down = e => { e.preventDefault(); try { peek.setPointerCapture(e.pointerId); } catch (_) {} this.peeking = true; this.render(); };
+    const up = () => { if (!this.peeking) return; this.peeking = false; this.render(); };
+    peek.addEventListener('pointerdown', down);
+    ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => peek.addEventListener(ev, up));
+    peek.addEventListener('contextmenu', e => e.preventDefault());
+    this.bindCommon();
+  },
+  // 가리개 상태에서 꾹 누르지 않으면 역할·위치를 숨김
+  visible() { return !this.embed || !this.covered || this.peeking; },
+  // 호스트 화면(프로젝터)에서 가리개를 켰을 땐 심장 소리·진동도 끔 (스피커로 들키지 않게)
+  fx() { return !this.embed || !this.covered; },
+  bindCommon() {
+    if (this.bound) return; this.bound = true;
+    const g = $('pGrid');
+    for (let r = 1; r <= 9; r++) {
+      const b = document.createElement('button');
+      b.className = 'cell'; b.dataset.r = r;
+      b.addEventListener('pointerdown', e => { e.preventDefault(); this.tryMove(r); });
+      g.appendChild(b);
+    }
+    document.addEventListener('keydown', e => {
+      if (!this.st || this.st.phase !== 'play') return;
+      if (e.target && e.target.tagName === 'INPUT') return;
+      const d = { ArrowUp: -3, ArrowDown: 3, ArrowLeft: -1, ArrowRight: 1 }[e.key]; if (!d) return;
+      e.preventDefault();
+      const cur = this.curRoom(); if (!cur) return;
+      const to = cur + d;
+      if (to >= 1 && to <= 9 && adjacent(cur, to)) this.tryMove(to);
+    });
+    const raf = () => { this.paint(); requestAnimationFrame(raf); };
+    requestAnimationFrame(raf);
+  },
+  start() {
+    show($('player'));
+    try { this.pid = sessionStorage.getItem('shadowtag-pid') || ''; } catch (e) {}
+    if (!this.pid) { this.pid = 'p' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); try { sessionStorage.setItem('shadowtag-pid', this.pid); } catch (e) {} }
+    const room = (params.get('room') || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
+    $('pCode').value = room;
+    $('pLocal').checked = params.get('local') === '1';
+    try { $('pName').value = localStorage.getItem('shadowtag-name') || ''; } catch (e) {}
+    if (params.get('local') === '1') $('pName').value = '';
+    $('pCode').oninput = () => { $('pCode').value = $('pCode').value.toUpperCase().replace(/[^A-Z]/g, ''); };
+    $('pJoinBtn').onclick = () => this.join();
+    $('pName').onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) this.join(); };
+    this.bindCommon();
+    window.addEventListener('beforeunload', () => { if (this.joined) this.send({ t: 'bye' }); });
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && this.joined) this.requestWake(); });
+    setTimeout(() => (room ? $('pName') : $('pCode')).focus(), 50);
+  },
+  screen(id) { ['pJoin', 'pWait', 'pGame', 'pFinal'].forEach(s => show($(s), s === id)); },
+  err(t) { $('pErr').textContent = t; },
+  resetJoinBtn() { $('pJoinBtn').disabled = false; $('pJoinBtn').textContent = '입장하기'; },
+  async requestWake() { try { if ('wakeLock' in navigator) this.wake = await navigator.wakeLock.request('screen'); } catch (e) {} },
+
+  join() {
+    PSFX.init(); vibrate(20);
+    const code = $('pCode').value.trim().toUpperCase(), name = $('pName').value.trim();
+    if (code.length !== 4) return this.err('방 코드 4자리를 입력하세요');
+    if (!name) return this.err('닉네임을 입력하세요');
+    this.code = code; this.name = name.slice(0, 8); this.local = $('pLocal').checked;
+    if (IN_ARTIFACT && !this.local) {
+      const url = PUBLIC_URL + '?room=' + code;
+      $('pErr').innerHTML = `이 claude.ai 화면에서는 입장할 수 없어요.<br><a href="${url}" target="_blank" rel="noopener">로그인 없이 되는 공개 주소로 입장 ↗</a>`;
+      return;
+    }
+    try { if (!this.local) localStorage.setItem('shadowtag-name', this.name); } catch (e) {}
+    $('pJoinBtn').disabled = true; $('pJoinBtn').textContent = '연결 중…'; this.err('');
+    if (this.local) this.connectLocal(); else this.connectOnline();
+    clearTimeout(this.joinTimer);
+    this.joinTimer = setTimeout(() => {
+      if (this.joined) return;
+      $('pErr').innerHTML = this.local ? '방을 찾을 수 없어요. 호스트 창이 같은 브라우저에 열려 있는지 확인하세요.'
+        : '방을 찾을 수 없어요.<br>· 방 코드가 메인 화면과 같은지<br>· 메인 화면(호스트)이 켜져 있는지 확인하고 다시 눌러 주세요.<br>· 계속 안 되면 와이파이를 끄고 LTE/5G로 해 보세요.';
+      this.resetJoinBtn();
+    }, 15000);
+    clearInterval(this.pingTimer);
+    this.pingTimer = setInterval(() => { if (this.joined) this.send({ t: 'ping' }); }, 4000);
+  },
+  joinMsg() { return { t: 'join', pid: this.pid, name: this.name }; },
+  connectLocal() {
+    if (typeof BroadcastChannel === 'undefined') { this.err('이 브라우저는 같은 브라우저 연결을 지원하지 않아요'); this.resetJoinBtn(); return; }
+    this.via = 'bc';
+    try { this.bc && this.bc.close(); } catch (e) {}
+    this.bc = new BroadcastChannel('shadowtag-' + this.code);
+    this.bc.onmessage = e => { const d = e.data; if (d && d.to === this.pid) this.onMsg(d.msg, 'bc'); };
+    this.send(this.joinMsg());
+  },
+  // P2P(PeerJS)와 중계 서버를 동시에 시도하고, 먼저 응답이 온 쪽을 씀
+  async connectOnline() {
+    this.connectPeer();
+    this.endRelays();
+    clearTimeout(this.peerTimer);
+    // P2P가 3초 안에 안 붙으면 중계 서버도 시도
+    this.peerTimer = setTimeout(async () => {
+      if (this.joined && this.via === 'peer') return;
+      if (await waitFor(() => window.mqtt, 4000)) this.connectRelay();
+    }, 3000);
+  },
+  endRelays() { (this.relayTry || []).forEach(c => { try { c.end(true); } catch (e) {} }); this.relayTry = []; this.relay = null; },
+  connectRelay() {
+    this.relayTry = RELAYS.map(url => {
+      const c = mqtt.connect(url, { clientId: 'st-p-' + Math.random().toString(36).slice(2, 10), clean: true, connectTimeout: 8000, reconnectPeriod: 2000, keepalive: 30 });
+      const topic = topicPlayer(this.code, this.pid);
+      c.on('connect', () => {
+        if (this.relay && this.relay !== c) { try { c.end(true); } catch (e) {} return; }
+        this.relay = c;
+        this.relayTry.filter(x => x !== c).forEach(x => { try { x.end(true); } catch (e) {} });
+        c.subscribe(topic, { qos: 0 }, () => {
+          // 이미 P2P로 들어와 있으면 중계 서버로는 다시 입장하지 않음
+          if (!(this.joined && this.via === 'peer')) c.publish(topicHost(this.code), JSON.stringify({ from: this.pid, msg: this.joinMsg() }), { qos: 1 });
+        });
+        if (this.joined && this.via === 'mqtt') show($('pConn'), false);
+      });
+      c.on('offline', () => { if (this.relay === c && this.joined && this.via === 'mqtt') show($('pConn')); });
+      c.on('message', (t, buf) => {
+        if (t !== topic) return;
+        let m; try { m = JSON.parse(buf.toString()); } catch (e) { return; }
+        this.onMsg(m, 'mqtt');
+      });
+      return c;
+    });
+  },
+  connectPeer() {
+    if (typeof Peer === 'undefined') return;
+    if (!this.peer || this.peer.destroyed) {
+      this.peer = new Peer();
+      this.peer.on('open', () => this.dial());
+      this.peer.on('error', () => { if (this.joined && this.via === 'peer') this.scheduleReconnect(); });
+      this.peer.on('disconnected', () => { if (!this.peer.destroyed) this.peer.reconnect(); });
+    } else if (this.peer.open) this.dial();
+  },
+  dial() {
+    const conn = this.peer.connect(PREFIX + this.code, { reliable: true });
+    this.conn = conn;
+    const to = setTimeout(() => { if (!conn.open && this.joined && this.via === 'peer') this.scheduleReconnect(); }, 10000);
+    conn.on('open', () => { clearTimeout(to); conn.send(this.joinMsg()); });
+    conn.on('data', m => this.onMsg(m, 'peer'));
+    conn.on('close', () => {
+      if (this.conn !== conn || !this.joined || this.via !== 'peer') return;
+      // P2P가 끊기면 중계 서버로 넘어감
+      if (this.relay && this.relay.connected) { this.via = 'mqtt'; this.relay.publish(topicHost(this.code), JSON.stringify({ from: this.pid, msg: this.joinMsg() }), { qos: 1 }); }
+      else { show($('pConn')); this.scheduleReconnect(); }
+    });
+  },
+  scheduleReconnect() {
+    if (this.reconnTimer) return;
+    show($('pConn'));
+    this.reconnTimer = setTimeout(() => {
+      this.reconnTimer = null; this.connectPeer();
+      if (!this.relayTry.length && window.mqtt) this.connectRelay();
+    }, 2000);
+  },
+  send(msg) {
+    try {
+      if (this.via === 'self') setTimeout(() => HostNet.accept(this.pid, msg, { via: 'self' }), 0);
+      else if (this.via === 'bc') this.bc.postMessage({ from: this.pid, msg });
+      else if (this.via === 'peer') { if (this.conn && this.conn.open) this.conn.send(msg); }
+      else if (this.relay && this.relay.connected) this.relay.publish(topicHost(this.code), JSON.stringify({ from: this.pid, msg }), { qos: msg.t === 'ping' ? 0 : 1 });
+    } catch (e) {}
+  },
+
+  /* ---------- 이동 ---------- */
+  curRoom() { const s = this.st; if (!s) return 0; return this.pending ? this.pending.to : s.me.room; },
+  tryMove(to) {
+    PSFX.init();
+    const s = this.st; if (!s || s.phase !== 'play' || !s.me.role || !s.me.alive) return;
+    const cur = this.curRoom();
+    if (!adjacent(cur, to)) { if (to !== cur && this.fx()) { PSFX.deny(); vibrate(30); } return; }
+    if (Date.now() < this.cdUntil) { if (this.fx()) { PSFX.deny(); vibrate([20, 30, 20]); } this.msg('⏳ 쿨타임! 잠깐만요', true); return; }
+    this.cdUntil = Date.now() + CFG.cd;
+    this.pending = { to, at: Date.now() };
+    if (this.fx()) { PSFX.move(); vibrate(15); }
+    this.send({ t: 'move', to });
+    this.render();
+  },
+  msg(t, red) { this.msgHold = Date.now() + 1400; $('pMsg').textContent = t; $('pMsg').className = 'pMsg' + (red ? ' r' : ''); },
+
+  /* ---------- 수신 ---------- */
+  onMsg(m, via) {
+    if (!m || typeof m !== 'object') return;
+    if (via) this.via = via;
+    if (m.t === 'welcome') {
+      if (!this.joined) { this.joined = true; clearTimeout(this.joinTimer); PSFX.join(); vibrate(40); this.requestWake(); }
+      this.name = m.name;
+      if (!this.st) this.screen('pWait');
+    } else if (m.t === 'full') { this.err('방이 가득 찼어요 (최대 16명)'); this.resetJoinBtn(); }
+    else if (m.t === 'nack') { this.cdUntil = Date.now() + (m.cdLeft || 0); this.pending = null; this.render(); }
+    else if (m.t === 'st') {
+      if (!this.joined) { this.joined = true; clearTimeout(this.joinTimer); this.requestWake(); }
+      show($('pConn'), false);
+      this.deadline = Date.now() + m.left;
+      // 서버 위치가 오면 예상 위치 정리
+      if (this.pending && (m.me.room === this.pending.to || Date.now() - this.pending.at > 1200 || m.phase !== 'play')) this.pending = null;
+      if (m.me.cdLeft > 0) this.cdUntil = Math.max(this.cdUntil, Date.now() + m.me.cdLeft - 60);
+      const prev = this.st; this.st = m;
+      this.onEvents(prev, m);
+      this.render();
+    }
+  },
+  onEvents(prev, m) {
+    const fx = this.fx();
+    if (m.phase !== this.lastPhase || m.round !== this.lastRound) {
+      if (m.phase === 'intro') { this.wasCaught = false; this.cdUntil = 0; if (fx) { PSFX.reveal(); vibrate(m.me.role === 'shadow' ? [200, 80, 200] : [80]); } }
+      if (m.phase === 'play' && fx) { PSFX.horn(); vibrate(60); }
+      if (m.phase === 'result' && fx) PSFX.buzzer();
+      if (m.phase === 'final' && fx) { PSFX.fanfare(); vibrate([100, 60, 100, 60, 300]); }
+      this.lastPhase = m.phase; this.lastRound = m.round;
+    }
+    // 검거 소식
+    if (this.lastCatchSeq >= 0 && m.catchSeq > this.lastCatchSeq && m.lastCatch) {
+      const mine = m.me.caught && !this.wasCaught;
+      if (m.me.role === 'shadow') {
+        if (fx) { PSFX.catchOk(); vibrate([60, 40, 60, 40, 120]); }
+        if (this.visible()) retrigger($('pFlash'), 'green');
+        this.toast(`⚡ ${m.lastCatch.names.join(', ')} 검거! +${PTS.catch * m.lastCatch.names.length}`);
+      } else if (!mine) this.toast(`⚡ ${m.lastCatch.names.join(', ')} 검거 완료!`);
+    }
+    this.lastCatchSeq = m.catchSeq;
+    if (m.me.caught && !this.wasCaught) {
+      this.wasCaught = true;
+      if (fx) { PSFX.alarm(); vibrate(1500); }
+      if (this.visible()) retrigger($('pFlash'), 'red');
+    }
+    // 위험 감지 레이더
+    const danger = m.danger && m.phase === 'play';
+    if (danger && !this.danger) this.startDanger();
+    else if (!danger && this.danger) this.stopDanger();
+  },
+  startDanger() {
+    this.danger = true;
+    const beat = () => {
+      if (!this.danger) return;
+      if (this.fx()) { PSFX.heartbeat(true); vibrate([100, 100, 100]); }
+    };
+    beat();
+    clearInterval(this.dangerTimer);
+    this.dangerTimer = setInterval(beat, 900);
+  },
+  stopDanger() { this.danger = false; clearInterval(this.dangerTimer); vibrate(0); },
+  toast(t) {
+    const d = document.createElement('div'); d.className = 'pToast'; d.textContent = t;
+    document.body.appendChild(d); setTimeout(() => d.remove(), 2700);
+  },
+
+  render() {
+    const s = this.st; if (!s) return;
+    if (s.phase === 'lobby') {
+      this.screen('pWait');
+      $('pWaitTitle').textContent = this.embed ? '참여 완료!' : `${s.me.name}님 입장 완료!`;
+      $('pWaitSub').innerHTML = this.embed ? '게임이 시작되면 여기에 내 지도가 떠요' : `현재 ${s.players}명 입장 · 메인 화면을 보며 시작을 기다려 주세요.<br>화면이 꺼지지 않게 해 두면 좋아요.`;
+      this.frame(false); return;
+    }
+    if (s.phase === 'final') { this.renderFinal(); this.frame(false); return; }
+    this.screen('pGame');
+    const me = s.me, vis = this.visible();
+    const role = me.role;
+    show($('pCover'), this.embed && this.covered && !this.peeking);
+    // 상단
+    const rb = $('pRole');
+    if (!vis) { rb.className = 'roleBadge none'; rb.innerHTML = '<small>내 역할</small>???'; }
+    else if (role === 'shadow') { rb.className = 'roleBadge shadow'; rb.innerHTML = '<small>SHADOW</small>🕵️ 술래'; }
+    else if (role === 'runner') { rb.className = 'roleBadge runner'; rb.innerHTML = `<small>RUNNER${me.alive ? '' : ' · 검거됨'}</small>🏃 도망자`; }
+    else { rb.className = 'roleBadge none'; rb.innerHTML = '<small>관전</small>👀 다음 판부터'; }
+    $('pAlive').textContent = `${s.alive}/${s.runners}`;
+    $('pScore').textContent = fmt(vis ? me.score + ((s.phase === 'play' || s.phase === 'ending') ? me.rGain : 0) : me.score);
+    $('pRoundTxt').textContent = `ROUND ${s.round}/${s.rounds}`;
+    $('pHotTxt').innerHTML = s.hot && s.phase === 'play' ? `🔥 밀집: <b>${s.hot.room}번 ${s.hot.n}명</b>` : s.phase === 'play' ? '🔥 밀집: 흩어짐' : '🔥 밀집: -';
+    $('pHintTxt').innerHTML = s.hint && s.phase === 'play' ? `👣 발자국: <b>${s.hint}번</b>` : '👣 발자국: -';
+    // 3×3 지도
+    const cur = this.curRoom(), canMove = s.phase === 'play' && role && me.alive && vis;
+    const cd = Date.now() < this.cdUntil;
+    $('pGrid').querySelectorAll('.cell').forEach(b => {
+      const r = +b.dataset.r;
+      const isMe = vis && role && r === cur;
+      const can = canMove && adjacent(cur, r);
+      b.className = 'cell' + (isMe ? ' me ' + role : '') + (isMe && this.pending ? ' pend' : '') + (can ? ' can' : '') + (can && cd ? ' cd' : '')
+        + (s.phase === 'play' && s.hot && s.hot.room === r ? ' hotc' : '') + (s.phase === 'play' && s.hint === r ? ' hintc' : '');
+      const icon = isMe ? (role === 'shadow' ? '🕵️' : me.alive ? '🏃' : '⛓') : '';
+      b.innerHTML = `<span class="lbl">${r}</span>${icon ? `<span class="icon">${icon}</span>` : ''}`;
+    });
+    // 메시지
+    if (!this.msgHold || Date.now() > this.msgHold) {
+      let t = '', red = false;
+      if (s.phase === 'intro') t = '곧 시작해요! 역할을 확인하세요';
+      else if (s.phase === 'play' && vis) {
+        if (role === 'shadow') t = '🕵️ 도망자가 있는 방으로 쳐들어가세요!';
+        else if (role === 'runner' && me.alive) { t = s.danger ? '💓 도망쳐요! 술래 반대쪽으로!' : '🏃 빛나는 옆방을 눌러 이동'; red = s.danger; }
+        else if (role === 'runner') t = '⛓ 검거됐어요. 관전 중…';
+        else t = '👀 관전 중 · 다음 라운드부터 참여해요';
+      } else if (s.phase === 'ending') t = '⚡ 전원 검거!';
+      $('pMsg').textContent = t; $('pMsg').className = 'pMsg' + (red ? ' r' : '');
+    }
+    // 위험 경고 (도망자 전용)
+    const dangerOn = vis && s.danger && s.phase === 'play';
+    show($('pDanger'), dangerOn);
+    this.frame(dangerOn && !this.embed);
+    if (this.embed) $('player').style.boxShadow = dangerOn ? '0 0 0 3px var(--red), 0 0 30px rgba(255,30,50,.7)' : '';
+    // 오버레이
+    this.renderIntro(s, vis);
+    this.renderCaught(s, vis);
+    this.renderRes(s, vis);
+  },
+  frame(on) { $('pFrame').classList.toggle('on', !!on); },
+  renderIntro(s, vis) {
+    const el = $('pIntro');
+    const on = s.phase === 'intro';
+    show(el, on && vis);
+    if (!on || !vis) { this.introKey = ''; return; }
+    const key = s.round + (s.me.role || '');
+    if (this.introKey === key) return; this.introKey = key;
+    const r = s.me.role;
+    el.innerHTML = r === 'shadow'
+      ? `<div class="roleCard shadow"><div class="ic">🕵️</div><b>술래</b><p>도망자와 같은 방에 들어가면 검거!<br>1명당 +250 · 전원 검거 +500<br><b style="font-size:14px;font-family:inherit">표정 관리 필수 🤫</b></p></div><div class="overSmall">내 위치: <b>${s.me.room}번 방</b></div>`
+      : r === 'runner'
+      ? `<div class="roleCard runner"><div class="ic">🏃</div><b>도망자</b><p>술래와 같은 방이 되면 아웃!<br>1초 생존마다 +20 · 끝까지 생존 +300<br>옆방에 술래가 오면 폰이 경고해요</p></div><div class="overSmall">내 위치: <b>${s.me.room}번 방</b></div>`
+      : `<div class="overBig">👀 관전</div><div class="overSmall">이번 라운드가 끝나면 참여할 수 있어요</div>`;
+  },
+  renderCaught(s, vis) {
+    const on = (s.phase === 'play' || s.phase === 'ending') && s.me.caught && vis;
+    show($('pCaught'), on);
+    if (!on) return;
+    $('pCaught').innerHTML = `<div style="font-size:70px">🚨</div><div class="overBig r">검거됐습니다!</div><div class="overPts">+${fmt(s.me.rGain)}</div><div class="overSmall">이번 라운드 생존 점수<br>메인 화면에서 남은 도망자를 응원하세요</div>`;
+  },
+  renderRes(s, vis) {
+    const on = s.phase === 'result' && s.sum;
+    show($('pRes'), on);
+    if (!on) return;
+    const sum = s.sum, r = s.me.role;
+    let head = '';
+    if (!vis) head = '<div class="overBig">라운드 종료</div>';
+    else if (r === 'shadow') head = `<div class="overBig r">🕵️ 술래 ${sum.caughtN}명 검거</div>`;
+    else if (r === 'runner') head = s.me.caught ? '<div class="overBig r">⛓ 검거됨</div>' : sum.reason === 'time' ? '<div class="overBig g">🏃 끝까지 생존!</div>' : '<div class="overBig g">🏃 생존</div>';
+    else head = '<div class="overBig">라운드 종료</div>';
+    $('pRes').innerHTML = `${head}${vis && r ? `<div class="overPts">+${fmt(sum.gain)}</div>` : ''}<div class="overSmall">이번 술래는 <b style="color:var(--red2)">${esc(sum.shadowName)}</b>였어요<br>누적 점수 <b>${fmt(s.me.score)}</b>점</div><div class="overSmall">${s.round >= s.rounds ? '곧 최종 결과가 나와요' : '곧 다음 라운드가 시작돼요'}</div>`;
+  },
+  renderFinal() {
+    const s = this.st; if (!s.fin) return;
+    this.screen('pFinal');
+    const f = s.fin;
+    $('pFinRank').textContent = f.rank > 0 ? `${f.total}명 중 ${f.rank}위` : '게임 종료';
+    $('pFinPts').textContent = fmt(s.me.score) + '점';
+    $('pFinTop').innerHTML = f.top.map((t, i) => `<div class="bRow"><span class="rk">${i + 1}</span>${avatar(t.name)}<span class="nm">${esc(t.name)}</span><span class="sc">${fmt(t.score)}</span></div>`).join('');
+  },
+  paint() {
+    const s = this.st; if (!s) return;
+    if (s.phase === 'play' || s.phase === 'intro' || s.phase === 'result') {
+      const left = Math.max(0, this.deadline - Date.now());
+      const k = s.dur ? left / s.dur : 0;
+      $('pTimerFill').style.transform = `scaleX(${k})`;
+      $('pTimerBar').classList.toggle('urgent', s.phase === 'play' && left <= 10000);
+      $('pSecs').textContent = Math.ceil(left / 1000) + '초';
+    }
+    const cdLeft = Math.max(0, this.cdUntil - Date.now());
+    const bar = $('pCdBar');
+    $('pCdFill').style.transform = `scaleX(${1 - cdLeft / CFG.cd})`;
+    bar.classList.toggle('wait', cdLeft > 0);
+    $('pCdTxt').textContent = cdLeft > 0 ? (cdLeft / 1000).toFixed(1) + '초' : '이동 가능';
+    // 쿨타임이 끝나는 순간 지도 다시 그리기
+    const cdNow = cdLeft > 0;
+    if (cdNow !== this.wasCd) { this.wasCd = cdNow; this.render(); }
+  },
+};
+
+if (IN_ARTIFACT) {
+  document.querySelectorAll('[data-pubnote]').forEach(n => n.classList.remove('hidden'));
+  document.querySelectorAll('[data-publink]').forEach(a => a.href = PUBLIC_URL + '?role=host');
+  document.querySelectorAll('[data-pubcopy]').forEach(b => b.onclick = () => copyText(PUBLIC_URL + '?role=host', b));
+}
+// 주소에 role이 있으면 바로 해당 화면으로, 방 코드만 있는 초대 링크(카톡·QR)면 참가자 화면으로
+if (params.get('role') === 'host' || params.get('role') === 'player') startRole(params.get('role'));
+else if (params.get('room')) startRole('player');
+</script>
+</body>
+</html>
