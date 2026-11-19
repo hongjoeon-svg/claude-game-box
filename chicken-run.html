@@ -124,6 +124,19 @@
   .rule { padding: 16px 18px; display: flex; gap: 12px; align-items: center; font-size: 16px; line-height: 1.45; }
   .rule b { font-size: 34px; }
   @media (max-width: 900px) { .lobbyGrid, .rules { grid-template-columns: 1fr; } .netBadge { margin-left: 0; } }
+  @media (max-width: 600px) {
+    #hLobby { padding: 18px 14px; gap: 16px; }
+    .lobbyHead { gap: 10px; }
+    .lobbyHead .bigTitle { font-size: clamp(26px, 8.4vw, 40px); }
+    .lobbyHead .chickHero { font-size: 44px; }
+    .lobbyBtns .btn.start { margin-left: 0; width: 100%; font-size: 22px; }
+    .playersCard { min-height: 0; }
+    .roomCode { font-size: clamp(48px, 16vw, 72px); }
+    .rule { font-size: 14px; }
+    .topbar { gap: 10px; } .brand { font-size: 20px; } .roundTag { font-size: 16px; padding: 6px 10px; }
+    .gauge { order: 5; flex-basis: 100%; }
+  }
+  .bigTitle, .lobbyHead { max-width: 100%; overflow-wrap: anywhere; }
 
   /* ================= 호스트: 게임 화면 ================= */
   #hGame { height: 100dvh; display: grid; grid-template-rows: auto 1fr; gap: 14px; padding: 14px clamp(12px, 1.6vw, 26px); overflow: hidden; }
@@ -251,7 +264,7 @@
 
   /* ================= 참가자 (모바일) ================= */
   #player { min-height: 100dvh; }
-  #pJoin { min-height: 100dvh; display: flex; flex-direction: column; justify-content: center; gap: 14px; padding: 24px 16px; max-width: 460px; margin: 0 auto; text-align: center; }
+  #pJoin { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; justify-content: center; gap: 14px; padding: 24px 16px; max-width: 460px; margin: 0 auto; text-align: center; }
   #pJoin .bigTitle { font-size: clamp(40px, 12vw, 60px); }
   #pJoin label { text-align: left; font-size: 14px; color: var(--muted); font-weight: 700; display: flex; flex-direction: column; gap: 6px; }
   #pJoin input { background: var(--panel2); border: 1.5px solid var(--line); border-radius: 14px; padding: 16px; font-size: 22px; font-weight: 900; width: 100%; }
@@ -259,7 +272,7 @@
   #pJoinBtn { font-size: 22px; padding: 18px; margin-top: 6px; font-family: var(--display); font-weight: 400; }
   .pErr { color: var(--red); min-height: 1.4em; font-weight: 700; font-size: 15px; }
 
-  #pMain { height: 100dvh; display: flex; flex-direction: column; padding: max(12px, env(safe-area-inset-top)) 14px max(14px, env(safe-area-inset-bottom)); gap: 10px; transition: background .3s; overflow: hidden; }
+  #pMain { height: 100vh; height: 100dvh; display: flex; flex-direction: column; padding: max(12px, env(safe-area-inset-top)) 14px max(14px, env(safe-area-inset-bottom)); gap: 10px; transition: background .3s; overflow: hidden; }
   .pTop { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: stretch; }
   .pTop > div { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 8px 12px; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
   .pTop small { font-size: 11px; color: var(--muted); font-weight: 700; }
@@ -268,13 +281,13 @@
   #pRank b { color: var(--yellow); }
   #pScore b { color: var(--neon); }
   #pRank .arr { font-size: 14px; margin-left: 2px; }
-  .pInfo { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 4px; min-height: 0; }
+  .pInfo { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 4px; min-height: 0; }
   #pRound { font-family: var(--num); font-weight: 900; font-size: 14px; color: var(--muted); letter-spacing: .08em; }
   #pMult { font-family: var(--num); font-weight: 900; font-size: clamp(44px, 14vw, 72px); line-height: 1.05; color: var(--neon); text-shadow: 0 0 14px currentColor; font-variant-numeric: tabular-nums; }
   #pMsg { font-size: 15px; font-weight: 700; color: var(--muted); min-height: 1.3em; }
   #pNet { font-size: 12px; color: var(--red); font-weight: 700; min-height: 1em; }
   #escBtn {
-    height: 60vh; width: 100%; flex: none; border-radius: 30px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px;
+    height: 60vh; height: 60dvh; max-height: calc(100% - 150px); min-height: 220px; width: 100%; flex: none; border-radius: 30px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px;
     touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; transition: background .2s, transform .06s, box-shadow .2s, color .2s;
   }
   #escMain { font-family: var(--display); font-size: clamp(40px, 12.5vw, 66px); line-height: 1.05; padding: 0 10px; }
@@ -290,6 +303,11 @@
   #escBtn.dead { background: #ff1f3d; color: #fff; box-shadow: 0 0 60px #ff1f3daa; }
   #escBtn.dead #escMain { font-size: clamp(64px, 20vw, 110px); }
   #escBtn.gold { background: linear-gradient(180deg, #ffd766, #c98400); color: #2a1a00; }
+  @media (max-height: 640px) {
+    .pTop > div { padding: 6px 10px; } .pTop b { font-size: 16px; }
+    #pMult { font-size: clamp(34px, 11vw, 52px); } #pMsg { font-size: 13px; }
+    #escMain { font-size: clamp(34px, 11vw, 54px); } #escSub { font-size: 15px; }
+  }
   body.pBoom #pMain { background: radial-gradient(circle at 50% 60%, #a3001a, #3a0008); animation: shake .7s; }
   body.pBoom .pTop > div { background: #0006; }
   body.pBoom #pMult { color: #fff; }
@@ -316,7 +334,8 @@
       <label>연결 방식
         <select id="netSel">
           <option value="auto">자동</option>
-          <option value="peer">PeerJS (WebRTC)</option>
+          <option value="peer">PeerJS (WebRTC)만</option>
+          <option value="relay">릴레이 서버만</option>
           <option value="firebase">Firebase</option>
           <option value="local">로컬 (같은 브라우저 탭끼리)</option>
         </select>
@@ -438,6 +457,8 @@
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>if (typeof Peer === 'undefined') document.write('<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"><\/script>');</script>
+<script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js"></script>
+<script>if (typeof mqtt === 'undefined') document.write('<script src="https://cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js"><\/script>');</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script>if (typeof qrcode === 'undefined') document.write('<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"><\/script>');</script>
 <script>
@@ -586,13 +607,17 @@ const SFX = {
    - 참가자 → 호스트: 짧은 메시지 (send) — hi(접속·하트비트), esc(탈출), bye
    ========================================================= */
 const firebaseReady = () => !!(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.databaseURL);
-const NET_LABEL = { peer: 'PeerJS (WebRTC)', firebase: 'Firebase Realtime DB', local: '로컬 시뮬레이션' };
+const NET_LABEL = { hybrid: '실시간 연결', peer: 'PeerJS (WebRTC)', relay: '릴레이 서버', firebase: 'Firebase Realtime DB', local: '로컬 시뮬레이션' };
 function pickNet() {
   const q = params.get('net');
-  if (q === 'local') return 'local';
-  if (q !== 'peer' && firebaseReady()) return 'firebase';
-  return 'peer';   // PeerJS를 못 불러와도 몰래 로컬로 바꾸지 않음 (링크를 받은 사람이 못 들어오게 되므로)
+  if (q === 'local' || q === 'peer' || q === 'relay') return q;
+  if (firebaseReady()) return 'firebase';
+  // 기본: WebRTC 직접 연결 + 웹소켓 릴레이를 함께 열어 둘 중 되는 쪽으로 (LTE·회사 와이파이에서도 들어오도록)
+  return 'hybrid';   // 연결이 안 돼도 몰래 로컬로 바꾸지 않음 (링크를 받은 사람이 못 들어오게 되므로)
 }
+// 공개 MQTT 브로커(웹소켓). 호스트·참가자 모두 되는 브로커에 다 붙어서 같은 방 토픽으로 주고받음
+const MQTT_BROKERS = ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt', 'wss://test.mosquitto.org:8081/mqtt'];
+const mqttTopic = code => 'claude-game-box/chickenrun-v1/' + code;
 // STUN + PeerJS 공개 TURN: 호스트(와이파이)와 참가자(LTE)가 다른 네트워크여도 연결되도록
 const PEER_OPTS = { config: { iceServers: [
   { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
@@ -660,6 +685,88 @@ const NET = {
       self.send = m => { if (self.conn && self.conn.open) try { self.conn.send(m); } catch (e) {} };
       self.close = () => { clearTimeout(self.retry); self.peer.destroy(); };
       return self;
+    },
+  },
+
+  // 웹소켓 릴레이: 서버를 거치므로 NAT·방화벽과 무관하게 연결됨
+  relay: {
+    open(code, sub, onMsg, onStatus) {
+      if (typeof mqtt === 'undefined') return { clients: [], ready: Promise.reject({ type: 'nolib' }) };
+      const clients = [];
+      let up = 0, settled = false, resolveReady, rejectReady;
+      const ready = new Promise((res, rej) => { resolveReady = res; rejectReady = rej; });
+      let failed = 0;
+      for (const url of MQTT_BROKERS) {
+        let c;
+        try { c = mqtt.connect(url, { clientId: 'cr_' + Math.random().toString(36).slice(2, 12), clean: true, connectTimeout: 8000, reconnectPeriod: 3000, keepalive: 20, resubscribe: true }); }
+        catch (e) { if (++failed === MQTT_BROKERS.length && !settled) { settled = true; rejectReady({ type: 'relay-down' }); } continue; }
+        clients.push(c);
+        let isUp = false;
+        c.on('connect', () => {
+          c.subscribe(mqttTopic(code) + sub, { qos: 0 });
+          if (!isUp) { isUp = true; up++; onStatus && onStatus(true); }
+          if (!settled) { settled = true; resolveReady(); }
+        });
+        const down = () => { if (isUp) { isUp = false; up--; if (!up) onStatus && onStatus(false); } };
+        c.on('close', down); c.on('offline', down);
+        c.on('error', () => {});
+        c.on('message', (t, payload) => { try { onMsg(JSON.parse(payload.toString())); } catch (e) {} });
+      }
+      setTimeout(() => { if (!settled) { settled = true; rejectReady({ type: 'relay-down' }); } }, 10000);
+      return { clients, ready };
+    },
+    pub(clients, topic, m) { const data = JSON.stringify(m); for (const c of clients) if (c.connected) try { c.publish(topic, data, { qos: 0 }); } catch (e) {} },
+    async host(code, onMsg) {
+      const { clients, ready } = this.open(code, '/up', onMsg);
+      try { await ready; } catch (e) { clients.forEach(c => c.end(true)); throw e; }
+      return { broadcast: m => this.pub(clients, mqttTopic(code) + '/down', m), close: () => clients.forEach(c => c.end(true)) };
+    },
+    join(code, onMsg, onStatus) {
+      const { clients, ready } = this.open(code, '/down', onMsg, onStatus);
+      ready.catch(() => onStatus(false, 'relay-down'));
+      return { send: m => this.pub(clients, mqttTopic(code) + '/up', m), close: () => clients.forEach(c => c.end(true)) };
+    },
+  },
+
+  // 기본값: PeerJS + 릴레이를 동시에. 먼저 열리는 쪽으로 바로 시작하고, 늦게 열린 쪽도 계속 함께 사용
+  hybrid: {
+    host(code, onMsg) {
+      return new Promise((res, rej) => {
+        const parts = [], errs = [];
+        let done = false;
+        const api = {
+          broadcast(m) { parts.forEach(p => { try { p.broadcast(m); } catch (e) {} }); },
+          close() { parts.forEach(p => { try { p.close(); } catch (e) {} }); },
+          kinds: [],
+        };
+        const settle = (kind, pr) => pr.then(p => {
+          if (done && !parts.length) { p.close(); return; }
+          parts.push(p); api.kinds.push(kind);
+          if (!done) { done = true; res(api); }
+          if (Host.net === api) Host.setNet(true, Host.netText());
+        }, e => {
+          errs.push(e);
+          // 방 코드가 이미 쓰이는 중이면 다른 코드로 다시 열도록 알림
+          if (e && e.type === 'unavailable-id' && !done) { done = true; api.close(); rej(e); return; }
+          if (errs.length === 2 && !done) { done = true; rej(errs.find(x => x && x.type === 'nolib') ? errs[0] : errs[1] || errs[0]); }
+        });
+        settle('peer', NET.peer.host(code, onMsg));
+        settle('relay', NET.relay.host(code, onMsg));
+      });
+    },
+    join(code, onMsg, onStatus) {
+      const st = { peer: false, relay: false };
+      const fin = { peer: false, relay: false };
+      const upd = (k, ok, why) => {
+        st[k] = ok;
+        if (!ok && (why === 'nolib' || why === 'relay-down')) fin[k] = true;
+        if (st.peer || st.relay) onStatus(true);
+        else onStatus(false, fin.peer && fin.relay ? 'all-down' : '');
+      };
+      const a = NET.peer.join(code, onMsg, (ok, why) => upd('peer', ok, why));
+      const b = NET.relay.join(code, onMsg, (ok, why) => upd('relay', ok, why));
+      // 같은 메시지를 두 길로 보냄: 호스트는 중복을 무시함(탈출·접속 처리는 멱등)
+      return { send(m) { a.send(m); b.send(m); }, close() { a.close(); b.close(); } };
     },
   },
 
@@ -734,7 +841,7 @@ const Host = {
   phase: 'lobby', round: 0,
   cdStart: 0, runStart: 0, crashAt: 0, runEnd: 0, endReason: '', resStart: 0, resEnd: 0,
   escLog: [], lastRanks: new Map(), arrows: new Map(), flashIds: new Set(),
-  dirty: true, boardDirty: true, lastBc: 0, lastCdInt: -1, nextBeep: 0,
+  seq: 0, dirty: true, boardDirty: true, lastBc: 0, lastCdInt: -1, nextBeep: 0,
   feathers: [], boomAt: 0, sim: false, resShown: false,
 
   async start(opt = {}) {
@@ -783,7 +890,7 @@ const Host = {
     for (let i = 0; i < 6; i++) {
       if (!code || i > 0) code = randCode();
       try {
-        this.setNet(false, `${NET_LABEL[this.netMode]} 연결 중…`);
+        this.setNet(false, `${NET_LABEL[this.netMode]} 여는 중…`);
         this.net = await NET[this.netMode].host(code, m => this.onMsg(m));
         this.code = code;
         break;
@@ -796,12 +903,17 @@ const Host = {
     }
     if (!this.net) { this.setNet(false, '방을 열 수 없어요. 새로고침해 주세요', true); return; }
     try { sessionStorage.setItem('chickenrun-hostcode', this.code); } catch (e) {}
-    this.setNet(true, `${NET_LABEL[this.netMode]} · 연결됨`);
+    this.setNet(true, this.netText());
     this.showCode();
   },
+  netText() {
+    if (this.netMode !== 'hybrid') return `${NET_LABEL[this.netMode]} · 연결됨`;
+    const k = this.net && this.net.kinds || [];
+    return '연결됨 · ' + (k.includes('peer') && k.includes('relay') ? '직접 연결 + 릴레이' : k.includes('peer') ? '직접 연결' : '릴레이 서버');
+  },
   netFail(e) {
-    const why = e && e.type === 'nolib' ? '실시간 연결 라이브러리(PeerJS)를 불러오지 못했어요.'
-      : e && (e.type === 'timeout' || e.type === 'network' || e.type === 'server-error') ? '실시간 연결 서버에 닿지 않아요 (회사·학교 와이파이가 막았을 수 있어요).'
+    const why = e && e.type === 'nolib' ? '실시간 연결 라이브러리를 불러오지 못했어요.'
+      : e && (e.type === 'timeout' || e.type === 'network' || e.type === 'server-error' || e.type === 'relay-down') ? '실시간 연결 서버에 닿지 않아요 (회사·학교 와이파이가 막았을 수 있어요).'
       : `실시간 연결을 열 수 없어요 (${esc(e && (e.type || e.message) || e)}).`;
     this.setNet(false, '연결 실패', true);
     const el = $('hNetErr');
@@ -1064,7 +1176,7 @@ const Host = {
     if (!this.net) return;
     const t = now(), r = this.ranks();
     const st = {
-      t: 's', hs: this.hs, code: this.code, ph: this.phase, rd: this.round, tr: GAME.ROUNDS,
+      t: 's', q: ++this.seq, hs: this.hs, code: this.code, ph: this.phase, rd: this.round, tr: GAME.ROUNDS,
       cd: this.phase === 'cd' ? Math.max(0, GAME.COUNTDOWN - (t - this.cdStart) / 1000) : 0,
       e: this.phase === 'run' ? (t - this.runStart) / 1000 : this.runEnd,
       nx: this.phase === 'res' ? Math.max(0, (this.resEnd - t) / 1000) : 0,
@@ -1345,6 +1457,7 @@ const Player = {
     let h;
     if (mode === 'local') h = '방을 찾을 수 없어요. 로컬 모드는 같은 브라우저에 호스트 탭이 열려 있어야 해요.';
     else if (why === 'nolib') h = '실시간 연결 라이브러리를 불러오지 못했어요. 인터넷을 확인하고 새로고침해 주세요.';
+    else if (why === 'all-down') h = '실시간 연결 서버에 닿지 않아요.<br>• 와이파이 ↔ LTE를 바꿔서 다시 시도해 보세요.<br>• 회사·학교 와이파이는 막혀 있을 수 있어요.';
     else h = `방 <b>${esc(this.code)}</b>을(를) 찾을 수 없어요.<br>• 방 코드가 메인 화면과 같은지 확인하세요.<br>• 메인 화면이 켜져 있고 '연결됨'인지 확인하세요.<br>• 와이파이 ↔ LTE를 바꿔서 다시 시도해 보세요.`;
     if (!IS_PUBLIC_PAGE && mode !== 'local') h += `<br>• <a style="color:var(--yellow)" href="${PUBLIC_URL}?role=player&room=${encodeURIComponent(this.code)}">공개 주소로 다시 입장 ↗</a>`;
     $('pErr').innerHTML = h;
@@ -1352,7 +1465,7 @@ const Player = {
   hi() { if (this.net && this.connected) this.net.send({ t: 'hi', pid: this.pid, name: this.name }); },
   onStatus(ok, why) {
     this.connected = ok;
-    if (!ok && why === 'nolib' && !this.joined) { this.joinFail('peer', 'nolib'); return; }
+    if (!ok && (why === 'nolib' || why === 'all-down') && !this.joined) { this.joinFail('peer', why); return; }
     if (ok) this.hi();
     if (this.joined) setText($('pNet'), ok ? '' : '⚠️ 연결이 끊겼어요. 다시 연결 중…');
   },
@@ -1367,6 +1480,9 @@ const Player = {
 
   onMsg(s) {
     if (!s || s.t !== 's' || s.code !== this.code) return;
+    // 두 길(직접 연결·릴레이)로 같은 상태가 오므로, 같은 호스트의 더 오래된 상태는 버림
+    if (s.hs === this.hs && typeof s.q === 'number' && s.q <= (this.lastQ || 0)) return;
+    if (typeof s.q === 'number') this.lastQ = s.q;
     s.ps = Array.isArray(s.ps) ? s.ps : Object.values(s.ps || {});
     const me = s.ps.find(a => a && a[0] === this.pid);
     if (!me) {
