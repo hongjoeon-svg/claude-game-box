@@ -110,7 +110,7 @@ input { font: inherit; }
   padding: 16px 34px; border-radius: 16px; box-shadow: 0 10px 30px rgba(230,192,99,.3);
 }
 .btnStart:disabled { filter: grayscale(1) brightness(.6); cursor: not-allowed; box-shadow: none; }
-.lobbyPlayers { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; align-content: start; }
+.lobbyPlayers { display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 12px; align-content: start; }
 .lobbyChip { display: flex; align-items: center; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; font-weight: 700; font-size: 18px; animation: popIn .35s cubic-bezier(.2,1.6,.4,1); }
 .lobbyChip.off { opacity: .45; }
 .lobbyEmpty { grid-column: 1 / -1; color: var(--muted); padding: 40px 0; font-size: 18px; text-align: center; border: 2px dashed rgba(255,255,255,.1); border-radius: 18px; }
@@ -446,6 +446,14 @@ body.selfOn #hGame { grid-template-columns: 1fr 364px; }
 body.selfOn .board { padding-bottom: 470px; }
 body.selfOn.selfMin .board { padding-bottom: 60px; }
 body.selfOn .board .foot { display: none; }
+.botBox { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px; }
+.botBox > span { font-weight: 900; font-size: 15px; margin-right: 4px; }
+.botBox .btnInv { background: rgba(255,255,255,.1); color: var(--text); border: 1px solid rgba(255,255,255,.2); }
+.botBox .btnInv:disabled { opacity: .4; }
+.botBox small { flex-basis: 100%; color: var(--muted); font-size: 12px; }
+.lobbyChip .rm { margin-left: auto; background: rgba(255,255,255,.08); border-radius: 8px; width: 28px; height: 28px; font-size: 13px; color: var(--muted); }
+.lobbyChip .rm:hover { background: rgba(239,68,68,.3); color: #fff; }
+.lobbyChip > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .selfJoin { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 12px 14px; }
 .selfJoin input { background: #0a120e; border: 2px solid rgba(255,255,255,.12); border-radius: 11px; padding: 8px 12px; color: #fff; font-size: 16px; font-weight: 700; width: 160px; outline: none; }
 .selfJoin input:focus { border-color: var(--gold); }
@@ -520,6 +528,11 @@ body.selfOn .board .foot { display: none; }
         <input type="text" id="hSelfName" maxlength="8" placeholder="내 닉네임" autocomplete="off">
         <button class="btnInv" id="hSelfJoin">🙋 호스트도 참여하기</button>
         <small>이 화면에 '내 패' 패널이 생겨요. 메인 화면을 모두가 보고 있다면 내 폰으로 초대 링크를 열어 참여하는 게 좋아요.</small>
+      </div>
+      <div class="botBox">
+        <span>🤖 AI 플레이어 추가</span>
+        <button class="btnInv" data-bot="easy">쉬움</button><button class="btnInv" data-bot="normal">보통</button><button class="btnInv" data-bot="hard">고수</button>
+        <small>사람이 모자라면 AI로 채워요. 자기 주사위와 판돈, 남의 레이즈를 보고 판단하고 가끔 블러핑도 해요.</small>
       </div>
       <div class="lobbyPlayers" id="hPlayers"></div>
       <div class="rulesBox">
@@ -693,6 +706,19 @@ function animateNum(el, from, to, ms = 900, suffix = '') {
   };
   requestAnimationFrame(step);
 }
+
+/* ---------- AI 플레이어 ---------- */
+// noise: 판단 흔들림, bluff: 약한 패로 레이즈할 확률, raiseAt: 이 승률 이상이면 레이즈,
+// read: 남의 레이즈 1회당 승률을 깎는 정도(눈치), stubborn: 콜을 고집하는 정도
+const BOT_LEVELS = {
+  easy:   { label: '쉬움', noise: .25, bluff: .06, raiseAt: .8, read: 0,   stubborn: .12 },
+  normal: { label: '보통', noise: .12, bluff: .14, raiseAt: .66, read: .05, stubborn: .04 },
+  hard:   { label: '고수', noise: .05, bluff: .22, raiseAt: .58,  read: .09, stubborn: 0 },
+};
+const BOT_NAMES = ['타짜', '뻥카왕', '쫄보', '올인맨', '눈치백단', '포커페이스', '블러퍼', '주사위신', '도박사', '강심장'];
+const sumProb = n => (6 - Math.abs(n - 7)) / 36;
+// 합계 s가 상대 한 명의 합계를 이길 확률 (동점은 절반)
+function beatProb(s) { let lt = 0; for (let k = 2; k < s; k++) lt += sumProb(k); return lt + sumProb(s) / 2; }
 
 /* ---------- 주사위 그래픽 (SVG) ---------- */
 const PIPS = {
@@ -916,6 +942,7 @@ const HostNet = {
   },
   send(pid, msg) {
     const l = this.links.get(pid); if (!l) return;
+    if (l.via === 'bot') return;
     if (l.via === 'self') setTimeout(() => Player.onMsg(msg, 'self'), 0);
     else if (l.via === 'bc') { try { this.bc.postMessage({ to: pid, msg }); } catch (e) {} }
     else if (l.via === 'mqtt') { try { l.client.publish(topicPlayer(this.code, pid), JSON.stringify(msg)); } catch (e) {} }
@@ -939,6 +966,8 @@ const Host = {
     this.showCode();
     $('hStart').onclick = () => { SFX.init(); this.startGame(); };
     $('hSelfJoin').onclick = () => this.selfJoin();
+    document.querySelectorAll('[data-bot]').forEach(b => b.onclick = () => this.addBot(b.dataset.bot));
+    $('hPlayers').onclick = e => { const b = e.target.closest('[data-rm]'); if (b) this.removeBot(b.dataset.rm); };
     $('hSelfName').onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) this.selfJoin(); };
     try { $('hSelfName').value = localStorage.getItem('bluffdice-name') || ''; } catch (e) {}
     $('hLocalTab').onclick = $('hTab').onclick = () => this.openLocalTab();
@@ -965,6 +994,52 @@ const Host = {
     HostNet.accept(pid, { t: 'join', pid, name }, { via: 'self' });
     Player.startEmbedded(pid, this.players.get(pid)?.name || name);
     this.render();
+  },
+  addBot(level) {
+    if (this.phase !== 'lobby' || this.players.size >= CFG.maxPlayers) return;
+    SFX.init();
+    const used = new Set([...this.players.values()].map(p => p.name));
+    const pool = BOT_NAMES.filter(n => !used.has('🤖' + n));
+    const name = '🤖' + (pool.length ? pool[Math.floor(Math.random() * pool.length)] : '봇');
+    const pid = 'bot-' + Math.random().toString(36).slice(2, 9);
+    HostNet.links.set(pid, { via: 'bot', seen: Date.now() });
+    this.addPlayer(pid, name);
+    const p = this.players.get(pid); if (p) p.bot = level;
+    this.render();
+  },
+  removeBot(pid) {
+    if (this.phase !== 'lobby' || !this.players.get(pid)?.bot) return;
+    HostNet.links.delete(pid); this.players.delete(pid); this.broadcast();
+  },
+  // AI가 언제 움직일지 예약 (사람처럼 뜸을 들임)
+  botSchedule(p, min, max) {
+    let at = Date.now() + min + Math.random() * (max - min);
+    const latest = this.phaseEnd - 700;
+    if (at > latest) at = latest - Math.random() * 600;
+    p.nextAct = Math.max(Date.now() + 300, at);
+  },
+  botDecide(p) {
+    const L = BOT_LEVELS[p.bot] || BOT_LEVELS.normal;
+    const others = [...this.players.values()].filter(x => x !== p && x.active && x.status !== 'fold').length;
+    if (!others) return 'call';
+    let win = Math.pow(beatProb(p.dice[0] + p.dice[1]), Math.max(1, others * .55));
+    win -= L.read * (this.roundRaises - (p.botRaises || 0));   // 남들이 레이즈하면 센 패라고 의심
+    const est = win + (Math.random() * 2 - 1) * L.noise;
+    const need = this.need(p);
+    if (this.canRaise(p) && (p.botRaises || 0) < 2 && (est > L.raiseAt || Math.random() < L.bluff * (need ? .5 : 1))) return 'raise';
+    if (need > 0) return est + L.stubborn >= need / (this.pot + need) ? 'call' : 'die';
+    return 'call';   // 따라갈 돈이 없으면 다이할 이유가 없음
+  },
+  botTick() {
+    const t = Date.now();
+    for (const p of this.players.values()) {
+      if (!p.bot || !p.nextAct || t < p.nextAct) continue;
+      p.nextAct = 0;
+      if (!p.active || p.status === 'fold') continue;
+      const a = this.botDecide(p);
+      if (a === 'raise') p.botRaises = (p.botRaises || 0) + 1;
+      this.act(p.id, a);
+    }
   },
   selfLeave() {
     HostNet.links.delete('host-self');
@@ -1071,6 +1146,7 @@ const Host = {
   },
   startBetting() {
     this.setPhase('bet', CFG.bet);
+    for (const p of this.players.values()) if (p.bot && p.active) { p.botRaises = 0; this.botSchedule(p, 1500, 9000); }
     SFX.tick(true);
     this.banner(`BET!<small>20초 심리전 시작 · 콜 / 레이즈 / 다이</small>`, 1600);
     this.broadcast();
@@ -1154,6 +1230,7 @@ const Host = {
     const t = Date.now();
     if ((this.phase === 'roll' || this.phase === 'bet' || this.phase === 'show') && t >= this.phaseEnd) this.advance();
     if (this.phase === 'bet') {
+      this.botTick();
       const s = Math.ceil((this.phaseEnd - t) / 1000);
       if (s <= 5 && s > 0 && s !== this.lastTick) { this.lastTick = s; SFX.tick(s <= 3); }
     }
@@ -1188,6 +1265,8 @@ const Host = {
       p.status = p.pts === 0 ? 'allin' : 'raise'; p.raised = true;
       this.heat = Math.min(100, this.heat + 17);
       this.raiseFx(p);
+      // 레이즈를 따라와야 하는 AI는 잠시 고민한 뒤 응답
+      for (const b of this.players.values()) if (b.bot && b !== p && b.active && b.status !== 'fold' && this.need(b) > 0) this.botSchedule(b, 1200, 4000);
     }
     this.broadcast();
   },
@@ -1271,11 +1350,12 @@ const Host = {
     $('hCount').textContent = ps.length;
     $('hStart').disabled = ps.filter(p => p.connected).length < 2;
     $('hStart').textContent = ps.length < 2 ? '2명 이상 모이면 시작' : '게임 시작 ▶';
+    document.querySelectorAll('[data-bot]').forEach(b => b.disabled = ps.length >= CFG.maxPlayers);
     const me = this.players.get('host-self');
     $('hSelfBox').classList.toggle('joined', !!me);
     $('hSelfJoin').textContent = me ? `✅ ${me.name}(으)로 참여 중 · 취소` : '🙋 호스트도 참여하기';
     $('hSelfJoin').onclick = () => me ? this.selfLeave() : this.selfJoin();
-    $('hPlayers').innerHTML = ps.length ? ps.map(p => `<div class="lobbyChip ${p.connected ? '' : 'off'}">${avatar(p.name)}<span>${esc(p.name)}${p.id === 'host-self' ? ' <small style="color:var(--gold)">호스트</small>' : ''}</span></div>`).join('')
+    $('hPlayers').innerHTML = ps.length ? ps.map(p => `<div class="lobbyChip ${p.connected ? '' : 'off'}">${avatar(p.name)}<span>${esc(p.name)}${p.id === 'host-self' ? ' <small style="color:var(--gold)">호스트</small>' : ''}${p.bot ? ` <small style="color:var(--muted)">AI·${BOT_LEVELS[p.bot].label}</small>` : ''}</span>${p.bot ? `<button class="rm" data-rm="${esc(p.id)}" title="빼기">✕</button>` : ''}</div>`).join('')
       : '<div class="lobbyEmpty">📱 폰으로 QR을 찍거나 방 코드를 입력해 입장하세요</div>';
   },
   seatOrder() { return [...this.players.values()].sort((a, b) => a.joinedAt - b.joinedAt); },
