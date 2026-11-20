@@ -242,6 +242,7 @@ input, select { font: inherit; }
 .rr .tm { color: var(--sub); }
 .rr .er { min-width: 5.4em; }
 .rr .sc { min-width: 5em; color: var(--ink); }
+.rr .sc .bn { display: block; font-size: .55em; font-weight: 500; color: var(--acid); white-space: nowrap; }
 .rr.best .rk { color: var(--acid); }
 .rr.best .sc { color: var(--acid); }
 .rr.dq { opacity: .45; }
@@ -440,7 +441,7 @@ input, select { font: inherit; }
 .pbRow .nm { display: flex; align-items: center; gap: 10px; min-width: 0; font-weight: 700; }
 .pbRow .nm > span:last-child { display: flex; flex-direction: column; min-width: 0; }
 .pbRow .nm em { font-style: normal; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.pbRow .d { font-family: var(--mono); font-size: 11px; font-weight: 500; color: var(--sub); white-space: nowrap; margin-top: 1px; }
+.pbRow .d { font-family: var(--mono); font-size: 11px; font-weight: 500; color: var(--sub); white-space: normal; line-height: 1.45; margin-top: 2px; }
 .pbRow .d.pf { color: var(--acid); }
 .pbRow .d.dq { color: var(--red); }
 .pbRow .pts { font-family: var(--mono); font-weight: 800; text-align: right; min-width: 4.4em; font-variant-numeric: tabular-nums; }
@@ -482,7 +483,7 @@ input, select { font: inherit; }
   .topBar { flex-wrap: wrap; } .modeTag { margin-left: 0; order: 5; width: 100%; justify-content: center; } .hBtns { margin-left: auto; }
   .rounds { grid-template-columns: repeat(3, 1fr); } .rcell { border-bottom: 1px solid var(--line); }
   .steps { grid-template-columns: 1fr; } .step { border-right: 0; border-bottom: 1px solid var(--line); }
-  .rr { grid-template-columns: 1.8em minmax(0, 1fr) auto auto; } .rr .tm { display: none; }
+  .rr { grid-template-columns: 1.8em minmax(0, 1fr) auto auto auto; gap: 8px; font-size: 13px; } .rr .er { min-width: 0; } .rr .sc { min-width: 0; } .rr .nm .av { display: none; }
   .lobTop .brand span { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .vf .scan { animation: none; } }
@@ -543,7 +544,7 @@ input, select { font: inherit; }
             <div class="step"><b><i>02</i><i data-ic="eyeOff"></i>절반에서 암전</b>소리·숫자가 끊기면 머릿속으로 계속 세세요.</div>
             <div class="step"><b><i>03</i><i data-ic="crosshair"></i>FIRE</b>목표 시간이다 싶을 때 폰의 FIRE를 누르세요. 넘기면 감점! 누른 순간 그 시간이 확정돼요.</div>
           </div>
-          <div class="scoreLine" style="margin-top:8px">목표 전: 1000 − 10점/0.01s · <b>±0.03s PERFECT +1500</b> · <span style="color:var(--red)">목표를 넘기면 −10점/0.01s (최대 −1000) · 미격발 −1000</span></div>
+          <div class="scoreLine" style="margin-top:8px">0.001초 단위 차등 · 목표 전: 1000 − 1점/0.001s · <b>±0.030s PERFECT 보너스 최대 +500</b> · <b>라운드 1·2·3위 +300/+200/+100</b> · <span style="color:var(--red)">목표를 넘기면 −1점/0.001s (최대 −1000) · 미격발 −1000</span></div>
         </div>
         <button class="btn btnAcid cut" id="hStart" disabled>GAME START</button>
       </div>
@@ -684,6 +685,8 @@ const pad2 = n => String(n).padStart(2, '0');
 const nowMs = () => performance.timeOrigin + performance.now();
 const f2 = n => (Math.round(n * 100) / 100).toFixed(2);
 const sgn = n => { const r = Math.round(n * 100); return (r > 0 ? '+' : r < 0 ? '−' : '±') + f2(Math.abs(r) / 100); };
+const f3 = n => (Math.round(n * 1000) / 1000).toFixed(3);
+const sgn3 = n => { const r = Math.round(n * 1000); return (r > 0 ? '+' : r < 0 ? '−' : '±') + (Math.abs(r) / 1000).toFixed(3); };
 function retrigger(el, cls) { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
 function copyText(text, btn) {
   const label = btn ? btn.textContent : '';
@@ -734,14 +737,26 @@ function genBeats(rd) {
   return B.filter(b => b[0] < half - .05).map(b => [Math.round(b[0] * 1000) / 1000, b[1]]);
 }
 // 점수: 오차는 0.01초 단위
-// 목표 전(또는 ±0.03초): 가까울수록 많이 / 목표를 넘기면: 늦은 만큼 감점 / 미격발·목표+5초 초과: 최대 감점
-const MAX_PENALTY = 1000;
+// 점수 (0.001초 단위로 차등 → 동점이 거의 없음)
+// - 목표 전: 1000 − 오차(ms) (1ms당 1점, 0점까지)
+// - ±0.030초 PERFECT: 위 점수 + 보너스(500 − 오차ms×10, 정확히 맞히면 +500)
+// - 목표를 0.030초 넘게 지나면: −오차(ms) (최대 −1000)
+// - 미격발·목표+5초 초과: −1000
+// - 라운드 1·2·3위(점수가 플러스인 사람 중) 순위 보너스 +300 / +200 / +100
+const MAX_PENALTY = 1000, RANK_BONUS = [300, 200, 100];
 function judge(el, target) {
-  if (el == null || !isFinite(el) || el > target + DQ_OVER) return { el: el == null ? null : el, err: null, cs: null, score: -MAX_PENALTY, perfect: false, late: false, dq: true };
-  const err = el - target, cs = Math.round(Math.abs(err) * 100);
-  const perfect = cs <= 3, late = !perfect && err > 0;
-  const score = perfect ? 1500 : late ? -Math.min(MAX_PENALTY, cs * 10) : Math.max(0, 1000 - cs * 10);
-  return { el, err, cs, score, perfect, late, dq: false };
+  if (el == null || !isFinite(el) || el > target + DQ_OVER) return { el: el == null ? null : el, err: null, cs: null, ms: null, base: -MAX_PENALTY, bonus: 0, score: -MAX_PENALTY, perfect: false, late: false, dq: true };
+  const err = el - target, ms = Math.round(Math.abs(err) * 1000), cs = Math.round(Math.abs(err) * 100);
+  const perfect = ms <= 30, late = !perfect && err > 0;
+  const base = perfect ? 1000 - ms + (500 - ms * 10) : late ? -Math.min(MAX_PENALTY, ms) : Math.max(0, 1000 - ms);
+  return { el, err, cs, ms, base, bonus: 0, score: base, perfect, late, dq: false };
+}
+// 라운드 순위 보너스 (같은 점수면 같은 보너스)
+function applyRankBonus(players) {
+  const ranked = players.filter(p => p.res && !p.res.dq && p.res.base > 0).sort((a, b) => b.res.base - a.res.base);
+  let place = 0, prev = null;
+  ranked.forEach((p, i) => { if (p.res.base !== prev) { place = i; prev = p.res.base; } p.res.bonus = RANK_BONUS[place] || 0; });
+  for (const p of players) if (p.res) p.res.score = p.res.base + (p.res.bonus || 0);
 }
 const sfmt = n => (n > 0 ? '+' : n < 0 ? '−' : '±') + fmt(Math.abs(n));
 
@@ -1248,8 +1263,9 @@ const H = {
     SFX.stopRound();
     for (const p of this.players.values()) {
       if (!p.res) p.res = judge(null, rd.target);
-      p.gain = p.res.score; p.total += p.gain;
     }
+    applyRankBonus([...this.players.values()]);
+    for (const p of this.players.values()) { p.gain = p.res.score; p.total += p.gain; }
     for (const p of this.players.values()) p.prevRank = p.rank;
     this.rank();
     this.phase = 'reveal';
@@ -1407,10 +1423,10 @@ const H = {
       const r = p.res;
       if (r.dq) rk = '--'; else if (r.score !== prevCs) { rk = pad2(i + 1); prevCs = r.score; }
       const best = i === 0 && !r.dq;
-      const err = r.dq ? '<span class="er" style="color:var(--dim)">--</span>' : `<span class="er" style="color:${r.perfect ? 'var(--acid)' : r.late ? 'var(--red)' : 'var(--ink)'}">${sgn(r.err)}s</span>`;
-      const tm = r.dq ? (r.el == null ? 'NO SHOT' : f2(r.el) + 's') : f2(r.el) + 's';
+      const err = r.dq ? '<span class="er" style="color:var(--dim)">--</span>' : `<span class="er" style="color:${r.perfect ? 'var(--acid)' : r.late ? 'var(--red)' : 'var(--ink)'}">${sgn3(r.err)}s</span>`;
+      const tm = r.el == null ? 'NO SHOT' : f3(r.el) + 's';
       const badge = r.perfect ? ' <span class="perf">PERFECT</span>' : r.dq ? ' <span class="dqTag">MISS</span>' : r.late ? ' <span class="dqTag">LATE</span>' : '';
-      return `<div class="rr${best ? ' best' : ''}${r.dq ? ' dq' : ''}" style="--d:${(n - 1 - i) * stag}s"><span class="rk">${rk}</span><span class="nm">${avatar(p.name, p.pid === 'host')}<em>${esc(p.name)}</em>${badge}</span><span class="tm">${tm}</span>${err}<span class="sc"${r.score < 0 ? ' style="color:var(--red)"' : ''}>${sfmt(r.score)}</span></div>`;
+      return `<div class="rr${best ? ' best' : ''}${r.dq ? ' dq' : ''}" style="--d:${(n - 1 - i) * stag}s"><span class="rk">${rk}</span><span class="nm">${avatar(p.name, p.pid === 'host')}<em>${esc(p.name)}</em>${badge}</span><span class="tm">${tm}</span>${err}<span class="sc"${r.score < 0 ? ' style="color:var(--red)"' : ''}>${sfmt(r.score)}${r.bonus ? `<small class="bn">정확 ${sfmt(r.base)} · ${RANK_BONUS.indexOf(r.bonus) + 1}위 +${r.bonus}</small>` : ''}</span></div>`;
     }).join('');
     const last = this.ri >= ROUNDS.length - 1;
     $('hReveal').innerHTML = `<div class="revH">ROUND ${pad2(this.ri + 1)} RESULT <b>TARGET ${rd.target.toFixed(2)}s</b></div>
@@ -1443,7 +1459,7 @@ const H = {
     if (this.phase === 'final') s.top = this.sorted().slice(0, 3).map(x => ({ name: x.name, total: x.total }));
     // 라운드 결과·최종 화면에서는 모두의 점수를 폰에도 보냄 [이름, 누적, 순위, 이번 라운드 점수, 오차(실격 null), PERFECT, 나]
     if (this.phase === 'reveal' || this.phase === 'final') {
-      s.board = this.sorted().map(x => [x.name, x.total, x.rank, x.gain, x.res && !x.res.dq ? Math.round(x.res.err * 100) / 100 : null, x.res && x.res.perfect ? 1 : 0, x.pid === p.pid ? 1 : 0]);
+      s.board = this.sorted().map(x => [x.name, x.total, x.rank, x.gain, x.res && !x.res.dq ? Math.round(x.res.err * 1000) / 1000 : null, x.res && x.res.perfect ? 1 : 0, x.pid === p.pid ? 1 : 0, x.res && x.res.el != null ? Math.round(x.res.el * 1000) / 1000 : null, x.res ? x.res.bonus || 0 : 0]);
     }
     return s;
   },
@@ -1668,7 +1684,7 @@ const P = {
         <div class="step"><b><i>02</i>${ic('eyeOff')}절반에서 암전</b>소리·숫자가 끊기면 머릿속으로 계속 세세요.</div>
         <div class="step"><b><i>03</i>${ic('crosshair')}FIRE</b>목표 시간이다 싶을 때 FIRE! 가까울수록 높은 점수, <b style="display:inline;color:var(--red)">목표를 넘기면 감점</b>이에요.</div>
       </div>
-      <div class="scoreLine">목표 전: 1000 − 10점/0.01s · <b>±0.03s PERFECT +1500</b> · <span style="color:var(--red)">넘기면 −10점/0.01s (최대 −1000) · 미격발 −1000</span></div>
+      <div class="scoreLine">0.001초 단위 차등 · 목표 전: 1000 − 1점/0.001s · <b>±0.030s PERFECT 보너스 최대 +500</b> · <b>라운드 1·2·3위 +300/+200/+100</b> · <span style="color:var(--red)">목표를 넘기면 −1점/0.001s (최대 −1000) · 미격발 −1000</span></div>
       <div class="sndRow"><span>${ic('volume')} 이 폰에서 박자 소리 ${this.sound ? '<b style="color:var(--acid)">ON</b>' : '<b style="color:var(--red)">OFF</b>'}</span><button class="btn btnLine" id="pSndL">${this.sound ? '끄기' : '켜기'}</button></div>`;
     const el = $('pLobby');
     if (el._h !== html) { el._h = html; el.innerHTML = html; const b = $('pSndL'); if (b) b.onclick = () => this.toggleSound(); }
@@ -1742,8 +1758,10 @@ const P = {
   },
   // 전체 점수판 (이번 라운드 오차·획득 점수 + 누적 점수)
   renderBoard(el, s, title, note) {
-    const rows = s.board.map(([name, total, rank, gain, err, perf, me]) => {
-      const d = s.ph === 'final' ? '' : err == null ? '<span class="d dq">MISS</span>' : `<span class="d${perf ? ' pf' : err > 0 ? ' dq' : ''}">${perf ? 'PERFECT ' : err > 0 ? 'LATE ' : ''}${sgn(err)}s</span>`;
+    const rows = s.board.map(([name, total, rank, gain, err, perf, me, el, bonus]) => {
+      const at = el != null ? `${f3(el)}s · ` : '';
+      const bn = bonus ? ` · ${RANK_BONUS.indexOf(bonus) + 1}위 +${bonus}` : '';
+      const d = s.ph === 'final' ? '' : err == null ? `<span class="d dq">${at}MISS</span>` : `<span class="d${perf ? ' pf' : err > 0 ? ' dq' : ''}">${at}${perf ? 'PERFECT ' : err > 0 ? 'LATE ' : ''}${sgn3(err)}s${bn}</span>`;
       const g = s.ph === 'final' ? '' : `<small${gain < 0 ? ' style="color:var(--red)"' : ''}>${sfmt(gain)}</small>`;
       return `<div class="pbRow r${rank}${me ? ' me' : ''}"><span class="rk">${pad2(rank)}</span><span class="nm">${avatar(name)}<span><em>${esc(name)}${me ? ' <span style="color:var(--acid);font-family:var(--mono);font-size:10px">YOU</span>' : ''}</em>${d}</span></span><span class="pts">${fmt(total)}${g}</span></div>`;
     }).join('');
@@ -1764,16 +1782,16 @@ const P = {
     // 오차 텔레메트리 바 (±1.00초 범위)
     const tele = (r, el, sub) => {
       if (r.dq) return `<div class="tele"><div class="teleTop"><span class="k">DELTA</span><span class="v bad">${el == null ? 'NO SHOT' : f2(el) + 's'} // MISS</span></div><div class="teleBar"><i class="z"></i></div><div class="teleSub"><span>미격발·목표+${DQ_OVER}초 초과</span><span>${sub}</span></div></div>`;
-      const grade = r.perfect ? 'PERFECT' : r.late ? 'LATE' : r.cs <= 10 ? 'GREAT' : r.cs <= 30 ? 'GOOD' : r.cs < 100 ? 'EARLY' : 'MISS';
+      const grade = r.perfect ? 'PERFECT' : r.late ? 'LATE' : r.ms <= 100 ? 'GREAT' : r.ms <= 300 ? 'GOOD' : r.ms < 1000 ? 'EARLY' : 'MISS';
       const cls = r.perfect ? 'perf2' : (r.late || r.cs >= 100) ? 'bad' : '';
       const x = 50 + Math.max(-1, Math.min(1, r.err)) * 50;
-      return `<div class="tele"><div class="teleTop"><span class="k">DELTA</span><span class="v ${cls}">${sgn(r.err)}s // ${grade}</span></div>
+      return `<div class="tele"><div class="teleTop"><span class="k">DELTA</span><span class="v ${cls}">${sgn3(r.err)}s // ${grade}</span></div>
         <div class="teleBar"><i class="z"></i><i class="m ${cls}" style="left:${x}%"></i></div>
-        <div class="teleSub"><span>−1.00</span><span>${f2(r.el)}s · ${sub}</span><span>+1.00</span></div></div>`;
+        <div class="teleSub"><span>−1.00</span><span>${f3(r.el)}s · ${sub}</span><span>+1.00</span></div></div>`;
     };
     let html = '';
     if (s.ph === 'round' && this.myFire) html = tele(this.myFire.res, this.myFire.el, `${sfmt(this.myFire.res.score)} · 나만 보임`);
-    else if (s.ph === 'reveal' && s.me.res) html = tele(s.me.res, s.me.res.el, `${sfmt(s.me.res.score)} PTS${s.rr ? ` · ${pad2(s.rr)}위` : ''}`);
+    else if (s.ph === 'reveal' && s.me.res) html = tele(s.me.res, s.me.res.el, `${sfmt(s.me.res.score)} PTS${s.rr ? ` · ${pad2(s.rr)}위` : ''}${s.me.res.bonus ? ` (보너스 +${s.me.res.bonus})` : ''}`);
     show(info, !!html);
     if (info._h !== html) { info._h = html; info.innerHTML = html; }
   },
