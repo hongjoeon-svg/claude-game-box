@@ -159,11 +159,14 @@
   .mainGrid { display: grid; grid-template-columns: 1fr clamp(280px, 24vw, 420px); gap: 14px; min-height: 0; }
   .stage { position: relative; overflow: hidden; border-radius: 22px; min-height: 0; }
   .stage::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, transparent 40%, rgba(255, 30, 50, var(--heat, 0)) 100%); z-index: 1; transition: background .2s; }
-  #graph { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  #graph, #pGraph { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
   .multWrap { position: absolute; left: 92px; right: 0; top: 7%; text-align: left; pointer-events: none; z-index: 2; }
   #bigMult { font-family: var(--num); font-weight: 900; font-size: clamp(60px, 7.6vw, 170px); line-height: 1; color: var(--neon); text-shadow: 0 0 18px currentColor, 0 0 60px currentColor; font-variant-numeric: tabular-nums; display: inline-block; }
   #subMult { margin-top: 10px; font-size: clamp(16px, 1.6vw, 26px); font-weight: 900; color: var(--muted); }
   #subMult b { font-family: var(--num); color: var(--text); }
+  .hEsc { position: absolute; left: 50%; bottom: 56px; transform: translateX(-50%); z-index: 4; padding: 14px 30px; border-radius: 999px; font-family: var(--display); font-size: clamp(20px, 2vw, 30px); background: var(--neon); color: #042200; box-shadow: 0 6px 0 var(--neonDeep), 0 0 30px #39ff14aa; white-space: nowrap; }
+  .hEsc small { font-family: var(--body); font-size: .55em; font-weight: 900; opacity: .7; }
+  .hEsc:active { transform: translateX(-50%) translateY(4px); box-shadow: 0 2px 0 var(--neonDeep); }
   #toasts { position: absolute; right: 18px; bottom: 64px; display: flex; flex-direction: column-reverse; align-items: flex-end; gap: 10px; z-index: 4; pointer-events: none; max-width: 52%; }
   .toast { padding: 12px 18px; border-radius: 14px; background: linear-gradient(90deg, #003c48ee, #0b1a3aee); border: 1.5px solid var(--cyan); box-shadow: 0 0 24px #19e6ff66; font-size: clamp(16px, 1.5vw, 24px); font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; animation: toastIn .35s cubic-bezier(.2,1.4,.4,1), toastOut .4s ease-in 2.4s forwards; }
   .toast em { font-style: normal; font-family: var(--num); color: var(--yellow); }
@@ -174,12 +177,12 @@
   #cdNum { font-family: var(--num); font-weight: 900; font-size: clamp(120px, 22vw, 360px); color: var(--yellow); text-shadow: 0 0 30px #ffe600, 0 0 90px #ffe60088; }
   #cdNum.anim { animation: cdZoom .9s ease-out; }
   @keyframes cdZoom { from { transform: scale(1.8); opacity: 0; } 25% { opacity: 1; } to { transform: scale(.9); opacity: .9; } }
-  #boomFx { background: radial-gradient(circle at center, #ff2a3dcc, #7a0012ee 55%, #1a0005f5); flex-direction: column; animation: boomFlash 1.1s ease-out; }
-  #boomFx .boomTxt { font-family: var(--display); font-size: clamp(90px, 12vw, 250px); color: #fff; text-shadow: 0 0 20px #ff2a3d, 0 0 80px #ff2a3d, 6px 6px 0 #3a0008; animation: boomZoom .6s cubic-bezier(.2,1.8,.4,1); line-height: 1; }
+  #boomFx, #pBoomFx { background: radial-gradient(circle at center, #ff2a3dcc, #7a0012ee 55%, #1a0005f5); flex-direction: column; animation: boomFlash 1.1s ease-out; }
+  #boomFx .boomTxt, #pBoomFx .boomTxt { font-family: var(--display); font-size: clamp(90px, 12vw, 250px); color: #fff; text-shadow: 0 0 20px #ff2a3d, 0 0 80px #ff2a3d, 6px 6px 0 #3a0008; animation: boomZoom .6s cubic-bezier(.2,1.8,.4,1); line-height: 1; }
   #boomFx .boomSub { font-size: clamp(22px, 2.6vw, 44px); font-weight: 900; text-align: center; margin-top: 8px; }
   @keyframes boomFlash { 0% { background-color: #fff; opacity: 1; } 8% { opacity: 1; } }
   @keyframes boomZoom { from { transform: scale(3) rotate(-12deg); opacity: 0; } to { transform: rotate(-4deg); opacity: 1; } }
-  #allFx .allTxt { font-family: var(--display); font-size: clamp(64px, 10vw, 170px); color: var(--cyan); text-shadow: 0 0 20px var(--cyan), 0 0 60px #19e6ff88; animation: boomZoom .6s cubic-bezier(.2,1.8,.4,1); }
+  #allFx .allTxt, #pAllFx .allTxt { font-family: var(--display); font-size: clamp(64px, 10vw, 170px); color: var(--cyan); text-shadow: 0 0 20px var(--cyan), 0 0 60px #19e6ff88; animation: boomZoom .6s cubic-bezier(.2,1.8,.4,1); }
   .shake { animation: shake .8s cubic-bezier(.36,.07,.19,.97); }
   @keyframes shake {
     10%, 90% { transform: translate(-6px, 3px) rotate(-.4deg); } 20%, 80% { transform: translate(10px, -6px) rotate(.6deg); }
@@ -228,21 +231,24 @@
   .board { padding: 16px 14px; display: flex; flex-direction: column; min-height: 0; }
   .board h3 { font-family: var(--display); font-weight: 400; font-size: 26px; padding: 0 6px 10px; display: flex; justify-content: space-between; align-items: baseline; }
   .board h3 small { font-family: var(--body); font-size: 13px; color: var(--muted); font-weight: 700; }
-  #board { list-style: none; display: flex; flex-direction: column; gap: 7px; overflow: auto; min-height: 0; padding: 2px; }
-  #board li { display: grid; grid-template-columns: 34px 30px 1fr auto auto; align-items: center; gap: 8px; padding: 9px 10px; border-radius: 12px; background: #ffffff08; border: 1px solid var(--line); font-weight: 900; font-size: clamp(15px, 1.15vw, 20px); position: relative; }
-  #board li.top1 { border-color: #ffc83d88; background: linear-gradient(90deg, #ffc83d22, transparent); }
-  #board li.off { opacity: .5; }
-  #board .rk { font-family: var(--num); text-align: center; color: var(--muted); }
-  #board li.top1 .rk { color: var(--gold); }
-  #board .si { text-align: center; font-size: 1.05em; }
-  #board .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  #board .ar { font-size: .95em; min-width: 22px; text-align: center; }
-  #board .ar.up { color: var(--neon); animation: arUp .6s ease-out 3; }
-  #board .ar.down { color: var(--red); animation: arDown .6s ease-out 3; }
+  .boardList { list-style: none; display: flex; flex-direction: column; gap: 7px; overflow: auto; min-height: 0; padding: 2px; }
+  .boardList li { display: grid; grid-template-columns: 34px 30px 1fr auto auto; align-items: center; gap: 8px; padding: 9px 10px; border-radius: 12px; background: #ffffff08; border: 1px solid var(--line); font-weight: 900; font-size: clamp(15px, 1.15vw, 20px); position: relative; }
+  .boardList li.top1 { border-color: #ffc83d88; background: linear-gradient(90deg, #ffc83d22, transparent); }
+  .boardList li.off { opacity: .5; }
+  .boardList .rk { font-family: var(--num); text-align: center; color: var(--muted); }
+  .boardList li.top1 .rk { color: var(--gold); }
+  .boardList .si { text-align: center; font-size: 1.05em; }
+  .boardList .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .boardList .ar { font-size: .95em; min-width: 22px; text-align: center; }
+  .boardList .ar.up { color: var(--neon); animation: arUp .6s ease-out 3; }
+  .boardList .ar.down { color: var(--red); animation: arDown .6s ease-out 3; }
   @keyframes arUp { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
   @keyframes arDown { from { transform: translateY(-8px); opacity: 0; } to { transform: none; opacity: 1; } }
-  #board .sc { font-family: var(--num); color: var(--neon); text-align: right; min-width: 60px; }
-  #board li.flash { animation: rowFlash .9s ease-out; }
+  .boardList .sc { font-family: var(--num); color: var(--neon); text-align: right; min-width: 60px; }
+  .boardList li.me { border-color: #39ff1499; background: linear-gradient(90deg, #39ff1422, transparent); }
+  .meTag { font-size: .7em; color: var(--neon); border: 1px solid #39ff1466; border-radius: 6px; padding: 0 4px; margin-left: 2px; vertical-align: 2px; }
+  .resList li.me { outline: 2px solid #39ff14aa; }
+  .boardList li.flash { animation: rowFlash .9s ease-out; }
   @keyframes rowFlash { 0% { background: #19e6ff55; box-shadow: 0 0 20px #19e6ff88; } }
   .boardEmpty { color: var(--muted); padding: 10px; font-size: 14px; }
 
@@ -272,7 +278,55 @@
   #pJoinBtn { font-size: 22px; padding: 18px; margin-top: 6px; font-family: var(--display); font-weight: 400; }
   .pErr { color: var(--red); min-height: 1.4em; font-weight: 700; font-size: 15px; }
 
-  #pMain { height: 100vh; height: 100dvh; display: flex; flex-direction: column; padding: max(12px, env(safe-area-inset-top)) 14px max(14px, env(safe-area-inset-bottom)); gap: 10px; transition: background .3s; overflow: hidden; }
+  #pMain { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; padding: max(10px, env(safe-area-inset-top)) 12px max(14px, env(safe-area-inset-bottom)); gap: 10px; transition: background .3s; max-width: 720px; margin: 0 auto; }
+  .pNet { font-size: 13px; color: var(--red); font-weight: 700; text-align: center; }
+  .pNet:empty { display: none; }
+  /* 대기방 */
+  .pLobby { padding: 18px 16px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+  .pLobHead { display: flex; align-items: center; gap: 12px; }
+  .pLobHead .chickHero { font-size: 46px; }
+  .pLobHead b { display: block; font-family: var(--display); font-weight: 400; font-size: 30px; color: var(--neon); text-shadow: 0 0 12px #39ff1466; }
+  .pLobHead small { color: var(--muted); font-weight: 700; }
+  .pLobHead small span { font-family: var(--num); color: var(--yellow); letter-spacing: .1em; }
+  .pLobby h3 { font-family: var(--display); font-weight: 400; font-size: 22px; }
+  .pLobby h3 span { color: var(--neon); font-family: var(--num); }
+  .pChips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pChips .chip { font-size: 16px; padding: 8px 14px; }
+  .pChips .chip.me { border-color: var(--neon); box-shadow: 0 0 14px #39ff1455; }
+  .pLobMsg { color: var(--muted); font-size: 14px; line-height: 1.5; }
+  .pRules { list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 14px; line-height: 1.45; }
+  .pRules li { background: #ffffff08; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+  /* 게임 전광판 (폰) */
+  #pGame { display: flex; flex-direction: column; gap: 10px; }
+  .pBar { display: flex; gap: 10px; align-items: center; }
+  .pBar .roundTag { font-size: 15px; padding: 6px 10px; }
+  .pBar .gauge { min-width: 0; }
+  .pBar .gauge .gTxt { font-size: 13px; margin-bottom: 4px; }
+  .pBar .gauge .bar { height: 14px; }
+  .pStage { height: clamp(180px, 34dvh, 380px); flex: none; transition: height .3s; }
+  #pMain.ph-res .pStage, #pMain.ph-final .pStage { height: clamp(300px, 56dvh, 600px); }
+  .pMultWrap { position: absolute; left: 46px; right: 8px; top: 8px; text-align: left; pointer-events: none; z-index: 2; }
+  #pBig { font-family: var(--num); font-weight: 900; font-size: clamp(38px, 12vw, 72px); line-height: 1; color: var(--neon); text-shadow: 0 0 14px currentColor, 0 0 40px currentColor; font-variant-numeric: tabular-nums; }
+  #pSub { margin-top: 4px; font-size: 12.5px; font-weight: 900; color: var(--muted); }
+  #pSub b { font-family: var(--num); color: var(--text); }
+  .pToasts { position: absolute; right: 8px; bottom: 30px; display: flex; flex-direction: column-reverse; align-items: flex-end; gap: 6px; z-index: 4; pointer-events: none; max-width: 70%; }
+  .pToasts .toast { font-size: 13px; padding: 6px 10px; border-radius: 10px; }
+  .pStage .boomTxt { font-size: clamp(64px, 22vw, 130px) !important; }
+  .pStage .allTxt { font-size: clamp(34px, 11vw, 64px) !important; }
+  .pStage .panelOv { padding: 8px; }
+  .pStage .resPanel, .pStage .finPanel { padding: 14px 14px; }
+  .pStage .resPanel h2 { font-size: 24px; } .pStage .resHead { font-size: 14px; margin: 4px 0 10px; }
+  .pStage .resList { grid-template-columns: 1fr; gap: 6px; }
+  .pStage .resList li { font-size: 15px; padding: 7px 10px; }
+  .pStage .finPanel h2 { font-size: 28px; }
+  .pStage .podium { gap: 8px; margin: 12px 0 10px; }
+  .pStage .pod .who { font-size: 14px; } .pStage .pod .sc { font-size: 13px; }
+  .pStage .pod .blk { font-size: 30px; }
+  .pStage .pod.p1 .blk { height: 96px; } .pStage .pod.p2 .blk { height: 72px; } .pStage .pod.p3 .blk { height: 56px; }
+  .pStage .award { font-size: 12px; padding: 6px 10px; } .pStage .finRest { font-size: 13px; margin-bottom: 4px; }
+  .pBoardCard { padding: 12px 10px; }
+  .pBoardCard h3 { font-size: 20px; }
+  .pBoardCard .boardList li { font-size: 15px; padding: 7px 8px; grid-template-columns: 28px 24px 1fr auto auto; }
   .pTop { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: stretch; }
   .pTop > div { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 8px 12px; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
   .pTop small { font-size: 11px; color: var(--muted); font-weight: 700; }
@@ -281,19 +335,16 @@
   #pRank b { color: var(--yellow); }
   #pScore b { color: var(--neon); }
   #pRank .arr { font-size: 14px; margin-left: 2px; }
-  .pInfo { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 4px; min-height: 0; }
-  #pRound { font-family: var(--num); font-weight: 900; font-size: 14px; color: var(--muted); letter-spacing: .08em; }
-  #pMult { font-family: var(--num); font-weight: 900; font-size: clamp(44px, 14vw, 72px); line-height: 1.05; color: var(--neon); text-shadow: 0 0 14px currentColor; font-variant-numeric: tabular-nums; }
-  #pMsg { font-size: 15px; font-weight: 700; color: var(--muted); min-height: 1.3em; }
-  #pNet { font-size: 12px; color: var(--red); font-weight: 700; min-height: 1em; }
   #escBtn {
-    height: 60vh; height: 60dvh; max-height: calc(100% - 150px); min-height: 220px; width: 100%; flex: none; border-radius: 30px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px;
+    height: clamp(150px, 30dvh, 320px); width: 100%; flex: none; border-radius: 26px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px;
     touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; transition: background .2s, transform .06s, box-shadow .2s, color .2s;
   }
-  #escMain { font-family: var(--display); font-size: clamp(40px, 12.5vw, 66px); line-height: 1.05; padding: 0 10px; }
+  #pMain.ph-res #escBtn, #pMain.ph-final #escBtn { height: auto; min-height: 96px; padding: 12px; }
+  #pMain.ph-res #escMain, #pMain.ph-final #escMain { font-size: 30px; }
+  #escMain { font-family: var(--display); font-size: clamp(36px, 11vw, 62px); line-height: 1.05; padding: 0 10px; }
   #escSub { font-size: clamp(16px, 4.8vw, 22px); font-weight: 900; padding: 0 14px; }
   #escBtn.wait { background: #12112a; color: #7b78a8; border: 2.5px dashed #34316a; }
-  #escBtn.cd #escMain { font-family: var(--num); font-size: clamp(90px, 30vw, 160px); color: var(--yellow); text-shadow: 0 0 20px #ffe60099; }
+  #escBtn.cd #escMain { font-family: var(--num); font-size: clamp(70px, 24vw, 130px); color: var(--yellow); text-shadow: 0 0 20px #ffe60099; }
   #escBtn.go { background: radial-gradient(circle at 50% 35%, #8dff6e, var(--neon) 55%, #22c400); color: #042200; box-shadow: 0 10px 0 var(--neonDeep), 0 0 50px #39ff14aa, 0 0 120px #39ff1444; animation: goPulse .7s ease-in-out infinite alternate; }
   #escBtn.go #escMain { text-shadow: 0 2px 0 #ffffff66; }
   #escBtn.go:active { transform: translateY(6px) scale(.985); box-shadow: 0 3px 0 var(--neonDeep), 0 0 30px #39ff14aa; }
@@ -301,16 +352,15 @@
   #escBtn.done { background: #4a4d57; color: #e8e8ee; box-shadow: inset 0 0 0 3px #ffffff1c; }
   #escBtn.done #escSub b { color: var(--neon); font-family: var(--num); font-size: 1.4em; display: block; margin-top: 6px; }
   #escBtn.dead { background: #ff1f3d; color: #fff; box-shadow: 0 0 60px #ff1f3daa; }
-  #escBtn.dead #escMain { font-size: clamp(64px, 20vw, 110px); }
+  #escBtn.dead #escMain { font-size: clamp(48px, 15vw, 90px); }
   #escBtn.gold { background: linear-gradient(180deg, #ffd766, #c98400); color: #2a1a00; }
   @media (max-height: 640px) {
     .pTop > div { padding: 6px 10px; } .pTop b { font-size: 16px; }
-    #pMult { font-size: clamp(34px, 11vw, 52px); } #pMsg { font-size: 13px; }
-    #escMain { font-size: clamp(34px, 11vw, 54px); } #escSub { font-size: 15px; }
+    #escMain { font-size: clamp(30px, 10vw, 48px); } #escSub { font-size: 14px; }
+    .pStage { height: clamp(160px, 32dvh, 300px); }
   }
   body.pBoom #pMain { background: radial-gradient(circle at 50% 60%, #a3001a, #3a0008); animation: shake .7s; }
   body.pBoom .pTop > div { background: #0006; }
-  body.pBoom #pMult { color: #fff; }
 </style>
 </head>
 <body>
@@ -383,6 +433,7 @@
         <h2>참가자 <span id="hCount">0</span><small class="muted" style="font-family:var(--body);font-size:15px">명</small></h2>
         <div id="hChips"><span class="muted" id="hEmpty">아직 아무도 없어요. QR을 찍고 들어오세요! 🐣</span></div>
         <div class="lobbyBtns">
+          <button class="btn ghost small" id="hMeJoin">🙋 호스트도 참여</button>
           <button class="btn ghost small" id="hBot1">🤖 가상 참가자 +1</button>
           <button class="btn ghost small" id="hBot5">🤖 +5</button>
           <button class="btn start" id="hStart" disabled>게임 시작 ▶</button>
@@ -414,6 +465,7 @@
         <canvas id="graph"></canvas>
         <div class="multWrap"><div id="bigMult">1.00x</div><div id="subMult"></div></div>
         <div id="toasts"></div>
+        <button class="hEsc hidden" id="hEsc">🏃 지금 탈출! <small>(Space)</small></button>
         <div class="overlay hidden" id="cdOv"><div id="cdNum">3</div></div>
         <div class="overlay hidden" id="boomFx"><div class="boomTxt">BOOM!</div><div class="boomSub" id="boomSub"></div></div>
         <div class="overlay hidden" id="allFx"><div class="allTxt">🎉 전원 탈출!</div></div>
@@ -422,7 +474,7 @@
       </div>
       <div class="card board">
         <h3>🏆 누적 리더보드 <small id="hBoardSub">실시간</small></h3>
-        <ol id="board"></ol>
+        <ol id="board" class="boardList"></ol>
       </div>
     </div>
   </div>
@@ -445,13 +497,45 @@
       <div id="pRank"><small>순위</small><b><span id="pRankV">-</span><span class="arr" id="pRankArr"></span></b></div>
       <div id="pScore"><small>누적 점수</small><b id="pScoreV">0</b></div>
     </div>
-    <div class="pInfo">
-      <div id="pRound">WAITING</div>
-      <div id="pMult">1.00x</div>
-      <div id="pMsg"></div>
-      <div id="pNet"></div>
+    <div id="pNet" class="pNet"></div>
+
+    <!-- 대기방 -->
+    <div id="pLobby" class="card pLobby">
+      <div class="pLobHead"><span class="chickHero" aria-hidden="true">🐔</span><div><b>대기방</b><small>방 코드 <span id="pLobCode">····</span></small></div></div>
+      <h3>참가자 <span id="pLobCount">0</span>명</h3>
+      <div id="pChips" class="pChips"></div>
+      <p class="pLobMsg">호스트가 게임을 시작하면 이 화면이 메인 화면과 똑같은 전광판으로 바뀌어요</p>
+      <ul class="pRules">
+        <li>📈 카운트다운 후 배수가 1.00x부터 치솟아요</li>
+        <li>💣 4~19초 사이 비밀 시점에 폭발!</li>
+        <li>🏃 터지기 전에 [지금 탈출하기!] → 배수×100점, 못 나오면 0점 · 총 5라운드</li>
+      </ul>
     </div>
-    <button id="escBtn" class="wait"><span id="escMain">대기 중</span><span id="escSub"></span></button>
+
+    <!-- 게임: 메인 화면과 같은 전광판 + 탈출 버튼 -->
+    <div id="pGame" class="hidden">
+      <div class="pBar">
+        <div class="roundTag">ROUND <em id="pRd">1</em>/<span id="pTr">5</span></div>
+        <div class="gauge">
+          <div class="gTxt"><span>🐔 남은 생존자</span><span><b id="pAlive">0</b> / <span id="pTotal">0</span></span></div>
+          <div class="bar"><i id="pGaugeBar"></i></div>
+        </div>
+      </div>
+      <div class="stage card pStage" id="pStage">
+        <canvas id="pGraph"></canvas>
+        <div class="pMultWrap"><div id="pBig">1.00x</div><div id="pSub"></div></div>
+        <div id="pToasts" class="pToasts"></div>
+        <div class="overlay hidden" id="pBoomFx"><div class="boomTxt">BOOM!</div></div>
+        <div class="overlay hidden" id="pAllFx"><div class="allTxt">🎉 전원 탈출!</div></div>
+        <div class="panelOv hidden" id="pResOv"><div class="card resPanel" id="pResPanel"></div></div>
+        <div class="panelOv hidden" id="pFinOv"><div class="card finPanel" id="pFinPanel"></div></div>
+      </div>
+      <button id="escBtn" class="wait"><span id="escMain">대기 중</span><span id="escSub"></span></button>
+      <div class="card board pBoardCard">
+        <h3>🏆 누적 리더보드 <small id="pBoardSub">실시간</small></h3>
+        <ol id="pBoard" class="boardList"></ol>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -833,6 +917,7 @@ if (!firebaseReady()) $('netSel').querySelector('[value=firebase]').textContent 
 /* =========================================================
    호스트 (모든 판정은 여기서: 폭발 시점은 참가자에게 절대 보내지 않음)
    ========================================================= */
+const HOST_PID = 'host-local';   // '호스트도 참여'를 켰을 때 호스트 자신의 참가자 ID
 const BOT_NAMES = ['꼬꼬봇', '병아리', '닭강정', '치킨무', '후라이드', '양념이', '반반봇', '깐풍기', '닭가슴살', '삐약이', '순살봇', '날개봇'];
 
 const Host = {
@@ -851,6 +936,8 @@ const Host = {
     $('hStart').onclick = () => this.startGame();
     $('hBot1').onclick = () => this.addBots(1);
     $('hBot5').onclick = () => this.addBots(5);
+    $('hMeJoin').onclick = () => this.toggleHostPlayer();
+    $('hEsc').addEventListener('pointerdown', e => { e.preventDefault(); this.hostEscape(); });
     $('hCopy').onclick = async () => {
       const u = this.joinUrl();
       if (await copyText(u)) { $('hCopy').textContent = '✅ 복사했어요'; setTimeout(() => $('hCopy').textContent = '🔗 링크 복사', 1500); }
@@ -870,6 +957,7 @@ const Host = {
     $('hChips').onclick = e => { const b = e.target.closest('[data-kick]'); if (b) this.kick(b.dataset.kick); };
     document.addEventListener('keydown', e => {
       if (e.target.tagName === 'INPUT') return;
+      if (e.key === ' ' && this.phase === 'run' && this.players.has(HOST_PID)) { e.preventDefault(); this.hostEscape(); return; }
       if ((e.key === ' ' || e.key === 'Enter') && this.phase === 'lobby' && !$('hStart').disabled) { e.preventDefault(); this.startGame(); }
       else if (e.key === 'm' || e.key === 'M') this.toggleMute();
       else if (e.key === 'f' || e.key === 'F') this.toggleFull();
@@ -993,9 +1081,22 @@ const Host = {
   },
   // 가상 참가자의 목표 배수: 대부분 1.5~5x, 가끔 욕심쟁이
   botTarget() { const r = Math.random(); return 1.2 + (-Math.log(1 - r * 0.98)) * (Math.random() < .2 ? 6 : 2.2); },
+  toggleHostPlayer() {
+    if (this.players.has(HOST_PID)) { this.kick(HOST_PID); return; }
+    let name = '';
+    try { name = (prompt('메인 화면에서 함께 할 닉네임 (최대 8글자)', localStorage.getItem('chickenrun-name') || '호스트') || '').trim(); } catch (e) {}
+    if (!name) return;
+    this.addPlayer(HOST_PID, name);
+  },
+  hostEscape() {
+    const p = this.players.get(HOST_PID);
+    if (!p || this.phase !== 'run' || p.st !== 0) return;
+    const e = (now() - this.runStart) / 1000;
+    if (e < this.crashAt) { SFX.init(); this.escape(p, e); }
+  },
   kick(id) {
     const p = this.players.get(id); if (!p) return;
-    this.players.delete(id); if (!p.bot) this.kicked.add(id);
+    this.players.delete(id); if (!p.bot && id !== HOST_PID) this.kicked.add(id);
     this.dirty = this.boardDirty = true; this.renderLobby();
   },
   renderLobby() {
@@ -1007,9 +1108,10 @@ const Host = {
       let c = $('hChips').querySelector(`.chip[data-id="${CSS.escape(p.id)}"]`);
       if (!c) { c = document.createElement('span'); c.className = 'chip'; c.dataset.id = p.id; $('hChips').appendChild(c); }
       c.classList.toggle('off', !p.conn); c.classList.toggle('bot', p.bot);
-      setHTML(c, `${p.bot ? '' : '🐥 '}${esc(p.name)}<button data-kick="${esc(p.id)}" title="내보내기" aria-label="${esc(p.name)} 내보내기">✕</button>`);
+      setHTML(c, `${p.bot ? '' : p.id === HOST_PID ? '📺 ' : '🐥 '}${esc(p.name)}<button data-kick="${esc(p.id)}" title="내보내기" aria-label="${esc(p.name)} 내보내기">✕</button>`);
     }
     $('hStart').disabled = list.length === 0 || !this.net;
+    $('hMeJoin').textContent = this.players.has(HOST_PID) ? '🙋 호스트 참여 중 (빼기)' : '🙋 호스트도 참여';
     if (!this.code) $('hShare').disabled = $('hCopy').disabled = true; else $('hShare').disabled = $('hCopy').disabled = false;
   },
 
@@ -1093,7 +1195,7 @@ const Host = {
     $('boomSub').innerHTML = `💥 <span style="font-family:var(--num)">${fmtX(multAt(this.crashAt))}</span>에서 폭발! · ${lost ? `<b>${lost}명</b> 튀겨짐 🍗` : '모두 탈출 성공'}`;
     show($('boomFx'));
     const st = $('hGame'); st.classList.remove('shake'); void st.offsetWidth; st.classList.add('shake');
-    this.spawnFeathers();
+    this.feathers = makeFeathers();
     this.dirty = this.boardDirty = true;
   },
   allEscaped(e) {
@@ -1115,7 +1217,7 @@ const Host = {
     const t = now();
     // 접속 상태 (하트비트 6초 이상 끊기면 오프라인)
     for (const p of this.players.values()) {
-      if (p.bot) continue;
+      if (p.bot || p.id === HOST_PID) continue;
       const on = t - p.lastSeen < 6000;
       if (on !== p.conn) { p.conn = on; this.dirty = this.boardDirty = true; if (this.phase === 'lobby') this.renderLobby(); }
     }
@@ -1146,7 +1248,7 @@ const Host = {
     } else if (this.phase === 'res') {
       const hold = (this.endReason === 'boom' ? GAME.BOOM_HOLD : GAME.ALL_HOLD) * 1000;
       if (!this.resShown && t - this.resStart >= hold) { this.resShown = true; this.renderResult(); show($('resOv')); show($('boomFx'), false); show($('allFx'), false); }
-      if (this.resShown) { const s = Math.max(0, Math.ceil((this.resEnd - t) / 1000)); const el = $('resNext'); if (el) setText(el, this.round >= GAME.ROUNDS ? `최종 결과까지 ${s}초` : `다음 라운드까지 ${s}초`); }
+      if (this.resShown) { const s = Math.max(0, Math.ceil((this.resEnd - t) / 1000)); const el = $('resPanel').querySelector('[data-resnext]'); if (el) setText(el, this.round >= GAME.ROUNDS ? `최종 결과까지 ${s}초` : `다음 라운드까지 ${s}초`); }
       if (t >= this.resEnd) { if (this.round >= GAME.ROUNDS) this.finish(); else this.startRound(); }
     }
 
@@ -1182,7 +1284,8 @@ const Host = {
       nx: this.phase === 'res' ? Math.max(0, (this.resEnd - t) / 1000) : 0,
       end: this.endReason || '',
       cm: this.phase === 'res' || this.phase === 'final' ? floor2(multAt(this.endReason === 'boom' ? this.crashAt : this.runEnd)) : 0,
-      ps: this.sorted().map(p => [p.id, p.name, p.score, r.get(p.id), p.st, p.pts, p.mult, p.conn || p.bot ? 1 : 0]),
+      ca: this.phase === 'res' || this.phase === 'final' ? this.crashAt : 0,
+      ps: this.sorted().map(p => [p.id, p.name, p.score, r.get(p.id), p.st, p.pts, p.mult, p.conn || p.bot ? 1 : 0, p.best, p.booms, p.escapes]),
     };
     try { this.net.broadcast(st); } catch (e) { console.warn(e); }
   },
@@ -1197,70 +1300,20 @@ const Host = {
     setTimeout(() => d.remove(), 2900);
   },
   renderBoard() {
-    const el = $('board');
-    const rows = this.sorted(), r = this.ranks();
-    if (!rows.length) { el.innerHTML = '<li class="boardEmpty">참가자가 없어요</li>'; return; }
-    el.querySelectorAll('.boardEmpty').forEach(x => x.remove());
-    const tops = new Map([...el.children].map(li => [li.dataset.id, li.getBoundingClientRect().top]));
-    const existing = new Map([...el.children].map(li => [li.dataset.id, li]));
-    const inGame = this.phase !== 'lobby';
-    for (const p of rows) {
-      let li = existing.get(p.id);
-      if (!li) { li = document.createElement('li'); li.dataset.id = p.id; li.dataset.score = p.score; }
-      existing.delete(p.id);
-      const rk = r.get(p.id);
-      li.className = (rk === 1 && p.score > 0 ? 'top1 ' : '') + (!p.conn && !p.bot ? 'off' : '');
-      const icon = !inGame ? '🐥' : this.phase === 'final' ? (rk <= 3 ? ['🥇', '🥈', '🥉'][rk - 1] : '🏁') : p.st === 1 ? '🏃' : p.st === 2 ? '🍗' : p.st === 3 ? '👀' : '🐔';
+    const r = this.ranks();
+    paintBoard($('board'), this.sorted().map(p => {
       const a = this.arrows.get(p.id);
-      const ar = a ? `<span class="ar ${a.dir}">${a.dir === 'up' ? '▲' : '▼'}</span>` : '<span class="ar"></span>';
-      const medal = rk === 1 && p.score > 0 ? '👑' : rk;
-      setHTML(li, `<span class="rk">${medal}</span><span class="si">${icon}</span><span class="nm">${esc(p.name)}</span>${ar}<span class="sc">${li.dataset.score}</span>`);
-      el.appendChild(li);
-      const sc = li.querySelector('.sc');
-      if (+li.dataset.score !== p.score) { animateNumber(sc, +li.dataset.score, p.score); li.dataset.score = p.score; li._h = null; }
-      if (this.flashIds.has(p.id)) { li.classList.remove('flash'); void li.offsetWidth; li.classList.add('flash'); }
-    }
+      return { id: p.id, name: p.name, score: p.score, rank: r.get(p.id), icon: stIcon(this.phase, p.st, r.get(p.id)), off: !p.conn && !p.bot, arrow: a ? a.dir : '', flash: this.flashIds.has(p.id), me: false };
+    }));
     this.flashIds.clear();
-    existing.forEach(li => li.remove());
-    for (const li of el.children) {
-      const f = tops.get(li.dataset.id);
-      if (f == null) continue;
-      const dy = f - li.getBoundingClientRect().top;
-      if (Math.abs(dy) > 1) li.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: 650, easing: 'cubic-bezier(.2,.8,.2,1)' });
-    }
   },
   renderResult() {
-    const list = [...this.players.values()].filter(p => p.st === 1 || p.st === 2)
-      .sort((a, b) => b.pts - a.pts || a.name.localeCompare(b.name));
-    const cm = fmtX(multAt(this.crashAt));
-    const head = this.endReason === 'boom'
-      ? `<div class="resHead boom">💥 ${this.crashAt.toFixed(1)}초, ${cm}에서 폭발!</div>`
-      : `<div class="resHead all">🎉 전원 탈출! 폭발 예정이었던 시점은 ${this.crashAt.toFixed(1)}초 (${cm})</div>`;
-    const rows = list.map(p => p.st === 1
-      ? `<li class="esc"><span>🏃</span><span class="nm">${esc(p.name)}</span><span class="mx">${fmtX(p.mult)}</span><span class="pt">+${p.pts}</span></li>`
-      : `<li class="dead"><span>🍗</span><span class="nm">${esc(p.name)}</span><span class="mx">폭발</span><span class="pt">0</span></li>`).join('');
-    $('resPanel').innerHTML = `<h2>ROUND <em>${this.round}</em> 결과</h2>${head}<ul class="resList">${rows || '<li>참가자가 없었어요</li>'}</ul>
-      <div class="nextRow"><span id="resNext"></span><div class="bar"><i style="animation:barDown ${GAME.RESULT}s linear forwards"></i></div></div>`;
+    $('resPanel').innerHTML = resultHTML(this.round, this.endReason, this.crashAt, [...this.players.values()].map(p => ({ name: p.name, st: p.st, mult: p.mult, pts: p.pts })), this.players.get(HOST_PID)?.name);
   },
   renderFinal() {
-    const rows = this.sorted(), r = this.ranks();
-    const pod = [rows[1], rows[0], rows[2]].map((p, i) => {
-      if (!p) return '<div class="pod"></div>';
-      const cls = ['p2', 'p1', 'p3'][i], md = ['🥈', '🥇', '🥉'][i];
-      return `<div class="pod ${cls}"><div class="who">${esc(p.name)}</div><div class="sc">${p.score}점</div><div class="blk">${md}</div></div>`;
-    }).join('');
-    const aw = [];
-    const best = rows.slice().sort((a, b) => b.best - a.best)[0];
-    if (best && best.best > 0) aw.push(`🚀 최고 배수 탈출 <em>${esc(best.name)}</em> ${fmtX(best.best)}`);
-    const fried = rows.slice().sort((a, b) => b.booms - a.booms)[0];
-    if (fried && fried.booms > 0) aw.push(`🍗 가장 많이 튀겨진 닭 <em>${esc(fried.name)}</em> ${fried.booms}번`);
-    const safe = rows.filter(p => p.booms === 0 && p.escapes > 0);
-    if (safe.length) aw.push(`🛡️ 무폭발 생존 <em>${safe.slice(0, 3).map(p => esc(p.name)).join(', ')}${safe.length > 3 ? ` 외 ${safe.length - 3}명` : ''}</em>`);
-    const rest = rows.slice(3).map(p => `${r.get(p.id)}위 ${esc(p.name)} ${p.score}점`).join(' · ');
-    $('finPanel').innerHTML = `<h2>🏆 최종 결과</h2><div class="podium">${pod}</div>
-      <div class="awards">${aw.map(a => `<span class="award">${a}</span>`).join('')}</div>
-      <div class="finRest">${rest}</div>
-      <div class="finBtns"><button class="btn" id="finAgain">🔁 같은 멤버로 다시 하기</button><button class="btn ghost" id="finLobby">대기실로</button></div>`;
+    const r = this.ranks();
+    $('finPanel').innerHTML = finalHTML(this.sorted().map(p => ({ name: p.name, score: p.score, rank: r.get(p.id), best: p.best, booms: p.booms, escapes: p.escapes })),
+      '<div class="finBtns"><button class="btn" id="finAgain">🔁 같은 멤버로 다시 하기</button><button class="btn ghost" id="finLobby">대기실로</button></div>');
     $('finAgain').onclick = () => this.startGame();
     $('finLobby').onclick = () => this.toLobby();
   },
@@ -1293,20 +1346,26 @@ const Host = {
     const bar = $('hGaugeBar'), ratio = part.length ? alive / part.length : 0;
     bar.style.width = (ratio * 100).toFixed(1) + '%';
     bar.className = this.phase === 'res' && this.endReason === 'boom' && alive === 0 && part.some(p => p.st === 2) ? 'dead' : ratio <= .34 ? 'low' : '';
+    const hp = this.players.get(HOST_PID);
+    show($('hEsc'), !!hp && this.phase === 'run' && hp.st === 0);
     setText($('hBoardSub'), this.phase === 'final' ? '최종' : `ROUND ${this.round}/${GAME.ROUNDS}`);
     this.drawGraph();
   },
 
-  spawnFeathers() {
-    this.feathers = [];
-    for (let i = 0; i < 46; i++) {
-      const a = Math.random() * Math.PI * 2, s = 3 + Math.random() * 9;
-      this.feathers.push({ x: 0, y: 0, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 4, r: Math.random() * 6, vr: (Math.random() - .5) * .4, w: 6 + Math.random() * 10, c: Math.random() < .7 ? '#fff6e8' : Math.random() < .5 ? '#ffb347' : '#ff4d2a', life: 1 });
-    }
-  },
-
   drawGraph() {
     const cv = $('graph'); if (!cv || $('hGame').classList.contains('hidden')) return;
+    let tEnd = 0;
+    if (this.phase === 'run') tEnd = Math.min((now() - this.runStart) / 1000, this.crashAt);
+    else if (this.phase === 'res' || this.phase === 'final') tEnd = this.runEnd;
+    drawChart(cv, { phase: this.phase, tEnd, end: this.endReason, boomAt: this.boomAt, feathers: this.feathers, escLog: this.escLog });
+  },
+};
+
+/* =========================================================
+   공용 화면 그리기 (호스트 전광판과 참가자 폰이 똑같이 씀)
+   ========================================================= */
+// m: { phase, tEnd, end('boom'|'all'|''), boomAt, feathers, escLog:[{name,e,m}] }
+function drawChart(cv, m) {
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     const W = cv.clientWidth, H = cv.clientHeight;
     if (!W || !H) return;
@@ -1315,32 +1374,31 @@ const Host = {
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     g.clearRect(0, 0, W, H);
     const t = now();
-    let tEnd = 0;
-    if (this.phase === 'run') tEnd = Math.min((t - this.runStart) / 1000, this.crashAt);
-    else if (this.phase === 'res' || this.phase === 'final') tEnd = this.runEnd;
+    const tEnd = m.tEnd;
     const mEnd = multAt(tEnd);
-    const L = 64, R = 40, T = 30, B = 44;
+    const k = clamp(W / 760, .55, 1);   // 폰처럼 작은 화면에서는 여백·글자·닭 크기를 줄임
+    const L = 64 * k, R = 40 * k, T = 30 * k, B = 44 * k;
     const tMax = Math.max(8, tEnd * 1.12 + .6), mMax = Math.max(2, mEnd * 1.22);
     const X = s => L + s / tMax * (W - L - R), Y = m => H - B - (m - 1) / (mMax - 1) * (H - T - B);
 
     // 격자
-    g.font = '700 13px Orbitron, monospace'; g.lineWidth = 1;
+    g.font = `700 ${Math.round(13 * Math.max(k, .8))}px Orbitron, monospace`; g.lineWidth = 1;
     const ys = niceStep((mMax - 1) / 5);
     g.textAlign = 'right'; g.textBaseline = 'middle';
-    for (let m = 1; m <= mMax + 1e-9; m += ys) {
-      const y = Y(m);
-      g.strokeStyle = m === 1 ? '#ffffff30' : '#ffffff10'; g.beginPath(); g.moveTo(L, y); g.lineTo(W - R, y); g.stroke();
-      g.fillStyle = '#8f8cb8'; g.fillText((ys < 1 ? m.toFixed(1) : Math.round(m)) + 'x', L - 10, y);
+    for (let v = 1; v <= mMax + 1e-9; v += ys) {
+      const y = Y(v);
+      g.strokeStyle = v === 1 ? '#ffffff30' : '#ffffff10'; g.beginPath(); g.moveTo(L, y); g.lineTo(W - R, y); g.stroke();
+      g.fillStyle = '#8f8cb8'; g.fillText((ys < 1 ? v.toFixed(1) : Math.round(v)) + 'x', L - 10 * k, y);
     }
     const xs = tMax > 24 ? 5 : 2;
     g.textAlign = 'center'; g.textBaseline = 'top';
     for (let s = 0; s <= tMax; s += xs) {
       const x = X(s);
       g.strokeStyle = '#ffffff0c'; g.beginPath(); g.moveTo(x, T); g.lineTo(x, H - B); g.stroke();
-      g.fillStyle = '#8f8cb8'; g.fillText(s + 's', x, H - B + 10);
+      g.fillStyle = '#8f8cb8'; g.fillText(s + 's', x, H - B + 10 * k);
     }
 
-    const boomed = this.endReason === 'boom' && (this.phase === 'res' || this.phase === 'final');
+    const boomed = m.end === 'boom' && (m.phase === 'res' || m.phase === 'final');
     const col = boomed ? '#ff2a3d' : heatColor(mEnd, 55);
     // 곡선
     if (tEnd > 0) {
@@ -1352,42 +1410,115 @@ const Host = {
       g.save(); g.lineTo(X(tEnd), H - B); g.lineTo(X(0), H - B); g.closePath(); g.fillStyle = grd; g.fill(); g.restore();
       g.beginPath(); g.moveTo(X(0), Y(1));
       for (let i = 1; i <= N; i++) { const s = tEnd * i / N; g.lineTo(X(s), Y(multAt(s))); }
-      g.strokeStyle = col; g.lineWidth = 6; g.lineJoin = 'round'; g.lineCap = 'round'; g.shadowColor = col; g.shadowBlur = 24; g.stroke(); g.shadowBlur = 0;
+      g.strokeStyle = col; g.lineWidth = 6 * k; g.lineJoin = 'round'; g.lineCap = 'round'; g.shadowColor = col; g.shadowBlur = 24; g.stroke(); g.shadowBlur = 0;
     }
     // 탈출 지점 마커
     g.textBaseline = 'bottom';
-    this.escLog.forEach((p, i) => {
+    m.escLog.forEach((p, i) => {
       const x = X(p.e), y = Y(p.m);
       g.fillStyle = '#19e6ff'; g.shadowColor = '#19e6ff'; g.shadowBlur = 12;
-      g.beginPath(); g.arc(x, y, 7, 0, Math.PI * 2); g.fill(); g.shadowBlur = 0;
-      g.font = '900 15px "Noto Sans KR", sans-serif'; g.textAlign = 'right';
+      g.beginPath(); g.arc(x, y, 7 * k, 0, Math.PI * 2); g.fill(); g.shadowBlur = 0;
+      g.font = `900 ${Math.round(15 * Math.max(k, .75))}px "Noto Sans KR", sans-serif`; g.textAlign = 'right';
       const label = p.name.length > 6 ? p.name.slice(0, 6) + '…' : p.name;
-      const off = (i % 3) * 18;
+      const off = (i % 3) * 18 * Math.max(k, .75);
       g.lineWidth = 4; g.strokeStyle = '#06050d'; g.strokeText(label, x - 10, y - 8 - off); g.fillStyle = '#d6fbff'; g.fillText(label, x - 10, y - 8 - off);
     });
     // 닭 (곡선 끝을 달린다)
     const cx = X(tEnd), cy = Y(mEnd);
     g.textAlign = 'center'; g.textBaseline = 'middle';
     if (boomed) {
-      const k = (t - this.boomAt) / 1000;
-      if (k < .5) { g.font = `${Math.round(90 + k * 200)}px serif`; g.globalAlpha = 1 - k * 1.2; g.fillText('💥', cx, cy); g.globalAlpha = 1; }
-      g.font = '64px serif'; g.fillText('🍗', cx, cy + Math.min(60, k * k * 120));
-      for (const f of this.feathers) {
+      const q = (t - m.boomAt) / 1000;
+      if (q < .5) { g.font = `${Math.round((90 + q * 200) * k)}px serif`; g.globalAlpha = 1 - q * 1.2; g.fillText('💥', cx, cy); g.globalAlpha = 1; }
+      g.font = `${Math.round(64 * k)}px serif`; g.fillText('🍗', cx, cy + Math.min(60, q * q * 120) * k);
+      for (const f of m.feathers) {
         if (f.life <= 0) continue;
         f.x += f.vx; f.y += f.vy; f.vy += .25; f.vx *= .985; f.r += f.vr; f.life -= .008;
-        g.save(); g.globalAlpha = Math.max(0, f.life); g.translate(cx + f.x, cy + f.y); g.rotate(f.r);
-        g.fillStyle = f.c; g.beginPath(); g.ellipse(0, 0, f.w, f.w * .32, 0, 0, Math.PI * 2); g.fill(); g.restore();
+        g.save(); g.globalAlpha = Math.max(0, f.life); g.translate(cx + f.x * k, cy + f.y * k); g.rotate(f.r);
+        g.fillStyle = f.c; g.beginPath(); g.ellipse(0, 0, f.w * k, f.w * .32 * k, 0, 0, Math.PI * 2); g.fill(); g.restore();
       }
     } else {
-      const running = this.phase === 'run';
-      const bob = running ? Math.sin(t / 55) * 5 : this.phase === 'cd' ? Math.sin(t / 30) * 2 : 0;
+      const running = m.phase === 'run';
+      const bob = running ? Math.sin(t / 55) * 5 : m.phase === 'cd' ? Math.sin(t / 30) * 2 : 0;
       const slope = tEnd > 0 ? Math.atan2(Y(multAt(tEnd)) - Y(multAt(Math.max(0, tEnd - .3))), X(tEnd) - X(Math.max(0, tEnd - .3))) : 0;
-      g.save(); g.translate(cx, cy - 28 + bob); g.rotate(slope * .5); g.scale(-1, 1);
-      g.font = '58px serif'; g.fillText(this.endReason === 'all' && this.phase !== 'cd' ? '😎' : '🐔', 0, 0); g.restore();
-      if (running) { g.font = '20px serif'; g.globalAlpha = .6; g.fillText('💨', cx - 44, cy - 14 + bob); g.globalAlpha = 1; }
+      g.save(); g.translate(cx, cy - 28 * k + bob); g.rotate(slope * .5); g.scale(-1, 1);
+      g.font = `${Math.round(58 * k)}px serif`; g.fillText(m.end === 'all' && m.phase !== 'cd' ? '😎' : '🐔', 0, 0); g.restore();
+      if (running) { g.font = `${Math.round(20 * k)}px serif`; g.globalAlpha = .6; g.fillText('💨', cx - 44 * k, cy - 14 * k + bob); g.globalAlpha = 1; }
     }
-  },
-};
+}
+function makeFeathers() {
+  const out = [];
+  for (let i = 0; i < 46; i++) {
+    const a = Math.random() * Math.PI * 2, sp = 3 + Math.random() * 9;
+    out.push({ x: 0, y: 0, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 4, r: Math.random() * 6, vr: (Math.random() - .5) * .4, w: 6 + Math.random() * 10, c: Math.random() < .7 ? '#fff6e8' : Math.random() < .5 ? '#ffb347' : '#ff4d2a', life: 1 });
+  }
+  return out;
+}
+// 배수 → 경과 시간 (multAt의 역함수): 참가자 폰에서 탈출 지점을 그래프에 찍을 때 사용
+const timeAt = mm => (-0.18 + Math.sqrt(0.0324 + 0.01 * Math.log(Math.max(1, mm)))) / 0.005;
+
+/* 리더보드: rows = [{id, name, score, rank, icon, off, arrow('up'|'down'|''), flash, me}] */
+function paintBoard(el, rows) {
+  if (!rows.length) { el.innerHTML = '<li class="boardEmpty">참가자가 없어요</li>'; return; }
+  el.querySelectorAll('.boardEmpty').forEach(x => x.remove());
+  const tops = new Map([...el.children].map(li => [li.dataset.id, li.getBoundingClientRect().top]));
+  const existing = new Map([...el.children].map(li => [li.dataset.id, li]));
+  for (const p of rows) {
+    let li = existing.get(p.id);
+    if (!li) { li = document.createElement('li'); li.dataset.id = p.id; li.dataset.score = p.score; }
+    existing.delete(p.id);
+    li.className = (p.rank === 1 && p.score > 0 ? 'top1 ' : '') + (p.off ? 'off ' : '') + (p.me ? 'me' : '');
+    const ar = p.arrow ? `<span class="ar ${p.arrow}">${p.arrow === 'up' ? '▲' : '▼'}</span>` : '<span class="ar"></span>';
+    const medal = p.rank === 1 && p.score > 0 ? '👑' : p.rank;
+    setHTML(li, `<span class="rk">${medal}</span><span class="si">${p.icon}</span><span class="nm">${esc(p.name)}${p.me ? ' <small class="meTag">나</small>' : ''}</span>${ar}<span class="sc">${li.dataset.score}</span>`);
+    el.appendChild(li);
+    if (+li.dataset.score !== p.score) { animateNumber(li.querySelector('.sc'), +li.dataset.score, p.score); li.dataset.score = p.score; li._h = null; }
+    if (p.flash) { li.classList.remove('flash'); void li.offsetWidth; li.classList.add('flash'); }
+  }
+  existing.forEach(li => li.remove());
+  for (const li of el.children) {
+    const f = tops.get(li.dataset.id);
+    if (f == null) continue;
+    const dy = f - li.getBoundingClientRect().top;
+    if (Math.abs(dy) > 1) li.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: 650, easing: 'cubic-bezier(.2,.8,.2,1)' });
+  }
+}
+const stIcon = (phase, st, rank) => phase === 'lobby' ? '🐥' : phase === 'final' ? (rank <= 3 ? ['🥇', '🥈', '🥉'][rank - 1] : '🏁') : st === 1 ? '🏃' : st === 2 ? '🍗' : st === 3 ? '👀' : '🐔';
+
+/* 라운드 결과: list = [{name, st, mult, pts}] */
+function resultHTML(round, end, crashAt, list, meName) {
+  list = list.filter(p => p.st === 1 || p.st === 2).sort((a, b) => b.pts - a.pts || a.name.localeCompare(b.name));
+  const cm = fmtX(multAt(crashAt));
+  const head = end === 'boom'
+    ? `<div class="resHead boom">💥 ${crashAt.toFixed(1)}초, ${cm}에서 폭발!</div>`
+    : `<div class="resHead all">🎉 전원 탈출! 폭발 예정이었던 시점은 ${crashAt.toFixed(1)}초 (${cm})</div>`;
+  const rows = list.map(p => {
+    const me = p.name === meName ? ' me' : '';
+    return p.st === 1
+      ? `<li class="esc${me}"><span>🏃</span><span class="nm">${esc(p.name)}</span><span class="mx">${fmtX(p.mult)}</span><span class="pt">+${p.pts}</span></li>`
+      : `<li class="dead${me}"><span>🍗</span><span class="nm">${esc(p.name)}</span><span class="mx">폭발</span><span class="pt">0</span></li>`;
+  }).join('');
+  return `<h2>ROUND <em>${round}</em> 결과</h2>${head}<ul class="resList">${rows || '<li>참가자가 없었어요</li>'}</ul>
+    <div class="nextRow"><span data-resnext></span><div class="bar"><i style="animation:barDown ${GAME.RESULT}s linear forwards"></i></div></div>`;
+}
+/* 최종 결과: rows = 점수순 [{name, score, rank, best, booms, escapes}] */
+function finalHTML(rows, buttons) {
+  const pod = [rows[1], rows[0], rows[2]].map((p, i) => {
+    if (!p) return '<div class="pod"></div>';
+    const cls = ['p2', 'p1', 'p3'][i], md = ['🥈', '🥇', '🥉'][i];
+    return `<div class="pod ${cls}"><div class="who">${esc(p.name)}</div><div class="sc">${p.score}점</div><div class="blk">${md}</div></div>`;
+  }).join('');
+  const aw = [];
+  const best = rows.slice().sort((a, b) => b.best - a.best)[0];
+  if (best && best.best > 0) aw.push(`🚀 최고 배수 탈출 <em>${esc(best.name)}</em> ${fmtX(best.best)}`);
+  const fried = rows.slice().sort((a, b) => b.booms - a.booms)[0];
+  if (fried && fried.booms > 0) aw.push(`🍗 가장 많이 튀겨진 닭 <em>${esc(fried.name)}</em> ${fried.booms}번`);
+  const safe = rows.filter(p => p.booms === 0 && p.escapes > 0);
+  if (safe.length) aw.push(`🛡️ 무폭발 생존 <em>${safe.slice(0, 3).map(p => esc(p.name)).join(', ')}${safe.length > 3 ? ` 외 ${safe.length - 3}명` : ''}</em>`);
+  const rest = rows.slice(3).map(p => `${p.rank}위 ${esc(p.name)} ${p.score}점`).join(' · ');
+  return `<h2>🏆 최종 결과</h2><div class="podium">${pod}</div>
+    <div class="awards">${aw.map(a => `<span class="award">${a}</span>`).join('')}</div>
+    <div class="finRest">${rest}</div>${buttons || ''}`;
+}
 
 function niceStep(raw) {
   if (!(raw > 0)) return 1;
@@ -1408,6 +1539,8 @@ const Player = {
   net: null, pid: '', name: '', code: '', st: null, me: null, recvAt: 0,
   joined: false, hs: '', pending: 0, pendingAt: 0, resent: false,
   lastSt: -1, lastPhase: '', lastRound: 0, lastCdInt: -1, prevRank: 0, rankArr: '', hiTimer: null, joinTimer: null, connected: false, wake: null,
+  // 메인 화면과 같은 전광판을 그리기 위한 상태
+  prevSt: new Map(), prevRanks: new Map(), arrows: new Map(), escLog: [], feathers: [], boomAt: 0, resKey: '', finKey: '', chipsKey: '',
 
   start() {
     show($('player'));
@@ -1425,6 +1558,7 @@ const Player = {
     const btn = $('escBtn');
     btn.addEventListener('pointerdown', e => { e.preventDefault(); this.escape(); });
     btn.addEventListener('contextmenu', e => e.preventDefault());
+    window.addEventListener('resize', () => this.render());
     window.addEventListener('pagehide', () => { if (this.net) try { this.net.send({ t: 'bye', pid: this.pid }); } catch (e) {} });
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && this.joined) { this.requestWake(); this.hi(); } });
     if (params.get('auto') === '1' && room && $('pName').value) this.join();
@@ -1513,7 +1647,46 @@ const Player = {
     const rk = me[3];
     if (this.prevRank && rk !== this.prevRank) { this.rankArr = rk < this.prevRank ? '▲' : '▼'; this.rankArrUntil = now() + 3000; }
     this.prevRank = rk;
+    this.syncBoard(s, me);
     this.lastSt = myst; this.lastPhase = s.ph; this.lastRound = s.rd;
+  },
+
+  // 상태 스냅샷이 올 때마다: 탈출 배너, 그래프 탈출 지점, 리더보드(순위 화살표), 대기방 명단
+  syncBoard(s, me) {
+    const t = now();
+    if (s.rd !== this.lastRound || (s.ph === 'cd' && this.lastPhase !== 'cd') || s.ph === 'lobby') { this.prevSt.clear(); $('pToasts').innerHTML = ''; this.feathers = []; }
+    const flash = new Set();
+    for (const a of s.ps) {
+      const [id, name, , , st, , mult] = a;
+      const was = this.prevSt.get(id);
+      if (st === 1 && was === 0 && (s.ph === 'run' || s.ph === 'res')) { this.toast(id === this.pid ? '나' : name, mult); flash.add(id); }
+      this.prevSt.set(id, st);
+    }
+    this.escLog = s.ps.filter(a => a[4] === 1 && a[6] > 0).map(a => ({ name: a[1], m: a[6], e: timeAt(a[6]) })).sort((x, y) => x.e - y.e);
+    if (s.ph === 'res' && s.end === 'boom' && this.lastPhase !== 'res') { this.boomAt = t; this.feathers = makeFeathers(); const st = $('pStage'); st.classList.remove('shake'); void st.offsetWidth; st.classList.add('shake'); }
+    // 순위 화살표
+    const ranks = new Map(s.ps.map(a => [a[0], a[3]]));
+    if (s.ph !== 'lobby') for (const [id, r] of ranks) { const o = this.prevRanks.get(id); if (o != null && o !== r) this.arrows.set(id, { dir: r < o ? 'up' : 'down', until: t + 2600 }); }
+    this.prevRanks = ranks;
+    for (const [id, a] of this.arrows) if (a.until < t) this.arrows.delete(id);
+    paintBoard($('pBoard'), s.ps.map(a => ({ id: a[0], name: a[1], score: a[2], rank: a[3], icon: stIcon(s.ph, a[4], a[3]), off: !a[7], arrow: this.arrows.get(a[0])?.dir || '', flash: flash.has(a[0]), me: a[0] === this.pid })));
+    // 대기방 명단
+    if (s.ph === 'lobby') {
+      const key = s.ps.map(a => a[0] + a[1] + a[7]).join('|');
+      if (key !== this.chipsKey) {
+        this.chipsKey = key;
+        $('pChips').innerHTML = s.ps.map(a => `<span class="chip${a[0] === this.pid ? ' me' : ''}${a[7] ? '' : ' off'}">${a[0] === HOST_PID ? '📺' : a[0].startsWith('bot-') ? '' : '🐥'} ${esc(a[1])}${a[0] === this.pid ? ' (나)' : ''}</span>`).join('');
+      }
+      setText($('pLobCount'), s.ps.length); setText($('pLobCode'), s.code);
+    }
+  },
+  toast(name, m) {
+    const box = $('pToasts');
+    const d = document.createElement('div'); d.className = 'toast';
+    d.innerHTML = `🏃 ${esc(name)} 탈출! <em>(${fmtX(m)})</em>`;
+    box.prepend(d);
+    while (box.children.length > 4) box.lastChild.remove();
+    setTimeout(() => d.remove(), 2900);
   },
 
   liveE() { const s = this.st; return s ? s.e + (now() - this.recvAt) / 1000 : 0; },
@@ -1540,39 +1713,89 @@ const Player = {
     setText($('pScoreV'), me[2]);
 
     const btn = $('escBtn');
-    let cls = 'wait', main = '', sub = '', round = `ROUND ${s.rd}/${s.tr}`, mult = '', multColor = 'var(--neon)', msg = '';
+    let cls = 'wait', main = '', sub = '';
     const myst = me[4];
-    const live = s.ph === 'run' ? multAt(this.liveE()) : 1;
+    const liveE = this.liveE();
+    const live = s.ph === 'run' ? multAt(liveE) : 1;
+    const pm = $('pMain');
+    pm.classList.toggle('ph-res', s.ph === 'res'); pm.classList.toggle('ph-final', s.ph === 'final');
+    show($('pLobby'), s.ph === 'lobby'); show($('pGame'), s.ph !== 'lobby');
 
     if (s.ph === 'lobby') {
-      round = 'WAITING ROOM'; mult = '🐣'; msg = `${s.ps.length}명 입장 · 호스트가 곧 시작해요`;
       main = '대기 중'; sub = '게임이 시작되면 이 버튼이 초록색으로 켜져요';
     } else if (s.ph === 'cd') {
       const left = s.cd - (t - this.recvAt) / 1000, n = Math.max(1, Math.ceil(left));
       if (n !== this.lastCdInt && left > 0) { this.lastCdInt = n; SFX.count(false); vibrate(25); }
-      cls = 'wait cd'; main = String(n); sub = '엄지를 버튼 위에 준비!'; mult = '1.00x'; multColor = 'var(--muted)'; msg = '곧 배수가 오르기 시작해요';
+      cls = 'wait cd'; main = String(n); sub = '엄지를 버튼 위에 준비!';
     } else if (s.ph === 'run') {
       this.lastCdInt = -1;
-      mult = fmtX(live); multColor = heatColor(live, 58);
-      if (myst === 0 && this.pending !== s.rd) { cls = 'go'; main = '지금<br>탈출하기!'; sub = `지금 누르면 +${ptsOf(live)}점`; msg = '💣 언제 터질지 몰라요…'; }
+      if (myst === 0 && this.pending !== s.rd) { cls = 'go'; main = '지금 탈출하기!'; sub = `지금 누르면 +${ptsOf(live)}점`; }
       else if (myst === 0) { cls = 'done'; main = '탈출 중…'; sub = '확인하는 중'; }
-      else if (myst === 1) { cls = 'done'; main = '탈출 성공! 🏃'; sub = `${fmtX(me[6])}에서 탈출<b>+${me[5]}점</b>`; msg = '남은 사람들의 눈치싸움을 지켜보세요 👀'; }
-      else if (myst === 3) { main = '관전 중 👀'; sub = '다음 라운드부터 참가해요'; }
-    } else if (s.ph === 'res') {
-      mult = (s.end === 'boom' ? '💥 ' : '') + fmtX(s.cm); multColor = s.end === 'boom' ? 'var(--red)' : 'var(--cyan)';
-      msg = (s.rd >= s.tr ? '최종 결과까지 ' : '다음 라운드까지 ') + Math.max(0, Math.ceil(s.nx - (t - this.recvAt) / 1000)) + '초';
-      if (myst === 1) { cls = 'done'; main = '탈출 성공! 🏃'; sub = `${fmtX(me[6])}에서 탈출<b>+${me[5]}점</b>`; }
+      else if (myst === 1) { cls = 'done'; main = '탈출 성공! 🏃'; sub = `${fmtX(me[6])}에서 탈출<b>+${me[5]}점</b>`; }
       else if (myst === 2) { cls = 'dead'; main = '폭발!'; sub = '🍗 튀겨졌어요… 이번 라운드 0점'; }
       else { main = '관전 중 👀'; sub = '다음 라운드부터 참가해요'; }
+    } else if (s.ph === 'res') {
+      if (myst === 1) { cls = 'done'; main = `탈출 성공! +${me[5]}점`; sub = `${fmtX(me[6])}에서 탈출 · 지금 ${me[3]}위`; }
+      else if (myst === 2) { cls = 'dead'; main = '폭발! 0점'; sub = `🍗 튀겨졌어요 · 지금 ${me[3]}위`; }
+      else { main = '관전 중 👀'; sub = '다음 라운드부터 참가해요'; }
     } else if (s.ph === 'final') {
-      round = 'GAME OVER'; mult = me[3] === 1 ? '👑' : '🏁'; multColor = 'var(--gold)'; msg = '메인 화면에서 최종 결과를 확인하세요';
-      cls = me[3] <= 3 ? 'gold' : 'wait'; main = `${me[3]}위!`; sub = `최종 ${me[2]}점`;
+      cls = me[3] <= 3 ? 'gold' : 'wait'; main = `${me[3] === 1 ? '👑 ' : ''}최종 ${me[3]}위!`; sub = `${me[2]}점 · 호스트가 다시 시작하면 자동으로 이어져요`;
     }
-    if (myst === 2 && (s.ph === 'run')) { cls = 'dead'; main = '폭발!'; sub = '🍗 튀겨졌어요… 이번 라운드 0점'; }
     if (btn.className !== cls) btn.className = cls;
     setHTML($('escMain'), main); setHTML($('escSub'), sub);
-    setText($('pRound'), round); setText($('pMult'), mult); setText($('pMsg'), msg);
-    $('pMult').style.color = multColor;
+    if (s.ph !== 'lobby') this.renderStage(s, me, t, liveE, live);
+  },
+
+  // 메인 화면과 같은 전광판 (그래프·배수·생존자 게이지·결과)
+  renderStage(s, me, t, liveE, live) {
+    setText($('pRd'), s.rd); setText($('pTr'), s.tr);
+    const part = s.ps.filter(a => a[4] !== 3), alive = part.filter(a => a[4] === 0).length;
+    setText($('pAlive'), alive); setText($('pTotal'), part.length);
+    const bar = $('pGaugeBar'), ratio = part.length ? alive / part.length : 0;
+    bar.style.width = (ratio * 100).toFixed(1) + '%';
+    bar.className = s.ph === 'res' && s.end === 'boom' && alive === 0 && part.some(a => a[4] === 2) ? 'dead' : ratio <= .34 ? 'low' : '';
+    setText($('pBoardSub'), s.ph === 'final' ? '최종' : `ROUND ${s.rd}/${s.tr}`);
+
+    const boomed = s.end === 'boom' && (s.ph === 'res' || s.ph === 'final');
+    const tEnd = s.ph === 'run' ? Math.max(0, liveE) : (s.ph === 'res' || s.ph === 'final') ? s.e : 0;
+    const mm = s.ph === 'run' ? live : multAt(tEnd);
+    const big = $('pBig');
+    setText(big, (boomed ? '💥 ' : '') + fmtX(mm));
+    big.style.color = boomed ? 'var(--red)' : s.ph === 'cd' ? 'var(--muted)' : heatColor(mm, 58);
+    $('pStage').style.setProperty('--heat', s.ph === 'run' ? clamp((mm - 1.5) / 30, 0, .55).toFixed(3) : 0);
+    let sub = '';
+    if (s.ph === 'run') sub = `⏱ <b>${liveE.toFixed(1)}</b>초 · 💣 언제 터질지 몰라요`;
+    else if (s.ph === 'cd') sub = '곧 시작합니다… 엄지 준비!';
+    else if (s.ph === 'res') sub = boomed ? `${(s.ca || 0).toFixed(1)}초에 폭발` : `폭발 예정: ${(s.ca || 0).toFixed(1)}초`;
+    setHTML($('pSub'), sub);
+
+    // 결과 단계: 폭발/전원 탈출 연출 → 라운드 결과 (메인 화면과 같은 타이밍)
+    const hold = s.end === 'boom' ? GAME.BOOM_HOLD : GAME.ALL_HOLD;
+    const nxLive = Math.max(0, s.nx - (t - this.recvAt) / 1000);
+    const resElapsed = hold + GAME.RESULT - nxLive;
+    const inRes = s.ph === 'res';
+    show($('pBoomFx'), inRes && s.end === 'boom' && resElapsed < hold);
+    show($('pAllFx'), inRes && s.end === 'all' && resElapsed < hold);
+    const showRes = inRes && resElapsed >= hold;
+    show($('pResOv'), showRes);
+    if (showRes) {
+      const key = s.hs + s.rd;
+      if (this.resKey !== key) {
+        this.resKey = key;
+        $('pResPanel').innerHTML = resultHTML(s.rd, s.end, s.ca || 0, s.ps.map(a => ({ name: a[1], st: a[4], mult: a[6], pts: a[5] })), me[1]);
+      }
+      const el = $('pResPanel').querySelector('[data-resnext]');
+      if (el) setText(el, (s.rd >= s.tr ? '최종 결과까지 ' : '다음 라운드까지 ') + Math.ceil(nxLive) + '초');
+    }
+    show($('pFinOv'), s.ph === 'final');
+    if (s.ph === 'final') {
+      const key = s.hs + s.ps.map(a => a[0] + a[2]).join();
+      if (this.finKey !== key) {
+        this.finKey = key;
+        $('pFinPanel').innerHTML = finalHTML(s.ps.map(a => ({ name: a[1], score: a[2], rank: a[3], best: a[8] || 0, booms: a[9] || 0, escapes: a[10] || 0 })));
+      }
+    }
+    drawChart($('pGraph'), { phase: s.ph, tEnd, end: (s.ph === 'res' || s.ph === 'final') ? s.end : '', boomAt: this.boomAt, feathers: this.feathers, escLog: this.escLog });
   },
 };
 
