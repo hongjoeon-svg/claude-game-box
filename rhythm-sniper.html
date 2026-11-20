@@ -381,6 +381,25 @@ input, select { font: inherit; }
 .pFinal .top3 div { display: flex; justify-content: space-between; padding: 8px 2px; border-bottom: 1px solid var(--line); font-size: 14px; }
 .pFinal .top3 span { font-family: var(--mono); color: var(--dim); margin-right: 10px; }
 .pFinal .top3 b { font-family: var(--mono); }
+/* 폰 점수판: 라운드 결과 + 전체 순위 */
+.pBoard { flex: 1; min-height: 0; display: flex; flex-direction: column; border: 1px solid var(--line); background: rgba(9,9,11,.92); }
+.pBoard .ph { flex: none; }
+.pBoard .ph .t, .pBoard .ph .n { white-space: nowrap; }
+.pbList { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.pbRow { display: grid; grid-template-columns: 2.2em minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--line); font-size: 15px; }
+.pbRow .rk { font-family: var(--mono); font-weight: 700; color: var(--dim); }
+.pbRow.r1 .rk { color: var(--acid); }
+.pbRow .nm { display: flex; align-items: center; gap: 10px; min-width: 0; font-weight: 700; }
+.pbRow .nm > span:last-child { display: flex; flex-direction: column; min-width: 0; }
+.pbRow .nm em { font-style: normal; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pbRow .d { font-family: var(--mono); font-size: 11px; font-weight: 500; color: var(--sub); white-space: nowrap; margin-top: 1px; }
+.pbRow .d.pf { color: var(--acid); }
+.pbRow .d.dq { color: var(--red); }
+.pbRow .pts { font-family: var(--mono); font-weight: 800; text-align: right; min-width: 4.4em; font-variant-numeric: tabular-nums; }
+.pbRow .pts small { display: block; font-size: 11px; font-weight: 500; color: var(--acid); }
+.pbRow.me { background: rgba(204,255,0,.07); box-shadow: inset 3px 0 0 var(--acid); }
+.pbNote { flex: none; padding: 8px 14px; font-family: var(--mono); font-size: 11px; color: var(--dim); letter-spacing: .06em; border-top: 1px solid var(--line); }
+.pFinal .pBoard { width: min(420px, 100%); flex: 1; max-height: 52vh; margin-top: 6px; }
 
 /* 좁은 화면(폰·세로 태블릿): 로비는 한 줄로 쌓고 세로 스크롤 */
 @media (max-width: 900px) {
@@ -571,7 +590,7 @@ input, select { font: inherit; }
       <div class="sig idle" id="pPulse"><div class="leds"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><b>STANDBY</b></div>
       <div class="pInfo" id="pInfo"><div class="pStatus">입장 완료</div><div class="pSub">메인 화면에서 게임이 시작되면 아래 버튼이 방아쇠가 돼요.</div></div>
     </div>
-    <div class="fireWrap"><button id="pFire" class="wait cut" disabled></button></div>
+    <div class="fireWrap"><button id="pFire" class="wait cut" disabled></button><div class="pBoard hidden" id="pBoard"></div></div>
     <div class="pFinal hidden" id="pFinal"></div>
   </div>
 </section>
@@ -1353,6 +1372,10 @@ const H = {
       }
     }
     if (this.phase === 'final') s.top = this.sorted().slice(0, 3).map(x => ({ name: x.name, total: x.total }));
+    // 라운드 결과·최종 화면에서는 모두의 점수를 폰에도 보냄 [이름, 누적, 순위, 이번 라운드 점수, 오차(실격 null), PERFECT, 나]
+    if (this.phase === 'reveal' || this.phase === 'final') {
+      s.board = this.sorted().map(x => [x.name, x.total, x.rank, x.gain, x.res && !x.res.dq ? Math.round(x.res.err * 100) / 100 : null, x.res && x.res.perfect ? 1 : 0, x.pid === p.pid ? 1 : 0]);
+    }
     return s;
   },
   sendState(p) { if (p.pid !== 'host') HostNet.send(p.pid, this.stateFor(p)); },
@@ -1563,9 +1586,13 @@ const P = {
       $('pHint').innerHTML = ic(rr.calm ? 'music' : 'alert') + esc(s.rd.hint); $('pHint').classList.toggle('warn', !rr.calm);
     } else if (s.ph === 'lobby') { $('pRound').textContent = 'STANDBY // 게임 시작 대기'; $('pHint').innerHTML = ''; }
     show($('pFinal'), s.ph === 'final');
+    const boardOn = s.ph === 'reveal' && !!s.board;
+    show($('pBoard'), boardOn); show($('pFire'), !boardOn);
+    if (boardOn) this.renderBoard($('pBoard'), s, `ROUND ${pad2(s.ri + 1)} RESULT`, '다음 라운드를 기다리는 중 · 점수는 누적 기준');
     if (s.ph === 'final') {
       const top = (s.top || []).map((x, i) => `<div><span>${pad2(i + 1)}</span><em style="font-style:normal;flex:1;text-align:left">${esc(x.name)}</em><b>${fmt(x.total)}</b></div>`).join('');
-      $('pFinal').innerHTML = `<div class="lbl" style="color:var(--acid)">FINAL // ${esc(this.name)}</div><div class="big">${pad2(s.me.rank)}<small> / ${pad2(s.n)}</small></div><div class="t">최종 순위</div><div class="s">${fmt(s.me.total)} PTS</div><div class="top3">${top}</div>`;
+      $('pFinal').innerHTML = `<div class="lbl" style="color:var(--acid)">FINAL // ${esc(this.name)}</div><div class="big">${pad2(s.me.rank)}<small> / ${pad2(s.n)}</small></div><div class="t">최종 순위</div><div class="s">${fmt(s.me.total)} PTS</div>` + (s.board ? '<div class="pBoard" id="pFinalBoard"></div>' : `<div class="top3">${top}</div>`);
+      if (s.board) this.renderBoard($('pFinalBoard'), s, 'FINAL STANDINGS', '');
       if (!prev || prev.ph !== 'final') vibrate(s.me.rank === 1 ? [80, 60, 80, 60, 200] : 60);
     }
     this.renderInfo();
@@ -1587,13 +1614,23 @@ const P = {
     sendFire();
     this.renderInfo();
   },
+  // 전체 점수판 (이번 라운드 오차·획득 점수 + 누적 점수)
+  renderBoard(el, s, title, note) {
+    const rows = s.board.map(([name, total, rank, gain, err, perf, me]) => {
+      const d = s.ph === 'final' ? '' : err == null ? '<span class="d dq">DQ</span>' : `<span class="d${perf ? ' pf' : ''}">${perf ? 'PERFECT ' : ''}${sgn(err)}s</span>`;
+      const g = s.ph === 'final' ? '' : `<small>+${fmt(gain)}</small>`;
+      return `<div class="pbRow r${rank}${me ? ' me' : ''}"><span class="rk">${pad2(rank)}</span><span class="nm">${avatar(name)}<span><em>${esc(name)}${me ? ' <span style="color:var(--acid);font-family:var(--mono);font-size:10px">YOU</span>' : ''}</em>${d}</span></span><span class="pts">${fmt(total)}${g}</span></div>`;
+    }).join('');
+    const html = `<div class="ph"><span class="t">${ic('trophy')}${title}</span><span class="n"><b>${pad2(s.board.length)}</b>명</span></div><div class="pbList">${rows}</div>${note ? `<div class="pbNote">${note}</div>` : ''}`;
+    if (el._h !== html) { el._h = html; el.innerHTML = html; }
+  },
   setPulse(state, label) {
     const el = $('pPulse'); el.className = 'sig ' + state; el.querySelector('b').textContent = label;
   },
   setFire(cls, html, disabled) {
     const b = $('pFire'), key = cls + html + disabled;
     if (this.lastLbl === key) return; this.lastLbl = key;
-    b.className = 'cut ' + cls; b.disabled = disabled; b.innerHTML = html;
+    b.className = 'cut ' + cls + (b.classList.contains('hidden') ? ' hidden' : ''); b.disabled = disabled; b.innerHTML = html;
   },
   renderInfo() {
     const s = this.st; if (!s) return;
