@@ -242,6 +242,11 @@ input, select { font: inherit; }
 .rr .tm { color: var(--sub); }
 .rr .er { min-width: 5.4em; }
 .rr .sc { min-width: 5em; color: var(--ink); }
+.pips { display: inline-flex; gap: 4px; vertical-align: middle; }
+.pips i { width: 10px; height: 10px; border: 1px solid var(--line2); transform: rotate(45deg); }
+.pips i.on { background: var(--acid); border-color: var(--acid); }
+.mp { font-family: var(--mono); font-size: 9px; font-weight: 800; letter-spacing: .1em; color: var(--bg); background: var(--red); padding: 1px 5px; margin-left: 4px; }
+.winTag { font-family: var(--mono); font-size: .62em; font-weight: 800; letter-spacing: .08em; color: var(--bg); background: var(--acid); padding: 2px 7px; white-space: nowrap; }
 .rr .sc .bn { display: block; font-size: .55em; font-weight: 500; color: var(--acid); white-space: nowrap; }
 .rr.best .rk { color: var(--acid); }
 .rr.best .sc { color: var(--acid); }
@@ -535,16 +540,16 @@ input, select { font: inherit; }
           </div>
         </div>
         <div class="panel">
-          <div class="ph"><span class="t"><i data-ic="clock"></i>ROUND TIMELINE</span><span class="n">BEAT <b>━</b> · BLIND <b style="color:var(--red)">┅</b></span></div>
+          <div class="ph"><span class="t"><i data-ic="clock"></i>ROUND TIMELINE · 반복</span><span class="n">BEAT <b>━</b> · BLIND <b style="color:var(--red)">┅</b></span></div>
           <div class="rounds" id="hRules"></div>
         </div>
         <div>
           <div class="steps">
             <div class="step"><b><i>01</i><i data-ic="headphones"></i>박자 듣기</b>0.00초부터 화면 타이머와 비트가 흘러요.</div>
             <div class="step"><b><i>02</i><i data-ic="eyeOff"></i>절반에서 암전</b>소리·숫자가 끊기면 머릿속으로 계속 세세요.</div>
-            <div class="step"><b><i>03</i><i data-ic="crosshair"></i>FIRE</b>목표 시간이다 싶을 때 폰의 FIRE를 누르세요. 넘기면 감점! 누른 순간 그 시간이 확정돼요.</div>
+            <div class="step"><b><i>03</i><i data-ic="crosshair"></i>FIRE</b>목표 시간이다 싶을 때 폰의 FIRE! 가장 가까운 사람이 1점, 3점 먼저 따면 승리.</div>
           </div>
-          <div class="scoreLine" style="margin-top:8px">0.001초 단위 차등 · 목표 전: 1000 − 1점/0.001s · <b>±0.030s PERFECT 보너스 최대 +500</b> · <b>라운드 1·2·3위 +300/+200/+100</b> · <span style="color:var(--red)">목표를 넘기면 −1점/0.001s (최대 −1000) · 미격발 −1000</span></div>
+          <div class="scoreLine" style="margin-top:8px">라운드마다 목표 시간에 <b>가장 가까운 사람이 1점</b> (일찍·늦게 상관없이 0.001초 단위) · <b>3점을 먼저 따면 승리</b> · 미격발은 자격 없음 · 동점이면 서든데스</div>
         </div>
         <button class="btn btnAcid cut" id="hStart" disabled>GAME START</button>
       </div>
@@ -603,7 +608,7 @@ input, select { font: inherit; }
         <div class="introTgt" id="hIntroTgt"></div>
         <div class="introTag" id="hIntroTag"></div>
         <div class="introSub" id="hIntroSub"></div>
-        <div class="introHow"><i data-ic="crosshair"></i>목표 시간이 됐다고 느끼는 순간 FIRE — 목표를 넘기면 감점! 누르는 순간 기록이 확정돼요</div>
+        <div class="introHow"><i data-ic="crosshair"></i>목표 시간이 됐다고 느끼는 순간 FIRE — 가장 가까운 사람이 1점, 3점 먼저 따면 승리</div>
       </div>
       <div class="overlay hidden" id="hCountO" style="background:rgba(9,9,11,.82)"><div class="countNum" id="hCountN">3</div><div class="lbl">THUMB ON FIRE</div></div>
       <div class="overlay hidden" id="hReveal"></div>
@@ -737,27 +742,25 @@ function genBeats(rd) {
   return B.filter(b => b[0] < half - .05).map(b => [Math.round(b[0] * 1000) / 1000, b[1]]);
 }
 // 점수: 오차는 0.01초 단위
-// 점수 (0.001초 단위로 차등 → 동점이 거의 없음)
-// - 목표 전: 1000 − 오차(ms) (1ms당 1점, 0점까지)
-// - ±0.030초 PERFECT: 위 점수 + 보너스(500 − 오차ms×10, 정확히 맞히면 +500)
-// - 목표를 0.030초 넘게 지나면: −오차(ms) (최대 −1000)
-// - 미격발·목표+5초 초과: −1000
-// - 라운드 1·2·3위(점수가 플러스인 사람 중) 순위 보너스 +300 / +200 / +100
-const MAX_PENALTY = 1000, RANK_BONUS = [300, 200, 100];
+// 승점 규칙: 라운드마다 목표 시간에 가장 가까운 사람(일찍·늦게 상관없이 오차가 가장 작은 사람)이 1점
+// 3점을 먼저 따면 승리. 미격발·목표+5초 초과는 그 라운드 자격 없음. 0.001초까지 같으면 둘 다 1점
+const WIN_POINTS = 3;
+const rdOf = ri => ROUNDS[((ri % ROUNDS.length) + ROUNDS.length) % ROUNDS.length];
 function judge(el, target) {
-  if (el == null || !isFinite(el) || el > target + DQ_OVER) return { el: el == null ? null : el, err: null, cs: null, ms: null, base: -MAX_PENALTY, bonus: 0, score: -MAX_PENALTY, perfect: false, late: false, dq: true };
+  if (el == null || !isFinite(el) || el > target + DQ_OVER) return { el: el == null ? null : el, err: null, cs: null, ms: null, score: 0, win: false, perfect: false, late: false, dq: true };
   const err = el - target, ms = Math.round(Math.abs(err) * 1000), cs = Math.round(Math.abs(err) * 100);
-  const perfect = ms <= 30, late = !perfect && err > 0;
-  const base = perfect ? 1000 - ms + (500 - ms * 10) : late ? -Math.min(MAX_PENALTY, ms) : Math.max(0, 1000 - ms);
-  return { el, err, cs, ms, base, bonus: 0, score: base, perfect, late, dq: false };
+  return { el, err, cs, ms, score: 0, win: false, perfect: ms <= 30, late: ms > 30 && err > 0, dq: false };
 }
-// 라운드 순위 보너스 (같은 점수면 같은 보너스)
-function applyRankBonus(players) {
-  const ranked = players.filter(p => p.res && !p.res.dq && p.res.base > 0).sort((a, b) => b.res.base - a.res.base);
-  let place = 0, prev = null;
-  ranked.forEach((p, i) => { if (p.res.base !== prev) { place = i; prev = p.res.base; } p.res.bonus = RANK_BONUS[place] || 0; });
-  for (const p of players) if (p.res) p.res.score = p.res.base + (p.res.bonus || 0);
+// 이번 라운드 승자에게 1점
+function awardPoint(players) {
+  const ok = players.filter(p => p.res && !p.res.dq);
+  if (!ok.length) return [];
+  const best = Math.min(...ok.map(p => p.res.ms));
+  const winners = ok.filter(p => p.res.ms === best);
+  for (const p of players) if (p.res) { p.res.win = winners.includes(p); p.res.score = p.res.win ? 1 : 0; }
+  return winners;
 }
+const pips = n => `<span class="pips">${Array.from({ length: Math.max(WIN_POINTS, n) }, (_, i) => `<i class="${i < n ? 'on' : ''}"></i>`).join('')}</span>`;
 const sfmt = n => (n > 0 ? '+' : n < 0 ? '−' : '±') + fmt(Math.abs(n));
 
 /* ---------- 그래픽 (1.5px 라인 아이콘 · 조준경) ---------- */
@@ -1157,7 +1160,7 @@ const H = {
     const on = !!p && this.phase === 'round';
     if (b._on !== on) { b._on = on; show(b, on); }
     if (!on) return;
-    const rd = ROUNDS[this.ri];
+    const rd = rdOf(this.ri);
     let st, html;
     if (p.fired) { st = 'locked'; html = 'LOCKED<small>결과는 공개 때</small>'; }
     else if (t < 0) { st = 'wait'; html = 'READY<small>SPACE / CLICK</small>'; }
@@ -1197,17 +1200,17 @@ const H = {
   nextRound() {
     clearTimeout(this.endTimer); clearTimeout(this.allTimer); this.allTimer = null;
     this.ri++;
-    if (this.ri >= ROUNDS.length) return this.final();
-    const rd = ROUNDS[this.ri];
+    if (this.ri > 0 && this.champion()) { this.ri--; return this.final(); }
+    const rd = rdOf(this.ri);
     this.beats = genBeats(rd); this.bi = 0; this.darkOn = false;
     this.startAt = nowMs() + INTRO_MS + COUNT_MS;
     this.phase = 'round';
     for (const p of this.players.values()) { p.fired = false; p.res = null; p.gain = 0; }
     $('hHoles').innerHTML = '';
-    $('hRound').textContent = `ROUND ${this.ri + 1}/${ROUNDS.length}`;
+    $('hRound').textContent = `ROUND ${this.ri + 1} · ${WIN_POINTS}점 선승`;
     $('hTgt').innerHTML = `<small>TARGET</small><b>${rd.target.toFixed(2)}s</b>`;
     $('hMode').innerHTML = ic(rd.calm ? 'music' : 'alert') + esc(rd.tag); $('hMode').classList.toggle('calm', !!rd.calm);
-    $('hIntroR').textContent = `ROUND ${pad2(this.ri + 1)} // ${pad2(ROUNDS.length)} — ${rd.en}`;
+    $('hIntroR').textContent = `ROUND ${pad2(this.ri + 1)} // FIRST TO ${WIN_POINTS} — ${rd.en}`;
     $('hIntroName').textContent = rd.name;
     $('hIntroTgt').innerHTML = `<small>TARGET</small>${rd.target.toFixed(2)}s`;
     $('hIntroTag').innerHTML = ic(rd.calm ? 'music' : 'alert') + esc(rd.tag); $('hIntroTag').classList.toggle('calm', !!rd.calm);
@@ -1227,7 +1230,7 @@ const H = {
     let el = Number(m.el);
     // 폰에서 잰 시각을 믿되, 시계가 어긋나 보이면 호스트가 받은 시각으로 대체
     if (!isFinite(el) || el < 0 || el > hostEl + .3) el = Math.max(0, hostEl);
-    const rd = ROUNDS[this.ri];
+    const rd = rdOf(this.ri);
     p.fired = true; p.res = judge(el, rd.target);
     HostNet.send(pid, { t: 'ack', r: this.ri, res: p.res });
     SFX.gun();
@@ -1250,7 +1253,7 @@ const H = {
   active() { return [...this.players.values()].filter(p => p.connected); },
   loop() {
     if (this.phase !== 'round') return;
-    const rd = ROUNDS[this.ri], t = (nowMs() - this.startAt) / 1000;
+    const rd = rdOf(this.ri), t = (nowMs() - this.startAt) / 1000;
     if (t <= 0) return;
     const act = this.active();
     if (act.length && act.every(p => p.fired) && !this.allTimer) this.allTimer = setTimeout(() => this.endRound(), 1200);
@@ -1259,12 +1262,12 @@ const H = {
   endRound() {
     if (this.phase !== 'round') return;
     clearTimeout(this.allTimer); this.allTimer = null;
-    const rd = ROUNDS[this.ri];
+    const rd = rdOf(this.ri);
     SFX.stopRound();
     for (const p of this.players.values()) {
       if (!p.res) p.res = judge(null, rd.target);
     }
-    applyRankBonus([...this.players.values()]);
+    this.roundWinners = awardPoint([...this.players.values()]);
     for (const p of this.players.values()) { p.gain = p.res.score; p.total += p.gain; }
     for (const p of this.players.values()) p.prevRank = p.rank;
     this.rank();
@@ -1277,7 +1280,7 @@ const H = {
   advance() {
     if (this.phase === 'round') {
       const t = (nowMs() - this.startAt) / 1000;
-      if (t < 0) { this.startAt = nowMs() + COUNT_MS; SFX.scheduleRound(this.startAt, this.beats, ROUNDS[this.ri].target / 2); this.broadcast(); }
+      if (t < 0) { this.startAt = nowMs() + COUNT_MS; SFX.scheduleRound(this.startAt, this.beats, rdOf(this.ri).target / 2); this.broadcast(); }
       else this.endRound();
     } else if (this.phase === 'reveal') this.nextRound();
   },
@@ -1287,10 +1290,10 @@ const H = {
     document.body.classList.remove('dark');
     show($('hReveal'), false); show($('hIntro'), false); show($('hCountO'), false);
     const list = this.sorted();
-    const pod = [list[1], list[0], list[2]].map((p, i) => p ? `<div class="pod g${[2, 1, 3][i]}">${avatar(p.name, p.pid === 'host')}<div class="pn">${esc(p.name)}</div><div class="ps">${fmt(p.total)}</div><div class="blk">${pad2(p.rank)}</div></div>` : '').join('');
-    const rest = list.slice(3).map((p, i) => `<div class="rr" style="--d:${1.2 + i * .06}s;grid-template-columns:2.4em 1fr auto"><span class="rk">${pad2(p.rank)}</span><span class="nm">${avatar(p.name, p.pid === 'host')}<em>${esc(p.name)}</em></span><span class="sc">${fmt(p.total)}</span></div>`).join('');
+    const pod = [list[1], list[0], list[2]].map((p, i) => p ? `<div class="pod g${[2, 1, 3][i]}">${avatar(p.name, p.pid === 'host')}<div class="pn">${esc(p.name)}</div><div class="ps">${pips(p.total)}</div><div class="blk">${pad2(p.rank)}</div></div>` : '').join('');
+    const rest = list.slice(3).map((p, i) => `<div class="rr" style="--d:${1.2 + i * .06}s;grid-template-columns:2.4em 1fr auto"><span class="rk">${pad2(p.rank)}</span><span class="nm">${avatar(p.name, p.pid === 'host')}<em>${esc(p.name)}</em></span><span class="sc">${pips(p.total)}</span></div>`).join('');
     const best = list[0];
-    $('hFinal').innerHTML = `<div class="lbl" style="color:var(--acid)">FINAL RESULT // ${pad2(list.length)} SNIPERS</div><div class="finT">최고의 리듬 스나이퍼${best ? ' <b>' + esc(best.name) + '</b>' : ''}</div>
+    $('hFinal').innerHTML = `<div class="lbl" style="color:var(--acid)">FINAL RESULT // ${pad2(list.length)} SNIPERS</div><div class="finT">${best ? '<b>' + esc(best.name) + '</b> WINS!' : '게임 종료'}</div><div class="introSub">${WIN_POINTS}점 선승 · 총 ${this.ri + 1}라운드</div>
       <div class="podium">${pod}</div><div class="finList">${rest}</div>
       <div class="revCtl" style="margin-top:14px"><button class="btn btnAcid cut" id="hAgain">${ic('repeat')}한 판 더</button><button class="btn btnLine" id="hLobbyBtn">${ic('home')}대기실로</button></div>`;
     show($('hFinal'));
@@ -1311,6 +1314,11 @@ const H = {
     this.renderLobby();
     this.broadcast();
   },
+  // 3점 이상이면서 단독 1위인 사람 (동점이면 서든데스로 계속)
+  champion() {
+    const l = this.sorted();
+    return l.length && l[0].total >= WIN_POINTS && (!l[1] || l[1].total < l[0].total) ? l[0] : null;
+  },
   sorted() { return [...this.players.values()].sort((a, b) => b.total - a.total || a.name.localeCompare(b.name)); },
   rank() { let prev = null, r = 0; this.sorted().forEach((p, i) => { if (p.total !== prev) { r = i + 1; prev = p.total; } p.rank = r; }); },
 
@@ -1318,7 +1326,7 @@ const H = {
   paint() {
     this.paintWave();
     if (this.phase !== 'round') { this.paintMyFire(0); return; }
-    const rd = ROUNDS[this.ri], half = rd.target / 2;
+    const rd = rdOf(this.ri), half = rd.target / 2;
     const t = (nowMs() - this.startAt) / 1000;
     this.paintMyFire(t);
     const intro = t < -COUNT_MS / 1000, counting = !intro && t < 0;
@@ -1383,7 +1391,7 @@ const H = {
   },
   renderBoard(arrows) {
     const list = this.sorted(), box = $('hBoardList');
-    $('hBoardSub').textContent = this.phase === 'round' ? 'LIVE' : this.ri >= 0 ? `AFTER R${Math.min(this.ri + 1, ROUNDS.length)}` : '';
+    $('hBoardSub').textContent = this.phase === 'round' ? 'LIVE' : this.ri >= 0 ? `AFTER R${this.ri + 1} · ${WIN_POINTS}점 선승` : '';
     const first = new Map();
     for (const r of box.children) first.set(r.dataset.pid, r.getBoundingClientRect().top);
     const old = new Map([...box.children].map(r => [r.dataset.pid, r]));
@@ -1395,8 +1403,9 @@ const H = {
       const d = p.prevRank - p.rank;
       const st = this.phase === 'round' ? (p.fired ? ic('lock', 'lk') : ic('headphones')) : '';
       const arr = arrows && d ? `<span class="arr ${d > 0 ? 'up' : 'dn'}">${d > 0 ? '▲' : '▼'}${Math.abs(d)}</span>` : '';
-      const gain = arrows && this.phase !== 'round' && p.gain ? `<small${p.gain < 0 ? ' style="color:var(--red)"' : ''}>${sfmt(p.gain)}</small>` : '';
-      r.innerHTML = `<span class="rk">${pad2(p.rank)}</span><span class="nm">${avatar(p.name, p.pid === 'host')}<em>${esc(p.name)}</em>${st}</span><span class="pts">${fmt(p.total)}${gain}</span>${arr}`;
+      const gain = arrows && this.phase !== 'round' && p.gain ? `<small>+1 POINT</small>` : '';
+      const mp = p.total === WIN_POINTS - 1 && this.phase !== 'final' ? '<span class="mp">MATCH PT</span>' : '';
+      r.innerHTML = `<span class="rk">${pad2(p.rank)}</span><span class="nm">${avatar(p.name, p.pid === 'host')}<em>${esc(p.name)}</em>${st}${mp}</span><span class="pts">${pips(p.total)}${gain}</span>${arr}`;
       box.appendChild(r);
     }
     old.forEach(r => r.remove());
@@ -1408,8 +1417,8 @@ const H = {
     }
   },
   renderReveal() {
-    const rd = ROUNDS[this.ri];
-    const list = [...this.players.values()].filter(p => p.res).sort((a, b) => (a.res.dq - b.res.dq) || (b.res.score - a.res.score) || (Math.abs(a.res.err) - Math.abs(b.res.err)));
+    const rd = rdOf(this.ri);
+    const list = [...this.players.values()].filter(p => p.res).sort((a, b) => (a.res.dq - b.res.dq) || ((a.res.ms ?? 1e9) - (b.res.ms ?? 1e9)));
     const n = list.length, stag = Math.min(.45, 4 / Math.max(1, n));
     const hits = list.filter(p => !p.res.dq);
     const span = Math.min(DQ_OVER, Math.max(.3, ...hits.map(p => Math.abs(p.res.err) * 1.15)));
@@ -1421,15 +1430,17 @@ const H = {
     let rk = 0, prevCs = null;
     const rows = list.map((p, i) => {
       const r = p.res;
-      if (r.dq) rk = '--'; else if (r.score !== prevCs) { rk = pad2(i + 1); prevCs = r.score; }
-      const best = i === 0 && !r.dq;
-      const err = r.dq ? '<span class="er" style="color:var(--dim)">--</span>' : `<span class="er" style="color:${r.perfect ? 'var(--acid)' : r.late ? 'var(--red)' : 'var(--ink)'}">${sgn3(r.err)}s</span>`;
+      if (r.dq) rk = '--'; else if (r.ms !== prevCs) { rk = pad2(i + 1); prevCs = r.ms; }
+      const best = !!r.win;
+      const err = r.dq ? '<span class="er" style="color:var(--dim)">--</span>' : `<span class="er" style="color:${r.win ? 'var(--acid)' : 'var(--ink)'}">${sgn3(r.err)}s</span>`;
       const tm = r.el == null ? 'NO SHOT' : f3(r.el) + 's';
-      const badge = r.perfect ? ' <span class="perf">PERFECT</span>' : r.dq ? ' <span class="dqTag">MISS</span>' : r.late ? ' <span class="dqTag">LATE</span>' : '';
-      return `<div class="rr${best ? ' best' : ''}${r.dq ? ' dq' : ''}" style="--d:${(n - 1 - i) * stag}s"><span class="rk">${rk}</span><span class="nm">${avatar(p.name, p.pid === 'host')}<em>${esc(p.name)}</em>${badge}</span><span class="tm">${tm}</span>${err}<span class="sc"${r.score < 0 ? ' style="color:var(--red)"' : ''}>${sfmt(r.score)}${r.bonus ? `<small class="bn">정확 ${sfmt(r.base)} · ${RANK_BONUS.indexOf(r.bonus) + 1}위 +${r.bonus}</small>` : ''}</span></div>`;
+      const badge = (r.win ? ' <span class="winTag">+1 POINT</span>' : '') + (r.perfect ? ' <span class="perf">PERFECT</span>' : '') + (r.dq ? ' <span class="dqTag">MISS</span>' : '');
+      return `<div class="rr${best ? ' best' : ''}${r.dq ? ' dq' : ''}" style="--d:${(n - 1 - i) * stag}s"><span class="rk">${rk}</span><span class="nm">${avatar(p.name, p.pid === 'host')}<em>${esc(p.name)}</em>${badge}</span><span class="tm">${tm}</span>${err}<span class="sc">${pips(p.total)}</span></div>`;
     }).join('');
-    const last = this.ri >= ROUNDS.length - 1;
+    const last = !!this.champion();
+    const ws = this.roundWinners || [];
     $('hReveal').innerHTML = `<div class="revH">ROUND ${pad2(this.ri + 1)} RESULT <b>TARGET ${rd.target.toFixed(2)}s</b></div>
+      <div class="lbl" style="color:var(--acid);font-size:clamp(13px,1.3vw,18px)">${ws.length ? `POINT → ${ws.map(w => esc(w.name)).join(', ')}${last ? ` · ${esc(this.champion().name)} WINS!` : ''}` : 'NO POINT — 아무도 기록이 없어요'}</div>
       <div class="tl"><div class="bar"></div>${ticks}<div class="zero"></div><span class="lb" style="left:2%">−${f2(span)}</span><span class="lb" style="left:50%">±0.00</span><span class="lb" style="left:98%">+${f2(span)}</span>${marks}</div>
       <div class="revList${n > 8 ? ' cols2' : ''}">${rows || '<div class="slot empty"><span class="dash"></span>NO PLAYERS<span class="dash"></span></div>'}</div>
       <div class="revCtl"><button class="btn btnAcid cut" id="hNext">${last ? ic('trophy') + '최종 결과' : '다음 라운드 ' + ic('arrow')}</button><span class="hint">SPACE TO CONTINUE</span></div>`;
@@ -1442,9 +1453,9 @@ const H = {
 
   /* ---------- 참가자에게 상태 보내기 ---------- */
   stateFor(p) {
-    const rd = this.ri >= 0 && this.ri < ROUNDS.length ? ROUNDS[this.ri] : null;
+    const rd = this.ri >= 0 ? rdOf(this.ri) : null;
     const act = this.active();
-    const s = { t: 'st', hn: nowMs(), ph: this.phase, ri: this.ri, nR: ROUNDS.length, n: this.players.size,
+    const s = { t: 'st', hn: nowMs(), ph: this.phase, ri: this.ri, nR: ROUNDS.length, win: WIN_POINTS, n: this.players.size,
       me: { name: p.name, total: p.total, rank: p.rank, fired: p.fired, res: p.res, gain: p.gain },
       left: act.filter(x => !x.fired).length, act: act.length, shots: [...this.players.values()].filter(x => x.fired).length };
     if (this.phase === 'lobby') s.roster = [...this.players.values()].map(x => [x.name, x.pid === 'host' ? 1 : 0, x.connected ? 1 : 0, x.pid === p.pid ? 1 : 0]);
@@ -1452,14 +1463,14 @@ const H = {
       s.rd = { target: rd.target, name: rd.name, hint: rd.hint, tag: rd.tag };
       if (this.phase === 'round') { s.startAt = this.startAt; s.beats = this.beats; }
       if (this.phase === 'reveal') {
-        const ok = [...this.players.values()].filter(x => x.res && !x.res.dq).sort((a, b) => b.res.score - a.res.score);
-        s.rr = p.res && !p.res.dq ? ok.findIndex(x => x.res.score === p.res.score) + 1 : 0;
+        const ok = [...this.players.values()].filter(x => x.res && !x.res.dq).sort((a, b) => a.res.ms - b.res.ms);
+        s.rr = p.res && !p.res.dq ? ok.findIndex(x => x.res.ms === p.res.ms) + 1 : 0;
       }
     }
     if (this.phase === 'final') s.top = this.sorted().slice(0, 3).map(x => ({ name: x.name, total: x.total }));
     // 라운드 결과·최종 화면에서는 모두의 점수를 폰에도 보냄 [이름, 누적, 순위, 이번 라운드 점수, 오차(실격 null), PERFECT, 나]
     if (this.phase === 'reveal' || this.phase === 'final') {
-      s.board = this.sorted().map(x => [x.name, x.total, x.rank, x.gain, x.res && !x.res.dq ? Math.round(x.res.err * 1000) / 1000 : null, x.res && x.res.perfect ? 1 : 0, x.pid === p.pid ? 1 : 0, x.res && x.res.el != null ? Math.round(x.res.el * 1000) / 1000 : null, x.res ? x.res.bonus || 0 : 0]);
+      s.board = this.sorted().map(x => [x.name, x.total, x.rank, x.gain, x.res && !x.res.dq ? Math.round(x.res.err * 1000) / 1000 : null, x.res && x.res.perfect ? 1 : 0, x.pid === p.pid ? 1 : 0, x.res && x.res.el != null ? Math.round(x.res.el * 1000) / 1000 : null, x.res && x.res.win ? 1 : 0]);
     }
     return s;
   },
@@ -1682,9 +1693,9 @@ const P = {
       <div class="steps">
         <div class="step"><b><i>01</i>${ic('headphones')}박자 듣기</b>0.00초부터 타이머와 비트가 흘러요.</div>
         <div class="step"><b><i>02</i>${ic('eyeOff')}절반에서 암전</b>소리·숫자가 끊기면 머릿속으로 계속 세세요.</div>
-        <div class="step"><b><i>03</i>${ic('crosshair')}FIRE</b>목표 시간이다 싶을 때 FIRE! 가까울수록 높은 점수, <b style="display:inline;color:var(--red)">목표를 넘기면 감점</b>이에요.</div>
+        <div class="step"><b><i>03</i>${ic('crosshair')}FIRE</b>목표 시간이다 싶을 때 FIRE! <b style="display:inline;color:var(--acid)">가장 가까운 사람이 1점</b>, 3점 먼저 따면 승리예요.</div>
       </div>
-      <div class="scoreLine">0.001초 단위 차등 · 목표 전: 1000 − 1점/0.001s · <b>±0.030s PERFECT 보너스 최대 +500</b> · <b>라운드 1·2·3위 +300/+200/+100</b> · <span style="color:var(--red)">목표를 넘기면 −1점/0.001s (최대 −1000) · 미격발 −1000</span></div>
+      <div class="scoreLine">라운드마다 목표 시간에 <b>가장 가까운 사람이 1점</b> (일찍·늦게 상관없이 0.001초 단위) · <b>3점을 먼저 따면 승리</b> · 미격발은 자격 없음 · 동점이면 서든데스</div>
       <div class="sndRow"><span>${ic('volume')} 이 폰에서 박자 소리 ${this.sound ? '<b style="color:var(--acid)">ON</b>' : '<b style="color:var(--red)">OFF</b>'}</span><button class="btn btnLine" id="pSndL">${this.sound ? '끄기' : '켜기'}</button></div>`;
     const el = $('pLobby');
     if (el._h !== html) { el._h = html; el.innerHTML = html; const b = $('pSndL'); if (b) b.onclick = () => this.toggleSound(); }
@@ -1700,8 +1711,8 @@ const P = {
       this.syncBurst(4);
       this.setPulse('idle', 'STANDBY');
       $('pTimer')._k = '';
-      const rr = ROUNDS[s.ri] || {};
-      $('pIntro').innerHTML = `<div class="introR">ROUND ${pad2(s.ri + 1)} // ${pad2(s.nR)} — ${rr.en || ''}</div><div class="introName">${esc(s.rd.name)}</div><div class="introTgt"><small>TARGET</small>${s.rd.target.toFixed(2)}s</div><div class="introTag${rr.calm ? ' calm' : ''}">${ic(rr.calm ? 'music' : 'alert')}${esc(s.rd.tag)}</div><div class="introSub">${f2(s.rd.target / 2)}초에 암전 · 목표를 넘기면 감점!</div><div class="countNum hidden" id="pCountN">3</div>`;
+      const rr = rdOf(s.ri) || {};
+      $('pIntro').innerHTML = `<div class="introR">ROUND ${pad2(s.ri + 1)} // FIRST TO ${s.win || 3} — ${rr.en || ''}</div><div class="introName">${esc(s.rd.name)}</div><div class="introTgt"><small>TARGET</small>${s.rd.target.toFixed(2)}s</div><div class="introTag${rr.calm ? ' calm' : ''}">${ic(rr.calm ? 'music' : 'alert')}${esc(s.rd.tag)}</div><div class="introSub">${f2(s.rd.target / 2)}초에 암전 · 가장 가까운 사람이 1점</div><div class="countNum hidden" id="pCountN">3</div>`;
     }
     if (s.ph !== 'round' && prev && prev.ph === 'round') SFX.stopRound();
     if (s.ph === 'round' && s.me.fired && s.me.res && (!this.myFire || this.myFire.r !== s.ri)) this.myFire = { el: s.me.res.el, res: s.me.res, r: s.ri, acked: true };
@@ -1710,10 +1721,10 @@ const P = {
       const mine = s.me.fired && !prev.me.fired ? 1 : 0;
       if (s.shots - (prev.shots || 0) - mine > 0) this.otherShot(s.left);
     }
-    $('pScore').innerHTML = `<small>RANK <b>${s.me.rank ? pad2(s.me.rank) : '--'}</b>/${pad2(s.n)}</small>${fmt(s.me.total)} PTS`;
+    $('pScore').innerHTML = `<small>RANK <b>${s.me.rank ? pad2(s.me.rank) : '--'}</b>/${pad2(s.n)}</small>${pips(s.me.total)}`;
     if (s.rd) {
-      const rr = ROUNDS[s.ri] || {};
-      $('pRound').innerHTML = `<span class="rBadge cut" style="font-size:11px;padding:3px 8px;margin-right:6px">R${s.ri + 1}/${s.nR}</span>TARGET <b>${s.rd.target.toFixed(2)}s</b>`;
+      const rr = rdOf(s.ri) || {};
+      $('pRound').innerHTML = `<span class="rBadge cut" style="font-size:11px;padding:3px 8px;margin-right:6px">R${s.ri + 1}</span>TARGET <b>${s.rd.target.toFixed(2)}s</b>`;
       $('pHint').innerHTML = ic(rr.calm ? 'music' : 'alert') + esc(s.rd.hint); $('pHint').classList.toggle('warn', !rr.calm);
     } else if (s.ph === 'lobby') { $('pRound').textContent = 'WAITING ROOM'; $('pHint').innerHTML = ''; }
     show($('pFinal'), s.ph === 'final');
@@ -1721,11 +1732,11 @@ const P = {
     else if (s.ph === 'round') this.view('stage');
     else if (s.ph === 'reveal') {
       this.view(s.board ? 'board' : 'stage');
-      if (s.board) this.renderBoard($('pBoard'), s, `ROUND ${pad2(s.ri + 1)} RESULT`, '다음 라운드를 기다리는 중 · 점수는 누적 기준');
+      if (s.board) this.renderBoard($('pBoard'), s, `ROUND ${pad2(s.ri + 1)} RESULT`, '다음 라운드를 기다리는 중 · 3점 먼저 따면 승리');
     }
     if (s.ph === 'final') {
-      const top = (s.top || []).map((x, i) => `<div><span>${pad2(i + 1)}</span><em style="font-style:normal;flex:1;text-align:left">${esc(x.name)}</em><b>${fmt(x.total)}</b></div>`).join('');
-      $('pFinal').innerHTML = `<div class="lbl" style="color:var(--acid)">FINAL // ${esc(this.name)}</div><div class="big">${pad2(s.me.rank)}<small> / ${pad2(s.n)}</small></div><div class="t">최종 순위</div><div class="s">${fmt(s.me.total)} PTS</div>` + (s.board ? '<div class="pBoard" id="pFinalBoard"></div>' : `<div class="top3">${top}</div>`);
+      const top = (s.top || []).map((x, i) => `<div><span>${pad2(i + 1)}</span><em style="font-style:normal;flex:1;text-align:left">${esc(x.name)}</em><b>${x.total}점</b></div>`).join('');
+      $('pFinal').innerHTML = `<div class="lbl" style="color:var(--acid)">FINAL // ${esc(this.name)}</div><div class="big">${pad2(s.me.rank)}<small> / ${pad2(s.n)}</small></div><div class="t">최종 순위</div><div class="s">${pips(s.me.total)} ${s.me.total}점</div>` + (s.board ? '<div class="pBoard" id="pFinalBoard"></div>' : `<div class="top3">${top}</div>`);
       if (s.board) this.renderBoard($('pFinalBoard'), s, 'FINAL STANDINGS', '');
       if (!prev || prev.ph !== 'final') vibrate(s.me.rank === 1 ? [80, 60, 80, 60, 200] : 60);
     }
@@ -1758,12 +1769,11 @@ const P = {
   },
   // 전체 점수판 (이번 라운드 오차·획득 점수 + 누적 점수)
   renderBoard(el, s, title, note) {
-    const rows = s.board.map(([name, total, rank, gain, err, perf, me, el, bonus]) => {
+    const rows = s.board.map(([name, total, rank, gain, err, perf, me, el, win]) => {
       const at = el != null ? `${f3(el)}s · ` : '';
-      const bn = bonus ? ` · ${RANK_BONUS.indexOf(bonus) + 1}위 +${bonus}` : '';
-      const d = s.ph === 'final' ? '' : err == null ? `<span class="d dq">${at}MISS</span>` : `<span class="d${perf ? ' pf' : err > 0 ? ' dq' : ''}">${at}${perf ? 'PERFECT ' : err > 0 ? 'LATE ' : ''}${sgn3(err)}s${bn}</span>`;
-      const g = s.ph === 'final' ? '' : `<small${gain < 0 ? ' style="color:var(--red)"' : ''}>${sfmt(gain)}</small>`;
-      return `<div class="pbRow r${rank}${me ? ' me' : ''}"><span class="rk">${pad2(rank)}</span><span class="nm">${avatar(name)}<span><em>${esc(name)}${me ? ' <span style="color:var(--acid);font-family:var(--mono);font-size:10px">YOU</span>' : ''}</em>${d}</span></span><span class="pts">${fmt(total)}${g}</span></div>`;
+      const d = s.ph === 'final' ? '' : err == null ? `<span class="d dq">${at}MISS</span>` : `<span class="d${win ? ' pf' : ''}">${at}${sgn3(err)}s${perf ? ' · PERFECT' : ''}</span>`;
+      const g = s.ph === 'final' || !win ? '' : `<small>+1 POINT</small>`;
+      return `<div class="pbRow r${rank}${me ? ' me' : ''}"><span class="rk">${pad2(rank)}</span><span class="nm">${avatar(name)}<span><em>${esc(name)}${me ? ' <span style="color:var(--acid);font-family:var(--mono);font-size:10px">YOU</span>' : ''}</em>${d}</span></span><span class="pts">${pips(total)}${g}</span></div>`;
     }).join('');
     const html = `<div class="ph"><span class="t">${ic('trophy')}${title}</span><span class="n"><b>${pad2(s.board.length)}</b>명</span></div><div class="pbList">${rows}</div>${note ? `<div class="pbNote">${note}</div>` : ''}`;
     if (el._h !== html) { el._h = html; el.innerHTML = html; }
@@ -1782,16 +1792,16 @@ const P = {
     // 오차 텔레메트리 바 (±1.00초 범위)
     const tele = (r, el, sub) => {
       if (r.dq) return `<div class="tele"><div class="teleTop"><span class="k">DELTA</span><span class="v bad">${el == null ? 'NO SHOT' : f2(el) + 's'} // MISS</span></div><div class="teleBar"><i class="z"></i></div><div class="teleSub"><span>미격발·목표+${DQ_OVER}초 초과</span><span>${sub}</span></div></div>`;
-      const grade = r.perfect ? 'PERFECT' : r.late ? 'LATE' : r.ms <= 100 ? 'GREAT' : r.ms <= 300 ? 'GOOD' : r.ms < 1000 ? 'EARLY' : 'MISS';
-      const cls = r.perfect ? 'perf2' : (r.late || r.cs >= 100) ? 'bad' : '';
+      const grade = r.win ? 'WIN' : r.perfect ? 'PERFECT' : r.ms <= 100 ? 'GREAT' : r.ms <= 300 ? 'GOOD' : r.err > 0 ? 'LATE' : 'EARLY';
+      const cls = r.win || r.perfect ? 'perf2' : r.ms >= 1000 ? 'bad' : '';
       const x = 50 + Math.max(-1, Math.min(1, r.err)) * 50;
       return `<div class="tele"><div class="teleTop"><span class="k">DELTA</span><span class="v ${cls}">${sgn3(r.err)}s // ${grade}</span></div>
         <div class="teleBar"><i class="z"></i><i class="m ${cls}" style="left:${x}%"></i></div>
         <div class="teleSub"><span>−1.00</span><span>${f3(r.el)}s · ${sub}</span><span>+1.00</span></div></div>`;
     };
     let html = '';
-    if (s.ph === 'round' && this.myFire) html = tele(this.myFire.res, this.myFire.el, `${sfmt(this.myFire.res.score)} · 나만 보임`);
-    else if (s.ph === 'reveal' && s.me.res) html = tele(s.me.res, s.me.res.el, `${sfmt(s.me.res.score)} PTS${s.rr ? ` · ${pad2(s.rr)}위` : ''}${s.me.res.bonus ? ` (보너스 +${s.me.res.bonus})` : ''}`);
+    if (s.ph === 'round' && this.myFire) html = tele(this.myFire.res, this.myFire.el, '나만 보임');
+    else if (s.ph === 'reveal' && s.me.res) html = tele(s.me.res, s.me.res.el, s.me.res.win ? '+1 POINT!' : s.rr ? `라운드 ${pad2(s.rr)}위` : '');
     show(info, !!html);
     if (info._h !== html) { info._h = html; info.innerHTML = html; }
   },
@@ -1834,8 +1844,8 @@ const P = {
     // 버튼
     if (this.myFire) this.setFire('locked', `${reticleSVG()}<span class="bl">${ic('lock')} LOCKED</span><small>격발 완료 · 기록 확정</small>`, true);
     else if (t < 0) this.setFire('ready', `${corners}<span class="bl">${Math.ceil(-t) <= 3 ? 'READY ' + Math.ceil(-t) : 'READY'}</span><small>목표 ${rd.target.toFixed(2)}초에 맞춰 누르세요</small>`, true);
-    else if (t > rd.target + DQ_OVER) this.setFire('wait timeout', '<span class="bl">TIMEOUT</span><small>미격발 −1000</small>', true);
-    else this.setFire('', `${corners}${reticleSVG()}<span class="bl">FIRE</span><small>${rd.target.toFixed(2)}초에 누르면 확정 · 넘기면 감점</small>`, false);
+    else if (t > rd.target + DQ_OVER) this.setFire('wait timeout', '<span class="bl">TIMEOUT</span><small>이번 라운드 자격 없음</small>', true);
+    else this.setFire('', `${corners}${reticleSVG()}<span class="bl">FIRE</span><small>${rd.target.toFixed(2)}초에 가장 가까운 사람이 1점</small>`, false);
     // 비트 펄스 (암전 전까지)
     if (dark) return;
     const beats = s.beats || [];
