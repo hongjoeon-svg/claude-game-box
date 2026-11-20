@@ -382,16 +382,36 @@ input, select { font: inherit; }
 .pFinal .top3 span { font-family: var(--mono); color: var(--dim); margin-right: 10px; }
 .pFinal .top3 b { font-family: var(--mono); }
 
+/* 좁은 화면(폰·세로 태블릿): 로비는 한 줄로 쌓고 세로 스크롤 */
+@media (max-width: 900px) {
+  #hLobby { display: block; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+  .lobTop { position: sticky; top: 0; z-index: 5; flex-wrap: wrap; gap: 8px 12px; padding: 12px 16px; background: var(--bg); }
+  .lobTop .brand { flex: 1; min-width: 0; }
+  .lobTop .net { order: 3; width: 100%; margin-left: 0; }
+  .lobBody { display: flex; flex-direction: column; }
+  .lobL { border-right: 0; border-bottom: 1px solid var(--line); padding: 20px 16px 24px; min-width: 0; }
+  #hQr { width: min(64vw, 300px); }
+  #hCode { font-size: clamp(56px, 20vw, 110px); }
+  .lobR { display: flex; flex-direction: column; gap: 14px; padding: 16px; min-width: 0; }
+  .lobR > * { min-width: 0; }
+  #hPlayers { max-height: none; flex: none; }
+  .selfRow { flex-wrap: wrap; }
+  .selfRow .lbl { width: 100%; }
+  #hStart { position: sticky; bottom: 12px; z-index: 4; }
+}
 @media (max-width: 900px) and (orientation: portrait) {
-  .lobBody { grid-template-columns: 1fr; overflow-y: auto; }
-  .lobL { border-right: 0; border-bottom: 1px solid var(--line); }
-  #hLobby { overflow-y: auto; }
-  .lobR { grid-template-rows: auto; }
-  #hPlayers { max-height: 40vh; }
-  #hGame { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr) auto; }
-  .board { border-left: 0; border-top: 1px solid var(--line); max-height: 30vh; }
+  #hGame { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; }
+  .board { border-left: 0; border-top: 1px solid var(--line); max-height: 28vh; }
+  .tl, .revList, .wave { max-width: 100%; }
+  .banner { white-space: normal; text-align: center; width: max-content; max-width: 92%; justify-content: center; flex-wrap: wrap; }
+  .fireAlert { white-space: normal; width: max-content; max-width: 92%; }
 }
 @media (max-width: 640px) {
+  .slot { padding: 9px 10px; font-size: 14px; gap: 8px; }
+  .slot .no { width: 1.8em; }
+  .slot.empty span:last-child { display: none; }
+  .wave { width: 88vw; }
+  #hMyFire { right: 12px; bottom: 12px; }
   .topBar { flex-wrap: wrap; } .modeTag { margin-left: 0; order: 5; width: 100%; justify-content: center; } .hBtns { margin-left: auto; }
   .rounds { grid-template-columns: repeat(3, 1fr); } .rcell { border-bottom: 1px solid var(--line); }
   .steps { grid-template-columns: 1fr; } .step { border-right: 0; border-bottom: 1px solid var(--line); }
