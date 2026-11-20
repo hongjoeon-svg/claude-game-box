@@ -381,8 +381,56 @@ input, select { font: inherit; }
 .pFinal .top3 div { display: flex; justify-content: space-between; padding: 8px 2px; border-bottom: 1px solid var(--line); font-size: 14px; }
 .pFinal .top3 span { font-family: var(--mono); color: var(--dim); margin-right: 10px; }
 .pFinal .top3 b { font-family: var(--mono); }
+/* 폰 게임 화면 (호스트 화면 축소판) */
+.pView { flex: 1; min-height: 0; display: flex; flex-direction: column; position: relative; }
+.pStage { flex: 1; min-height: 0; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.2dvh; overflow: hidden; padding: 8px 12px; }
+.pStage > * { position: relative; z-index: 3; }
+.pStage .scopeBox { width: min(46vw, 24dvh); }
+.pStage .wave { width: 86vw; height: 4.5dvh; }
+.pStage .timer { font-size: clamp(54px, min(21vw, 11dvh), 120px); }
+.pStage .shots { font-size: 12px; }
+.pDim { position: absolute !important; inset: 0; z-index: 2 !important; background: rgba(5,5,7,.86); opacity: 0; transition: opacity .1s; pointer-events: none; }
+.pStage.dark .pDim { opacity: 1; }
+.pStage.dark .wave i { background: var(--line2); }
+.pStage .banner { top: 8px; font-size: 12px; padding: 6px 12px; gap: 8px; }
+.pStage .glitchO b { font-size: clamp(18px, 6vw, 30px); }
+.pStage .fireAlert { top: auto; bottom: 10px; font-size: 14px; padding: 8px 12px; gap: 8px; white-space: normal; width: max-content; max-width: 94%; }
+.pOver { position: absolute !important; inset: 0; z-index: 6 !important; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; padding: 16px; background: rgba(9,9,11,.95); }
+.pOver .introName { font-size: clamp(34px, 11vw, 54px); }
+.pOver .introTgt { font-size: clamp(24px, 8vw, 38px); }
+.pOver .introTag { font-size: 14px; }
+.pOver .countNum { font-size: clamp(110px, 22dvh, 200px); }
+.pSnd { position: absolute !important; right: 10px; top: 10px; z-index: 7 !important; }
+.pSnd.off { color: var(--red); border-color: var(--red); }
+/* 폰 대기실 */
+.pLobby { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+.pLobby .codeRow { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; border: 1px solid var(--line); padding: 12px 14px; background: rgba(9,9,11,.85); }
+.pLobby .codeRow b { font-family: var(--sans); font-weight: 700; font-size: 40px; line-height: .9; letter-spacing: .08em; color: var(--acid); }
+.pLobby .wait { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; color: var(--sub); text-align: right; line-height: 1.6; }
+.pLobby .wait i { display: inline-block; width: 6px; height: 6px; background: var(--acid); margin-right: 6px; animation: blink 1s steps(2) infinite; }
+.pLobby #hPlayers, .pLobby .pList { display: grid; grid-template-columns: 1fr 1fr; }
+.pLobby .slot { padding: 9px 10px; font-size: 14px; gap: 8px; }
+.pLobby .slot.me { background: rgba(204,255,0,.07); box-shadow: inset 3px 0 0 var(--acid); }
+.pLobby .slot.empty span:last-child { display: none; }
+.pLobby .rounds { grid-template-columns: repeat(5, 1fr); }
+.pLobby .rcell { padding: 8px 6px; }
+.pLobby .rcell .top span { display: none; }
+.pLobby .rcell .tg { font-size: 15px; }
+.pLobby .rcell .nm { font-size: 10px; }
+.pLobby .steps { grid-template-columns: 1fr; }
+.pLobby .step { border-right: 0; border-bottom: 1px solid var(--line); }
+.pLobby .step:last-child { border-bottom: 0; }
+.pLobby .sndRow { display: flex; align-items: center; justify-content: space-between; gap: 10px; border: 1px solid var(--line); padding: 10px 14px; background: rgba(9,9,11,.85); font-size: 13px; color: var(--sub); }
+.pLobby .sndRow .btn { padding: 8px 12px; font-size: 13px; }
+#player .fireWrap { flex: none; height: 30dvh; min-height: 150px; padding: 8px 12px 12px; }
+#player #pFire { font-size: clamp(54px, 18vw, 96px); --cut: 26px; }
+#player #pFire.locked, #player #pFire.wait { font-size: clamp(26px, 8vw, 40px); }
+#player #pFire.ready { font-size: clamp(34px, 11vw, 56px); }
+#player #pFire.locked .reticle { width: 40%; }
+#player .pInfo { flex: none; margin: 0 12px 4px; min-height: 0; }
 /* 폰 점수판: 라운드 결과 + 전체 순위 */
 .pBoard { flex: 1; min-height: 0; display: flex; flex-direction: column; border: 1px solid var(--line); background: rgba(9,9,11,.92); }
+.pView > .pBoard { margin: 8px 12px; }
 .pBoard .ph { flex: none; }
 .pBoard .ph .t, .pBoard .ph .n { white-space: nowrap; }
 .pbList { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
@@ -493,9 +541,9 @@ input, select { font: inherit; }
           <div class="steps">
             <div class="step"><b><i>01</i><i data-ic="headphones"></i>박자 듣기</b>0.00초부터 화면 타이머와 비트가 흘러요.</div>
             <div class="step"><b><i>02</i><i data-ic="eyeOff"></i>절반에서 암전</b>소리·숫자가 끊기면 머릿속으로 계속 세세요.</div>
-            <div class="step"><b><i>03</i><i data-ic="crosshair"></i>FIRE</b>목표 시간이다 싶을 때 폰의 FIRE를 누르면 그 시간이 확정돼요.</div>
+            <div class="step"><b><i>03</i><i data-ic="crosshair"></i>FIRE</b>목표 시간이다 싶을 때 폰의 FIRE를 누르세요. 넘기면 감점! 누른 순간 그 시간이 확정돼요.</div>
           </div>
-          <div class="scoreLine" style="margin-top:8px">SCORE = 1000 − 10 / 0.01s · <b>±0.03s PERFECT +500</b> · TARGET+5s 초과 실격</div>
+          <div class="scoreLine" style="margin-top:8px">목표 전: 1000 − 10점/0.01s · <b>±0.03s PERFECT +1500</b> · <span style="color:var(--red)">목표를 넘기면 −10점/0.01s (최대 −1000) · 미격발 −1000</span></div>
         </div>
         <button class="btn btnAcid cut" id="hStart" disabled>GAME START</button>
       </div>
@@ -554,7 +602,7 @@ input, select { font: inherit; }
         <div class="introTgt" id="hIntroTgt"></div>
         <div class="introTag" id="hIntroTag"></div>
         <div class="introSub" id="hIntroSub"></div>
-        <div class="introHow"><i data-ic="crosshair"></i>목표 시간이 됐다고 느끼는 순간 FIRE — 누르는 순간 기록이 확정돼요</div>
+        <div class="introHow"><i data-ic="crosshair"></i>목표 시간이 됐다고 느끼는 순간 FIRE — 목표를 넘기면 감점! 누르는 순간 기록이 확정돼요</div>
       </div>
       <div class="overlay hidden" id="hCountO" style="background:rgba(9,9,11,.82)"><div class="countNum" id="hCountN">3</div><div class="lbl">THUMB ON FIRE</div></div>
       <div class="overlay hidden" id="hReveal"></div>
@@ -585,12 +633,26 @@ input, select { font: inherit; }
       <div class="pRound" id="pRound">STANDBY</div>
       <div class="pHint" id="pHint"></div>
     </div>
-    <div class="pMid">
+    <div class="pView">
       <div id="pConn" class="hidden">RECONNECTING…</div>
-      <div class="sig idle" id="pPulse"><div class="leds"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><b>STANDBY</b></div>
-      <div class="pInfo" id="pInfo"><div class="pStatus">입장 완료</div><div class="pSub">메인 화면에서 게임이 시작되면 아래 버튼이 방아쇠가 돼요.</div></div>
+      <div class="pLobby" id="pLobby"></div>
+      <div class="pStage hidden" id="pStage">
+        <div class="pDim"></div>
+        <button class="iconBtn pSnd" id="pSnd" aria-label="박자 소리 켜기/끄기"></button>
+        <div class="scopeBox" id="pViz"><svg class="scope" viewBox="0 0 240 240" id="pScope"></svg></div>
+        <div class="wave" id="pEq"></div>
+        <div class="timer" id="pTimer"></div>
+        <div class="shots" id="pShots"></div>
+        <div id="pBanner" class="banner hidden"><i data-ic="eyeOff"></i>BLIND MODE <span>머릿속으로 세세요</span></div>
+        <div id="pGlitch" class="glitchO hidden"><b>SIGNAL LOST // BLIND MODE</b></div>
+        <div id="pAlert" class="fireAlert hidden"></div>
+        <div class="pOver hidden" id="pIntro"></div>
+      </div>
+      <div class="pBoard hidden" id="pBoard"></div>
     </div>
-    <div class="fireWrap"><button id="pFire" class="wait cut" disabled></button><div class="pBoard hidden" id="pBoard"></div></div>
+    <div class="pInfo hidden" id="pInfo"></div>
+    <div class="fireWrap hidden" id="pFireWrap"><button id="pFire" class="wait cut" disabled></button></div>
+    <div class="hidden"><div class="sig idle" id="pPulse"><div class="leds"></div><b>STANDBY</b></div></div>
     <div class="pFinal hidden" id="pFinal"></div>
   </div>
 </section>
@@ -672,12 +734,16 @@ function genBeats(rd) {
   return B.filter(b => b[0] < half - .05).map(b => [Math.round(b[0] * 1000) / 1000, b[1]]);
 }
 // 점수: 오차는 0.01초 단위
+// 목표 전(또는 ±0.03초): 가까울수록 많이 / 목표를 넘기면: 늦은 만큼 감점 / 미격발·목표+5초 초과: 최대 감점
+const MAX_PENALTY = 1000;
 function judge(el, target) {
-  if (el == null || !isFinite(el) || el > target + DQ_OVER) return { el: el == null ? null : el, err: null, cs: null, score: 0, perfect: false, dq: true };
+  if (el == null || !isFinite(el) || el > target + DQ_OVER) return { el: el == null ? null : el, err: null, cs: null, score: -MAX_PENALTY, perfect: false, late: false, dq: true };
   const err = el - target, cs = Math.round(Math.abs(err) * 100);
-  const perfect = cs <= 3;
-  return { el, err, cs, score: Math.max(0, 1000 - cs * 10) + (perfect ? 500 : 0), perfect, dq: false };
+  const perfect = cs <= 3, late = !perfect && err > 0;
+  const score = perfect ? 1500 : late ? -Math.min(MAX_PENALTY, cs * 10) : Math.max(0, 1000 - cs * 10);
+  return { el, err, cs, score, perfect, late, dq: false };
 }
+const sfmt = n => (n > 0 ? '+' : n < 0 ? '−' : '±') + fmt(Math.abs(n));
 
 /* ---------- 그래픽 (1.5px 라인 아이콘 · 조준경) ---------- */
 const ICONS = {
@@ -704,6 +770,7 @@ const ICONS = {
   link: '<path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/>',
   flask: '<path d="M9 3h6M10 3v6L4 20h16L14 9V3"/><path d="M7 15h10"/>',
   arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+  mute: '<path d="M11 5 6 9H2v6h4l5 4z"/><path d="M16 9l6 6M22 9l-6 6"/>',
 };
 const ic = (n, cls = '') => `<svg class="ic ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true">${ICONS[n] || ''}</svg>`;
 // 정밀 조준경: 동심원 + 십자선 + 눈금
@@ -1084,6 +1151,7 @@ const H = {
     if (b._st !== st) { b._st = st; b.className = 'cut' + (st === 'locked' ? ' locked' : ''); b.disabled = st !== 'live'; b.innerHTML = html; }
   },
   renderPlayers() {
+    if (this.phase === 'lobby') { this.renderLobby(); this.broadcast(); return; }
     if (this.phase === 'lobby') this.renderLobby(); else { this.renderBoard(false); this.renderShots(); }
   },
   renderLobby() {
@@ -1311,7 +1379,7 @@ const H = {
       const d = p.prevRank - p.rank;
       const st = this.phase === 'round' ? (p.fired ? ic('lock', 'lk') : ic('headphones')) : '';
       const arr = arrows && d ? `<span class="arr ${d > 0 ? 'up' : 'dn'}">${d > 0 ? '▲' : '▼'}${Math.abs(d)}</span>` : '';
-      const gain = arrows && this.phase !== 'round' && p.gain ? `<small>+${fmt(p.gain)}</small>` : '';
+      const gain = arrows && this.phase !== 'round' && p.gain ? `<small${p.gain < 0 ? ' style="color:var(--red)"' : ''}>${sfmt(p.gain)}</small>` : '';
       r.innerHTML = `<span class="rk">${pad2(p.rank)}</span><span class="nm">${avatar(p.name, p.pid === 'host')}<em>${esc(p.name)}</em>${st}</span><span class="pts">${fmt(p.total)}${gain}</span>${arr}`;
       box.appendChild(r);
     }
@@ -1325,7 +1393,7 @@ const H = {
   },
   renderReveal() {
     const rd = ROUNDS[this.ri];
-    const list = [...this.players.values()].filter(p => p.res).sort((a, b) => (a.res.dq - b.res.dq) || (a.res.cs - b.res.cs) || (Math.abs(a.res.err) - Math.abs(b.res.err)));
+    const list = [...this.players.values()].filter(p => p.res).sort((a, b) => (a.res.dq - b.res.dq) || (b.res.score - a.res.score) || (Math.abs(a.res.err) - Math.abs(b.res.err)));
     const n = list.length, stag = Math.min(.45, 4 / Math.max(1, n));
     const hits = list.filter(p => !p.res.dq);
     const span = Math.min(DQ_OVER, Math.max(.3, ...hits.map(p => Math.abs(p.res.err) * 1.15)));
@@ -1337,12 +1405,12 @@ const H = {
     let rk = 0, prevCs = null;
     const rows = list.map((p, i) => {
       const r = p.res;
-      if (r.dq) rk = '--'; else if (r.cs !== prevCs) { rk = pad2(i + 1); prevCs = r.cs; }
+      if (r.dq) rk = '--'; else if (r.score !== prevCs) { rk = pad2(i + 1); prevCs = r.score; }
       const best = i === 0 && !r.dq;
-      const err = r.dq ? '<span class="er" style="color:var(--dim)">--</span>' : `<span class="er" style="color:${r.perfect ? 'var(--acid)' : 'var(--ink)'}">${sgn(r.err)}s</span>`;
+      const err = r.dq ? '<span class="er" style="color:var(--dim)">--</span>' : `<span class="er" style="color:${r.perfect ? 'var(--acid)' : r.late ? 'var(--red)' : 'var(--ink)'}">${sgn(r.err)}s</span>`;
       const tm = r.dq ? (r.el == null ? 'NO SHOT' : f2(r.el) + 's') : f2(r.el) + 's';
-      const badge = r.perfect ? ' <span class="perf">PERFECT</span>' : r.dq ? ' <span class="dqTag">DQ</span>' : '';
-      return `<div class="rr${best ? ' best' : ''}${r.dq ? ' dq' : ''}" style="--d:${(n - 1 - i) * stag}s"><span class="rk">${rk}</span><span class="nm">${avatar(p.name, p.pid === 'host')}<em>${esc(p.name)}</em>${badge}</span><span class="tm">${tm}</span>${err}<span class="sc">+${fmt(r.score)}</span></div>`;
+      const badge = r.perfect ? ' <span class="perf">PERFECT</span>' : r.dq ? ' <span class="dqTag">MISS</span>' : r.late ? ' <span class="dqTag">LATE</span>' : '';
+      return `<div class="rr${best ? ' best' : ''}${r.dq ? ' dq' : ''}" style="--d:${(n - 1 - i) * stag}s"><span class="rk">${rk}</span><span class="nm">${avatar(p.name, p.pid === 'host')}<em>${esc(p.name)}</em>${badge}</span><span class="tm">${tm}</span>${err}<span class="sc"${r.score < 0 ? ' style="color:var(--red)"' : ''}>${sfmt(r.score)}</span></div>`;
     }).join('');
     const last = this.ri >= ROUNDS.length - 1;
     $('hReveal').innerHTML = `<div class="revH">ROUND ${pad2(this.ri + 1)} RESULT <b>TARGET ${rd.target.toFixed(2)}s</b></div>
@@ -1362,13 +1430,14 @@ const H = {
     const act = this.active();
     const s = { t: 'st', hn: nowMs(), ph: this.phase, ri: this.ri, nR: ROUNDS.length, n: this.players.size,
       me: { name: p.name, total: p.total, rank: p.rank, fired: p.fired, res: p.res, gain: p.gain },
-      left: act.filter(x => !x.fired).length };
+      left: act.filter(x => !x.fired).length, act: act.length, shots: [...this.players.values()].filter(x => x.fired).length };
+    if (this.phase === 'lobby') s.roster = [...this.players.values()].map(x => [x.name, x.pid === 'host' ? 1 : 0, x.connected ? 1 : 0, x.pid === p.pid ? 1 : 0]);
     if (rd && (this.phase === 'round' || this.phase === 'reveal')) {
       s.rd = { target: rd.target, name: rd.name, hint: rd.hint, tag: rd.tag };
       if (this.phase === 'round') { s.startAt = this.startAt; s.beats = this.beats; }
       if (this.phase === 'reveal') {
-        const ok = [...this.players.values()].filter(x => x.res && !x.res.dq).sort((a, b) => a.res.cs - b.res.cs);
-        s.rr = p.res && !p.res.dq ? ok.findIndex(x => x.res.cs === p.res.cs) + 1 : 0;
+        const ok = [...this.players.values()].filter(x => x.res && !x.res.dq).sort((a, b) => b.res.score - a.res.score);
+        s.rr = p.res && !p.res.dq ? ok.findIndex(x => x.res.score === p.res.score) + 1 : 0;
       }
     }
     if (this.phase === 'final') s.top = this.sorted().slice(0, 3).map(x => ({ name: x.name, total: x.total }));
@@ -1402,6 +1471,13 @@ const P = {
     $('pJoinBtn').onclick = () => this.join();
     $('pName').onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) this.join(); };
     $('pFire').addEventListener('pointerdown', e => this.fire(e));
+    $('pScope').innerHTML = scopeSVG();
+    $('pEq').innerHTML = '<i></i>'.repeat(32);
+    this.eqE = new Float32Array(32);
+    try { this.sound = localStorage.getItem('rhsniper-psound') !== '0'; } catch (e) { this.sound = true; }
+    if (params.get('local') === '1') this.sound = false;
+    this.paintSnd();
+    $('pSnd').onclick = () => this.toggleSound();
     $('pFire').addEventListener('contextmenu', e => e.preventDefault());
     window.addEventListener('beforeunload', () => { if (this.joined) this.send({ t: 'bye' }); });
     document.addEventListener('visibilitychange', () => {
@@ -1421,7 +1497,7 @@ const P = {
   resetJoinBtn() { $('pJoinBtn').disabled = false; $('pJoinBtn').textContent = '입장하기'; },
   async requestWake() { try { if ('wakeLock' in navigator) this.wake = await navigator.wakeLock.request('screen'); } catch (e) {} },
   join() {
-    PSFX.init(); vibrate(20);
+    PSFX.init(); SFX.init(); vibrate(20);
     const code = $('pCode').value.trim().toUpperCase(), name = $('pName').value.trim();
     if (code.length !== 4) return this.err('방 코드 4자리를 입력하세요');
     if (!name) return this.err('닉네임을 입력하세요');
@@ -1566,29 +1642,71 @@ const P = {
     else if (m.t === 'ack') { if (m.r === this.st?.ri) { clearTimeout(this.fireTimer); if (this.myFire) this.myFire.acked = true; } }
     else if (m.t === 'st') this.apply(m);
   },
+  // 폰에서도 박자 소리 (원격으로 하거나 메인 스피커가 안 들릴 때)
+  toggleSound() {
+    SFX.init();
+    this.sound = !this.sound;
+    try { localStorage.setItem('rhsniper-psound', this.sound ? '1' : '0'); } catch (e) {}
+    if (!this.sound) SFX.stopRound(); else this.audioRound = -1;
+    this.paintSnd(); if (this.st && this.st.ph === 'lobby') this.renderLobby(this.st);
+  },
+  paintSnd() { const b = $('pSnd'); if (!b) return; b.innerHTML = ic(this.sound ? 'volume' : 'mute'); b.classList.toggle('off', !this.sound); },
+  view(name) {
+    show($('pLobby'), name === 'lobby'); show($('pStage'), name === 'stage'); show($('pBoard'), name === 'board');
+    show($('pFireWrap'), name === 'stage');
+  },
+  renderLobby(s) {
+    const r = s.roster || [];
+    const slots = Math.max(6, Math.ceil((r.length + 1) / 2) * 2);
+    let list = r.map(([name, host, conn, me], i) => `<div class="slot${conn ? '' : ' off'}${me ? ' me' : ''}"><span class="no">${pad2(i + 1)}</span>${avatar(name, host)}<em>${esc(name)}</em>${host ? '<span class="tag">HOST</span>' : me ? '<span class="tag">YOU</span>' : ''}</div>`).join('');
+    for (let i = r.length; i < slots; i++) list += `<div class="slot empty"><span class="no">${pad2(i + 1)}</span><span class="dash"></span><span>EMPTY</span></div>`;
+    const html = `<div class="codeRow"><div><div class="lbl">ROOM CODE</div><b>${esc(this.code)}</b></div><div class="wait"><i></i>WAITING ROOM<br>호스트가 시작하면 바로 게임 화면으로 바뀌어요</div></div>
+      <div class="panel"><div class="ph"><span class="t">${ic('users')}PLAYERS</span><span class="n"><b>${pad2(r.length)}</b> / ${MAX_PLAYERS}</span></div><div class="pList">${list}</div></div>
+      <div class="panel"><div class="ph"><span class="t">${ic('clock')}ROUNDS</span><span class="n">BEAT <b>━</b> · BLIND <b style="color:var(--red)">┅</b></span></div><div class="rounds">${ROUNDS.map((rd, i) => `<div class="rcell"><div class="top"><b>R${i + 1}</b><span>${rd.en}</span></div><div class="tg">${rd.target.toFixed(0)}s</div><div class="nm">${esc(rd.name)}</div>${beatMapSVG(rd)}</div>`).join('')}</div></div>
+      <div class="steps">
+        <div class="step"><b><i>01</i>${ic('headphones')}박자 듣기</b>0.00초부터 타이머와 비트가 흘러요.</div>
+        <div class="step"><b><i>02</i>${ic('eyeOff')}절반에서 암전</b>소리·숫자가 끊기면 머릿속으로 계속 세세요.</div>
+        <div class="step"><b><i>03</i>${ic('crosshair')}FIRE</b>목표 시간이다 싶을 때 FIRE! 가까울수록 높은 점수, <b style="display:inline;color:var(--red)">목표를 넘기면 감점</b>이에요.</div>
+      </div>
+      <div class="scoreLine">목표 전: 1000 − 10점/0.01s · <b>±0.03s PERFECT +1500</b> · <span style="color:var(--red)">넘기면 −10점/0.01s (최대 −1000) · 미격발 −1000</span></div>
+      <div class="sndRow"><span>${ic('volume')} 이 폰에서 박자 소리 ${this.sound ? '<b style="color:var(--acid)">ON</b>' : '<b style="color:var(--red)">OFF</b>'}</span><button class="btn btnLine" id="pSndL">${this.sound ? '끄기' : '켜기'}</button></div>`;
+    const el = $('pLobby');
+    if (el._h !== html) { el._h = html; el.innerHTML = html; const b = $('pSndL'); if (b) b.onclick = () => this.toggleSound(); }
+  },
   apply(s) {
     this.roughSync(s.hn);
     const prev = this.st; this.st = s;
     const newRound = s.ph === 'round' && (!prev || prev.ph !== 'round' || prev.ri !== s.ri);
     if (newRound) {
-      this.bi = 0; this.qOn = false; this.lastLbl = '';
+      this.bi = 0; this.qOn = false; this.lastLbl = ''; this.darkOn = null; this.glitchOn = null; this.lastCount = null; this.audioRound = -1;
       // 다시 들어온 경우: 호스트에 기록이 있으면 그대로 사용
       this.myFire = s.me.fired && s.me.res ? { el: s.me.res.el, res: s.me.res, r: s.ri, acked: true } : null;
       this.syncBurst(4);
       this.setPulse('idle', 'STANDBY');
+      $('pTimer')._k = '';
+      const rr = ROUNDS[s.ri] || {};
+      $('pIntro').innerHTML = `<div class="introR">ROUND ${pad2(s.ri + 1)} // ${pad2(s.nR)} — ${rr.en || ''}</div><div class="introName">${esc(s.rd.name)}</div><div class="introTgt"><small>TARGET</small>${s.rd.target.toFixed(2)}s</div><div class="introTag${rr.calm ? ' calm' : ''}">${ic(rr.calm ? 'music' : 'alert')}${esc(s.rd.tag)}</div><div class="introSub">${f2(s.rd.target / 2)}초에 암전 · 목표를 넘기면 감점!</div><div class="countNum hidden" id="pCountN">3</div>`;
     }
+    if (s.ph !== 'round' && prev && prev.ph === 'round') SFX.stopRound();
     if (s.ph === 'round' && s.me.fired && s.me.res && (!this.myFire || this.myFire.r !== s.ri)) this.myFire = { el: s.me.res.el, res: s.me.res, r: s.ri, acked: true };
-    const rankTxt = s.me.rank ? `${s.me.rank}위` : '-위';
+    // 다른 사람이 쏘면 폰에도 알림 + 총성
+    if (s.ph === 'round' && prev && prev.ph === 'round' && prev.ri === s.ri && s.shots > (prev.shots || 0)) {
+      const mine = s.me.fired && !prev.me.fired ? 1 : 0;
+      if (s.shots - (prev.shots || 0) - mine > 0) this.otherShot(s.left);
+    }
     $('pScore').innerHTML = `<small>RANK <b>${s.me.rank ? pad2(s.me.rank) : '--'}</b>/${pad2(s.n)}</small>${fmt(s.me.total)} PTS`;
     if (s.rd) {
       const rr = ROUNDS[s.ri] || {};
-      $('pRound').innerHTML = `R${pad2(s.ri + 1)} // TARGET <b>${s.rd.target.toFixed(2)}s</b>`;
+      $('pRound').innerHTML = `<span class="rBadge cut" style="font-size:11px;padding:3px 8px;margin-right:6px">R${s.ri + 1}/${s.nR}</span>TARGET <b>${s.rd.target.toFixed(2)}s</b>`;
       $('pHint').innerHTML = ic(rr.calm ? 'music' : 'alert') + esc(s.rd.hint); $('pHint').classList.toggle('warn', !rr.calm);
-    } else if (s.ph === 'lobby') { $('pRound').textContent = 'STANDBY // 게임 시작 대기'; $('pHint').innerHTML = ''; }
+    } else if (s.ph === 'lobby') { $('pRound').textContent = 'WAITING ROOM'; $('pHint').innerHTML = ''; }
     show($('pFinal'), s.ph === 'final');
-    const boardOn = s.ph === 'reveal' && !!s.board;
-    show($('pBoard'), boardOn); show($('pFire'), !boardOn);
-    if (boardOn) this.renderBoard($('pBoard'), s, `ROUND ${pad2(s.ri + 1)} RESULT`, '다음 라운드를 기다리는 중 · 점수는 누적 기준');
+    if (s.ph === 'lobby') { this.view('lobby'); this.renderLobby(s); }
+    else if (s.ph === 'round') this.view('stage');
+    else if (s.ph === 'reveal') {
+      this.view(s.board ? 'board' : 'stage');
+      if (s.board) this.renderBoard($('pBoard'), s, `ROUND ${pad2(s.ri + 1)} RESULT`, '다음 라운드를 기다리는 중 · 점수는 누적 기준');
+    }
     if (s.ph === 'final') {
       const top = (s.top || []).map((x, i) => `<div><span>${pad2(i + 1)}</span><em style="font-style:normal;flex:1;text-align:left">${esc(x.name)}</em><b>${fmt(x.total)}</b></div>`).join('');
       $('pFinal').innerHTML = `<div class="lbl" style="color:var(--acid)">FINAL // ${esc(this.name)}</div><div class="big">${pad2(s.me.rank)}<small> / ${pad2(s.n)}</small></div><div class="t">최종 순위</div><div class="s">${fmt(s.me.total)} PTS</div>` + (s.board ? '<div class="pBoard" id="pFinalBoard"></div>' : `<div class="top3">${top}</div>`);
@@ -1596,6 +1714,14 @@ const P = {
       if (!prev || prev.ph !== 'final') vibrate(s.me.rank === 1 ? [80, 60, 80, 60, 200] : 60);
     }
     this.renderInfo();
+  },
+  otherShot(left) {
+    if (this.sound) SFX.gun();
+    const a = $('pAlert');
+    a.innerHTML = `${ic('crosshair')}누군가 방아쇠를 당겼습니다 <small>// 남은 ${left}명</small>`;
+    show(a); retrigger(a, 'fireAlert');
+    clearTimeout(this.alertT); this.alertT = setTimeout(() => show(a, false), 2000);
+    retrigger($('pStage'), 'shake');
   },
   fire(e) {
     e.preventDefault();
@@ -1608,7 +1734,7 @@ const P = {
     if (el < 0) return;
     const res = judge(el, s.rd.target);
     this.myFire = { el, res, r: s.ri, acked: false };
-    vibrate(50); PSFX.click();
+    vibrate(50); SFX.init(); if (this.sound) SFX.gun(); else PSFX.click();
     const fb = $('pFire'); fb.classList.add('press'); setTimeout(() => fb.classList.remove('press'), 140);
     const sendFire = () => { if (this.myFire && !this.myFire.acked && this.st && this.st.ri === this.myFire.r) { this.send({ t: 'fire', r: this.myFire.r, el: this.myFire.el }); this.fireTimer = setTimeout(sendFire, 1500); } };
     sendFire();
@@ -1617,8 +1743,8 @@ const P = {
   // 전체 점수판 (이번 라운드 오차·획득 점수 + 누적 점수)
   renderBoard(el, s, title, note) {
     const rows = s.board.map(([name, total, rank, gain, err, perf, me]) => {
-      const d = s.ph === 'final' ? '' : err == null ? '<span class="d dq">DQ</span>' : `<span class="d${perf ? ' pf' : ''}">${perf ? 'PERFECT ' : ''}${sgn(err)}s</span>`;
-      const g = s.ph === 'final' ? '' : `<small>+${fmt(gain)}</small>`;
+      const d = s.ph === 'final' ? '' : err == null ? '<span class="d dq">MISS</span>' : `<span class="d${perf ? ' pf' : err > 0 ? ' dq' : ''}">${perf ? 'PERFECT ' : err > 0 ? 'LATE ' : ''}${sgn(err)}s</span>`;
+      const g = s.ph === 'final' ? '' : `<small${gain < 0 ? ' style="color:var(--red)"' : ''}>${sfmt(gain)}</small>`;
       return `<div class="pbRow r${rank}${me ? ' me' : ''}"><span class="rk">${pad2(rank)}</span><span class="nm">${avatar(name)}<span><em>${esc(name)}${me ? ' <span style="color:var(--acid);font-family:var(--mono);font-size:10px">YOU</span>' : ''}</em>${d}</span></span><span class="pts">${fmt(total)}${g}</span></div>`;
     }).join('');
     const html = `<div class="ph"><span class="t">${ic('trophy')}${title}</span><span class="n"><b>${pad2(s.board.length)}</b>명</span></div><div class="pbList">${rows}</div>${note ? `<div class="pbNote">${note}</div>` : ''}`;
@@ -1637,60 +1763,86 @@ const P = {
     const info = $('pInfo');
     // 오차 텔레메트리 바 (±1.00초 범위)
     const tele = (r, el, sub) => {
-      if (r.dq) return `<div class="tele"><div class="teleTop"><span class="k">DELTA</span><span class="v bad">${el == null ? 'NO SHOT' : f2(el) + 's'} // DQ</span></div><div class="teleBar"><i class="z"></i></div><div class="teleSub"><span>목표+${DQ_OVER}초 초과 · 실격</span><span>${sub}</span></div></div>`;
-      const grade = r.perfect ? 'PERFECT' : r.cs <= 10 ? 'GREAT' : r.cs <= 30 ? 'GOOD' : r.cs < 100 ? 'OFF' : 'MISS';
-      const cls = r.perfect ? 'perf2' : r.cs >= 100 ? 'bad' : '';
+      if (r.dq) return `<div class="tele"><div class="teleTop"><span class="k">DELTA</span><span class="v bad">${el == null ? 'NO SHOT' : f2(el) + 's'} // MISS</span></div><div class="teleBar"><i class="z"></i></div><div class="teleSub"><span>미격발·목표+${DQ_OVER}초 초과</span><span>${sub}</span></div></div>`;
+      const grade = r.perfect ? 'PERFECT' : r.late ? 'LATE' : r.cs <= 10 ? 'GREAT' : r.cs <= 30 ? 'GOOD' : r.cs < 100 ? 'EARLY' : 'MISS';
+      const cls = r.perfect ? 'perf2' : (r.late || r.cs >= 100) ? 'bad' : '';
       const x = 50 + Math.max(-1, Math.min(1, r.err)) * 50;
       return `<div class="tele"><div class="teleTop"><span class="k">DELTA</span><span class="v ${cls}">${sgn(r.err)}s // ${grade}</span></div>
         <div class="teleBar"><i class="z"></i><i class="m ${cls}" style="left:${x}%"></i></div>
         <div class="teleSub"><span>−1.00</span><span>${f2(r.el)}s · ${sub}</span><span>+1.00</span></div></div>`;
     };
     let html = '';
-    if (s.ph === 'lobby') html = `<div class="pStatus">입장 완료</div><div class="pSub">게임이 시작되면 아래 버튼이 방아쇠가 돼요. 박자 소리는 메인 스피커에서 나와요.</div>`;
-    else if (s.ph === 'round') {
-      if (this.myFire) html = tele(this.myFire.res, this.myFire.el, `남은 ${s.left}명 · 나만 보임`);
-      else html = `<div class="pStatus">${esc(s.rd.name)}</div><div class="pSub">TARGET <b>${s.rd.target.toFixed(2)}s</b> · BLIND @ <b>${f2(s.rd.target / 2)}s</b></div>`;
-    } else if (s.ph === 'reveal') {
-      const r = s.me.res;
-      if (!r) html = `<div class="pStatus">다음 라운드 대기</div>`;
-      else html = tele(r, r.el, r.dq ? '+0' : `+${fmt(r.score)} PTS · 라운드 ${pad2(s.rr)}위`);
-    }
+    if (s.ph === 'round' && this.myFire) html = tele(this.myFire.res, this.myFire.el, `${sfmt(this.myFire.res.score)} · 나만 보임`);
+    else if (s.ph === 'reveal' && s.me.res) html = tele(s.me.res, s.me.res.el, `${sfmt(s.me.res.score)} PTS${s.rr ? ` · ${pad2(s.rr)}위` : ''}`);
+    show(info, !!html);
     if (info._h !== html) { info._h = html; info.innerHTML = html; }
   },
-  // 매 프레임: 버튼 상태와 비트 펄스 (폰에는 시간 숫자를 보여 주지 않음)
+  // 매 프레임: 호스트와 같은 게임 화면(조준경·파형·타이머) + FIRE 버튼
   paint() {
     const s = this.st; if (!s || !this.joined) return;
-    const pulse = $('pPulse');
+    this.paintWave();
     const corners = '<span class="corner a">CH-01</span><span class="corner b">' + esc(this.name) + '</span>';
-    if (s.ph !== 'round') {
-      if (s.ph === 'reveal') this.setFire('wait', '<span class="bl">STANDBY</span><small>다음 라운드 대기</small>', true);
-      else if (s.ph === 'final') this.setFire('wait', '<span class="bl">GAME OVER</span>', true);
-      else this.setFire('wait', `<div class="howList"><div class="hl">HOW TO PLAY</div>
-        <div class="st"><i>01</i><span>메인 화면의 <b>박자</b>를 들어요 (0.00초부터 시작)</span></div>
-        <div class="st"><i>02</i><span>목표 시간의 <b>절반</b>에서 소리·숫자가 끊겨요. 머릿속으로 계속 세세요</span></div>
-        <div class="st"><i>03</i><span><b>목표 시간이다</b> 싶은 순간 이 버튼(FIRE)을 누르면 그 시간이 <b>확정</b>돼요</span></div>
-        <div class="ft">호스트가 게임을 시작하면 버튼이 라임색으로 켜져요</div></div>`, true);
-      if (!pulse.classList.contains('idle')) this.setPulse('idle', 'STANDBY');
-      return;
-    }
+    if (s.ph !== 'round') { show($('pIntro'), false); return; }
     const rd = s.rd, half = rd.target / 2;
     const t = (this.hostNow() - s.startAt) / 1000;
-    if (this.myFire) this.setFire('locked', `${reticleSVG()}<span class="bl">${ic('lock')} LOCKED</span><small>격발 완료 · 기록 확정</small>`, true);
-    else if (t < 0) this.setFire('ready', `${corners}<span class="bl">${Math.ceil(-t) <= 3 ? 'READY ' + Math.ceil(-t) : 'READY'}</span><small>목표 ${rd.target.toFixed(2)}초가 됐다 싶을 때 누르세요</small>`, true);
-    else if (t > rd.target + DQ_OVER) this.setFire('wait timeout', '<span class="bl">TIMEOUT</span><small>실격</small>', true);
-    else this.setFire('', `${corners}${reticleSVG()}<span class="bl">FIRE</span><small>${t >= half ? 'BLIND — 머릿속으로 세다가' : '박자를 기억하다가'} ${rd.target.toFixed(2)}초에 누르면 확정</small><span class="grip"><i></i><i></i><i></i></span>`, false);
-    if (t >= half) {
-      if (!this.qOn) { this.qOn = true; this.setPulse('q', 'SIGNAL LOST'); }
-      return;
+    // 박자 소리: 시계 맞춤이 끝난 뒤(카운트다운 직전) 한 번에 예약
+    if (this.sound && this.audioRound !== s.ri && t > -3.6 && t < half) {
+      this.audioRound = s.ri; SFX.init();
+      if (SFX.ctx) SFX.scheduleRound(s.startAt - this.off, s.beats || [], half);
     }
+    // 소개 → 3·2·1
+    const intro = t < -COUNT_MS / 1000, counting = !intro && t < 0;
+    show($('pIntro'), intro || counting);
+    if (intro || counting) {
+      const box = $('pIntro'), cn = $('pCountN');
+      [...box.children].forEach(c => { if (c !== cn) c.classList.toggle('hidden', counting); });
+      if (cn) {
+        show(cn, counting);
+        const n = Math.ceil(-t);
+        if (counting && n !== this.lastCount) { this.lastCount = n; cn.textContent = n; retrigger(cn, 'countNum'); }
+      }
+    }
+    // 암전
+    const dark = t >= half, glitch = dark && t < half + .2;
+    if (dark !== this.darkOn) { this.darkOn = dark; $('pStage').classList.toggle('dark', dark); $('pViz').classList.toggle('dead', dark); if (dark) $('pViz').classList.remove('pre', 'hit'); }
+    if (glitch !== this.glitchOn) { this.glitchOn = glitch; show($('pGlitch'), glitch); }
+    show($('pBanner'), dark && !glitch);
+    const tm = $('pTimer');
+    if (glitch) H.setTimer(tm, f2(half).padStart(5, '0'), 'glitch');
+    else if (dark) H.setTimer(tm, '??.??', 'hide');
+    else H.setTimer(tm, f2(Math.max(0, t)).padStart(5, '0'), '');
+    const sh = `${ic('crosshair')}격발 <b>${(s.act || 0) - s.left}</b> / ${s.act || 0} · 남은 인원 <b>${s.left}</b>명`;
+    if ($('pShots')._h !== sh) { $('pShots')._h = sh; $('pShots').innerHTML = sh; }
+    // 버튼
+    if (this.myFire) this.setFire('locked', `${reticleSVG()}<span class="bl">${ic('lock')} LOCKED</span><small>격발 완료 · 기록 확정</small>`, true);
+    else if (t < 0) this.setFire('ready', `${corners}<span class="bl">${Math.ceil(-t) <= 3 ? 'READY ' + Math.ceil(-t) : 'READY'}</span><small>목표 ${rd.target.toFixed(2)}초에 맞춰 누르세요</small>`, true);
+    else if (t > rd.target + DQ_OVER) this.setFire('wait timeout', '<span class="bl">TIMEOUT</span><small>미격발 −1000</small>', true);
+    else this.setFire('', `${corners}${reticleSVG()}<span class="bl">FIRE</span><small>${rd.target.toFixed(2)}초에 누르면 확정 · 넘기면 감점</small>`, false);
+    // 비트 펄스 (암전 전까지)
+    if (dark) return;
     const beats = s.beats || [];
     while (this.bi < beats.length && beats[this.bi][0] <= t) {
       const [bt, k] = beats[this.bi++];
-      if (k === 'h' || t - bt > .15) continue;
-      this.setPulse(k, k === 'p' ? 'BLIND NEXT' : 'SIGNAL LIVE');
-      retrigger(pulse, 'hit'); clearTimeout(this.hitT); this.hitT = setTimeout(() => pulse.classList.remove('hit'), 140);
+      if (t - bt > .15) continue;
+      this.beatFx(k);
     }
-    if (t < 0 && !pulse.classList.contains('idle')) this.setPulse('idle', 'STANDBY');
+  },
+  beatFx(k) {
+    const v = $('pViz');
+    if (k !== 'h') { retrigger(v, 'hit'); clearTimeout(this.hitT); this.hitT = setTimeout(() => v.classList.remove('hit'), 120); v.classList.toggle('pre', k === 'p'); }
+    const r = document.createElement('div'); r.className = 'ring ' + k; v.appendChild(r); setTimeout(() => r.remove(), 800);
+    const e = this.eqE, n = e.length, amp = k === 'h' ? .32 : k === 'p' ? 1 : k === 's' ? .78 : .92;
+    for (let i = 0; i < n; i++) { const mid = 1 - Math.abs(i - (n - 1) / 2) / (n / 2); e[i] = Math.max(e[i], amp * (.25 + .75 * mid * mid) * (.6 + Math.random() * .4)); }
+  },
+  paintWave() {
+    const e = this.eqE; if (!e) return;
+    const bars = $('pEq').children, live = this.st && this.st.ph === 'round' && !this.darkOn;
+    const tt = performance.now() / 1000;
+    for (let i = 0; i < e.length; i++) {
+      e[i] *= .86;
+      const h = (Math.max(live ? .05 + .04 * Math.sin(tt * 3 + i * .5) : .02, e[i]) * 100).toFixed(1) + '%';
+      if (bars[i].style.height !== h) bars[i].style.height = h;
+    }
   },
 };
 
