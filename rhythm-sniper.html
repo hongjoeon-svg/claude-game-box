@@ -97,6 +97,18 @@ input, select { font: inherit; }
 .rule { text-align: center; padding: 8px 4px; border-radius: 12px; background: rgba(255,255,255,.05); border: 1px solid var(--line); }
 .rule b { display: block; font-family: var(--num); color: var(--yellow); font-size: clamp(14px, 1.4vw, 20px); }
 .rule span { font-size: clamp(10px, .9vw, 13px); color: var(--sub); }
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+.step { padding: 10px; border-radius: 12px; background: rgba(255,255,255,.05); border: 1px solid var(--line); font-size: clamp(12px, 1vw, 15px); color: var(--sub); line-height: 1.5; }
+.step b { display: block; color: var(--ink); font-size: clamp(14px, 1.2vw, 18px); margin-bottom: 2px; }
+.selfRow { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+.selfRow input { flex: 1; min-width: 120px; padding: 9px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.07); color: var(--ink); font-weight: 700; outline: none; }
+.selfRow .btn { padding: 9px 14px; font-size: 14px; border-radius: 10px; }
+.chip.me { border-color: var(--yellow); }
+#hMyFire { position: absolute !important; right: 18px; bottom: 18px; z-index: 9 !important; font-family: var(--num); font-weight: 900; font-size: clamp(20px, 2.2vw, 34px); padding: clamp(14px, 2vh, 24px) clamp(20px, 2.4vw, 38px); border-radius: 20px; color: #fff;
+  background: radial-gradient(circle at 50% 35%, #ff7a92, #ff3b5c 50%, #9b0f2c); box-shadow: 0 0 0 3px #ffb3c1, 0 0 30px #ff3b5caa; display: flex; flex-direction: column; align-items: center; gap: 2px; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+#hMyFire small { font-family: var(--font); font-size: 12px; font-weight: 700; opacity: .9; }
+#hMyFire:disabled { background: linear-gradient(180deg, #2a2160, #1a1340); color: #8e86c4; box-shadow: 0 0 0 2px #ffffff22; cursor: default; }
+#hMyFire.locked { background: linear-gradient(180deg, #1f3a2d, #12261d); color: var(--lime); box-shadow: 0 0 0 2px #b6ff3b66; }
 .howto { font-size: clamp(12px, 1vw, 15px); color: var(--sub); line-height: 1.6; margin-top: 10px; }
 .howto b { color: var(--ink); }
 .lobCtl { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
@@ -271,6 +283,11 @@ input, select { font: inherit; }
 #pFire.wait, #pFire:disabled { background: linear-gradient(180deg, #2a2160, #1a1340); box-shadow: 0 0 0 2px #ffffff22, inset 0 -8px 24px #0006; color: #8e86c4; font-size: clamp(26px, 8vw, 44px); }
 #pFire.ready { background: linear-gradient(180deg, #3b2a7a, #241752); color: var(--yellow); box-shadow: 0 0 0 3px #ffe14d77, 0 0 30px #ffe14d44; }
 #pFire.locked { background: linear-gradient(180deg, #1f3a2d, #12261d); color: var(--lime); box-shadow: 0 0 0 3px #b6ff3b66; font-size: clamp(26px, 8vw, 44px); }
+.howList { position: relative; text-align: left; font-family: var(--font); letter-spacing: 0; color: #d9d3ff; font-size: clamp(14px, 4vw, 17px); font-weight: 700; line-height: 1.5; display: grid; gap: 8px; padding: 0 22px; }
+.howList b { color: var(--yellow); }
+.howList .hl { font-family: var(--disp); font-weight: 400; font-size: clamp(20px, 6vw, 26px); color: #fff; text-align: center; margin-bottom: 2px; }
+.howList .st { display: grid; grid-template-columns: 1.7em 1fr; gap: 6px; align-items: start; }
+.howList .st i { font-style: normal; display: grid; place-items: center; width: 1.6em; height: 1.6em; border-radius: 50%; background: var(--purple); color: #fff; font-size: .85em; }
 #pFire.boom { animation: boom .35s; }
 @keyframes boom { 0% { filter: brightness(3); transform: scale(.94); } 100% { filter: none; transform: none; } }
 .pFinal { position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; padding: 20px; background: rgba(7,4,26,.94); }
@@ -329,13 +346,22 @@ input, select { font: inherit; }
       <div class="panel">
         <div class="panelH"><h3>🥁 5라운드 구성</h3></div>
         <div class="rules" id="hRules"></div>
-        <div class="howto">박자를 듣다가 <b>목표 시간의 절반</b>에서 소리와 화면이 뚝 끊겨요. 머릿속으로 박자를 이어 가다 <b>목표 시간에 정확히 FIRE!</b><br>
-          점수 = 1,000점 − 오차 0.01초당 10점 · <b style="color:var(--lime)">±0.03초 이내 PERFECT +500</b> · 목표+5초 넘으면 실격</div>
+        <div class="steps">
+          <div class="step"><b>① 🎧 박자 듣기</b>0.00초부터 화면 타이머와 비트가 흘러요. 박자에 몸을 맡기세요.</div>
+          <div class="step"><b>② 🙈 절반에서 암전</b>목표 시간의 절반에서 소리·숫자가 뚝 끊겨요. 머릿속으로 계속 세세요.</div>
+          <div class="step"><b>③ 🎯 FIRE!</b>목표 시간이 됐다고 느끼는 순간 폰의 <b style="display:inline;color:var(--pink)">FIRE!</b>를 누르면 그 순간의 시간이 확정돼요.</div>
+        </div>
+        <div class="howto">점수 = 1,000점 − 오차 0.01초당 10점 · <b style="color:var(--lime)">±0.03초 이내 PERFECT +500</b> · 목표+5초 넘으면 실격 · 모두 쏘면 결과 공개</div>
       </div>
       <div class="panel">
         <div class="lobCtl">
           <button class="btn btnHot" id="hStart" disabled>▶ 게임 시작 (2명 이상 추천)</button>
           <button class="btn btnGhost" id="hLocalTab">🧪 가상 플레이어 추가<br><small style="font-weight:500;color:var(--sub)">새 탭 · 로컬 테스트용</small></button>
+        </div>
+        <div class="selfRow" id="hSelfRow">
+          <span style="font-size:14px;color:var(--sub)">🙋 호스트도 참여</span>
+          <input type="text" id="hSelfName" maxlength="8" placeholder="호스트 닉네임" autocomplete="off">
+          <button class="btn btnCyan" id="hSelfJoin">참여하기</button>
         </div>
         <div class="setRow" style="margin-top:10px">
           🔊 스피커 지연 보정
@@ -368,12 +394,14 @@ input, select { font: inherit; }
       <div id="hBanner" class="banner hidden">🙈 암전! 머릿속 박자를 유지하세요!</div>
       <div id="hAlert" class="fireAlert hidden"></div>
       <div id="hHoles"></div>
+      <button id="hMyFire" class="hidden" disabled>FIRE!<small>스페이스바 / 클릭</small></button>
       <div class="overlay hidden" id="hIntro">
         <div class="introR" id="hIntroR">ROUND 1</div>
         <div class="introName" id="hIntroName">정박 스탠다드</div>
         <div class="introTgt" id="hIntroTgt">TARGET 5.00s</div>
         <div class="introTag" id="hIntroTag"></div>
         <div class="introSub" id="hIntroSub"></div>
+        <div class="introSub" style="color:#fff;margin-top:8px">🎯 목표 시간이 됐다고 느끼는 순간 <b style="color:var(--pink)">FIRE!</b> — 누르는 순간 기록이 확정돼요</div>
       </div>
       <div class="overlay hidden" id="hCountO" style="background:rgba(7,4,26,.6)"><div class="countNum" id="hCountN">3</div><div class="introSub">폰의 FIRE 버튼에 엄지를 올리세요</div></div>
       <div class="overlay hidden" id="hReveal"></div>
@@ -744,6 +772,10 @@ const H = {
     $('hCopy').onclick = e => copyText(this.joinUrl(false), e.currentTarget);
     $('hShare').onclick = e => shareLink(this.joinUrl(false), e.currentTarget);
     $('hTest').onclick = () => SFX.test();
+    try { $('hSelfName').value = localStorage.getItem('rhsniper-name') || ''; } catch (e) {}
+    $('hSelfJoin').onclick = () => this.toggleSelf();
+    $('hSelfName').onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) this.toggleSelf(); };
+    $('hMyFire').addEventListener('pointerdown', e => { e.preventDefault(); this.selfFire(e); });
     try { $('hLat').value = localStorage.getItem('rhsniper-lat') || '0'; } catch (e) {}
     SFX.offset = +$('hLat').value || 0;
     $('hLat').onchange = () => { SFX.offset = +$('hLat').value || 0; try { localStorage.setItem('rhsniper-lat', $('hLat').value); } catch (e) {} };
@@ -751,7 +783,8 @@ const H = {
     $('hQuit').onclick = () => { if (confirm('게임을 끝내고 대기실로 돌아갈까요?')) this.toLobby(); };
     document.addEventListener('keydown', e => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
-      if ((e.code === 'Space' || e.code === 'Enter') && (this.phase === 'reveal')) { e.preventDefault(); this.advance(); }
+      if (e.code === 'Space' && this.phase === 'round' && this.players.has('host')) { e.preventDefault(); if (!e.repeat) this.selfFire(e); return; }
+      if ((e.code === 'Space' || e.code === 'Enter') && this.phase === 'reveal') { e.preventDefault(); this.advance(); }
     });
     document.addEventListener('pointerdown', () => SFX.init(), { once: true });
     const wake = async () => { try { if ('wakeLock' in navigator && document.visibilityState === 'visible') this.wake = await navigator.wakeLock.request('screen'); } catch (e) {} };
@@ -813,9 +846,46 @@ const H = {
       this.rank(); p.prevRank = p.rank;
       SFX.join();
     } else p.connected = true;
-    HostNet.send(pid, { t: 'welcome', name: p.name });
+    HostNet.send(pid, { t: 'welcome', name: p.name, hn: nowMs() });
     this.renderPlayers();
     this.sendState(p);
+  },
+  // 호스트도 같은 화면에서 참여 (네트워크 없이 바로 판정)
+  toggleSelf() {
+    SFX.init();
+    if (this.players.has('host')) { this.players.delete('host'); }
+    else {
+      const name = $('hSelfName').value.trim().slice(0, 8);
+      if (!name) { $('hSelfName').focus(); $('hSelfName').placeholder = '닉네임을 먼저 입력하세요'; return; }
+      try { localStorage.setItem('rhsniper-name', name); } catch (e) {}
+      this.addPlayer('host', name);
+    }
+    const on = this.players.has('host');
+    $('hSelfJoin').textContent = on ? '참여 취소' : '참여하기';
+    $('hSelfName').disabled = on;
+    this.renderPlayers();
+  },
+  selfFire(e) {
+    if (this.phase !== 'round') return;
+    const p = this.players.get('host'); if (!p || p.fired) return;
+    let ts = nowMs();
+    if (e && e.timeStamp > 0 && Math.abs(performance.now() - e.timeStamp) < 1000) ts = performance.timeOrigin + e.timeStamp;
+    const el = (ts - this.startAt) / 1000;
+    if (el < 0) return;
+    this.onFire('host', { r: this.ri, el });
+  },
+  paintMyFire(t) {
+    const b = $('hMyFire'), p = this.players.get('host');
+    const on = !!p && this.phase === 'round';
+    if (b._on !== on) { b._on = on; show(b, on); }
+    if (!on) return;
+    const rd = ROUNDS[this.ri];
+    let st, html;
+    if (p.fired) { st = 'locked'; html = '🔒 격발 완료<small>결과는 공개 때!</small>'; }
+    else if (t < 0) { st = 'wait'; html = 'READY<small>스페이스바 / 클릭으로 격발</small>'; }
+    else if (t > rd.target + DQ_OVER) { st = 'wait'; html = '⏱ 시간 초과'; }
+    else { st = 'live'; html = '🎯 ' + esc(p.name) + ' FIRE!<small>스페이스바 / 클릭</small>'; }
+    if (b._st !== st) { b._st = st; b.className = st === 'locked' ? 'locked' : ''; b.disabled = st !== 'live'; b.innerHTML = html; }
   },
   renderPlayers() {
     if (this.phase === 'lobby') this.renderLobby(); else { this.renderBoard(false); this.renderShots(); }
@@ -823,10 +893,12 @@ const H = {
   renderLobby() {
     const list = [...this.players.values()];
     $('hCount').textContent = list.length + '명';
-    $('hPlayers').innerHTML = list.length ? list.map(p => `<span class="chip${p.connected ? '' : ' off'}">${avatar(p.name)}${esc(p.name)}</span>`).join('')
+    $('hPlayers').innerHTML = list.length ? list.map(p => `<span class="chip${p.connected ? '' : ' off'}${p.pid === 'host' ? ' me' : ''}">${avatar(p.name)}${esc(p.name)}${p.pid === 'host' ? ' 👑' : ''}</span>`).join('')
       : '<div class="empty">아직 아무도 없어요. QR을 찍어 들어와 주세요!</div>';
     $('hStart').disabled = list.length < 1;
     $('hStart').textContent = list.length < 1 ? '▶ 게임 시작 (참가자를 기다리는 중)' : `▶ 게임 시작 (${list.length}명)`;
+    const self = this.players.has('host');
+    $('hSelfJoin').textContent = self ? '참여 취소' : '참여하기'; $('hSelfName').disabled = self;
   },
 
   /* ---------- 진행 ---------- */
@@ -962,9 +1034,10 @@ const H = {
 
   /* ---------- 화면 그리기 (매 프레임) ---------- */
   paint() {
-    if (this.phase !== 'round') return;
+    if (this.phase !== 'round') { this.paintMyFire(0); return; }
     const rd = ROUNDS[this.ri], half = rd.target / 2;
     const t = (nowMs() - this.startAt) / 1000;
+    this.paintMyFire(t);
     const intro = t < -COUNT_MS / 1000, counting = !intro && t < 0;
     show($('hIntro'), intro);
     show($('hCountO'), counting);
@@ -1071,7 +1144,7 @@ const H = {
   stateFor(p) {
     const rd = this.ri >= 0 && this.ri < ROUNDS.length ? ROUNDS[this.ri] : null;
     const act = this.active();
-    const s = { t: 'st', ph: this.phase, ri: this.ri, nR: ROUNDS.length, n: this.players.size,
+    const s = { t: 'st', hn: nowMs(), ph: this.phase, ri: this.ri, nR: ROUNDS.length, n: this.players.size,
       me: { name: p.name, total: p.total, rank: p.rank, fired: p.fired, res: p.res, gain: p.gain },
       left: act.filter(x => !x.fired).length };
     if (rd && (this.phase === 'round' || this.phase === 'reveal')) {
@@ -1085,7 +1158,7 @@ const H = {
     if (this.phase === 'final') s.top = this.sorted().slice(0, 3).map(x => ({ name: x.name, total: x.total }));
     return s;
   },
-  sendState(p) { HostNet.send(p.pid, this.stateFor(p)); },
+  sendState(p) { if (p.pid !== 'host') HostNet.send(p.pid, this.stateFor(p)); },
   broadcast() { for (const p of this.players.values()) this.sendState(p); },
 };
 
@@ -1245,6 +1318,8 @@ const P = {
     this.off = best.off;
   },
   hostNow() { return nowMs() + this.off; },
+  // 정밀 측정값이 아직 없으면 호스트가 보낸 시각으로 대략 맞춤 (폰 시계가 몇 초 틀려도 버튼이 제때 켜지게)
+  roughSync(hn) { if (!this.samples.length && isFinite(hn)) this.off = hn - nowMs(); },
 
   onMsg(m, via) {
     if (!m || typeof m !== 'object') return;
@@ -1258,6 +1333,7 @@ const P = {
         if (via === 'mqtt' || via === 'bc') { clearTimeout(this.peerTimer); }
         if (via === 'peer') this.endRelays();
       }
+      this.roughSync(m.hn);
       this.syncBurst(6);
       return;
     }
@@ -1270,6 +1346,7 @@ const P = {
     else if (m.t === 'st') this.apply(m);
   },
   apply(s) {
+    this.roughSync(s.hn);
     const prev = this.st; this.st = s;
     const newRound = s.ph === 'round' && (!prev || prev.ph !== 'round' || prev.ri !== s.ri);
     if (newRound) {
@@ -1343,16 +1420,20 @@ const P = {
     if (s.ph !== 'round') {
       if (s.ph === 'reveal') this.setFire('wait', '<span class="lbl">다음 라운드 대기</span>', true);
       else if (s.ph === 'final') this.setFire('wait', '<span class="lbl">게임 종료</span>', true);
-      else this.setFire('wait', '<span class="lbl">대기 중</span><small>호스트가 게임을 시작하면 활성화</small>', true);
+      else this.setFire('wait', `<div class="howList"><div class="hl">🎯 이렇게 해요</div>
+        <div class="st"><i>1</i><span>메인 화면의 <b>박자</b>를 들어요 (0.00초부터 시작)</span></div>
+        <div class="st"><i>2</i><span>목표 시간의 <b>절반</b>에서 소리·숫자가 꺼져요 → 머릿속으로 계속 세기</span></div>
+        <div class="st"><i>3</i><span><b>목표 시간이다!</b> 싶은 순간 이 버튼(FIRE!)을 누르면 그 시간이 <b>확정</b>돼요</span></div>
+        <div style="text-align:center;color:var(--dim);font-size:13px">호스트가 게임을 시작하면 버튼이 빨갛게 켜져요</div></div>`, true);
       if (!pulse.classList.contains('idle')) { pulse.className = 'pulse idle'; pulse.textContent = '♪'; }
       return;
     }
     const rd = s.rd, half = rd.target / 2;
     const t = (this.hostNow() - s.startAt) / 1000;
     if (this.myFire) this.setFire('locked', `${reticleSVG('#b6ff3b')}<span class="lbl">🔒 격발 완료</span>`, true);
-    else if (t < 0) this.setFire('ready', `<span class="lbl">READY ${Math.ceil(-t) <= 3 ? Math.ceil(-t) : ''}</span><small>엄지를 올려 두세요</small>`, true);
+    else if (t < 0) this.setFire('ready', `<span class="lbl">READY ${Math.ceil(-t) <= 3 ? Math.ceil(-t) : ''}</span><small>목표 ${rd.target.toFixed(2)}초가 됐다 싶을 때 누르세요</small>`, true);
     else if (t > rd.target + DQ_OVER) this.setFire('wait', '<span class="lbl">⏱ 시간 초과</span><small>실격</small>', true);
-    else this.setFire('', `${reticleSVG()}<span class="lbl">FIRE!</span>`, false);
+    else this.setFire('', `${reticleSVG()}<span class="lbl">FIRE!</span><small>${t >= half ? '🙈 암전! 머릿속으로 세다가' : '박자를 기억하다가'} ${rd.target.toFixed(2)}초에 누르면 확정</small>`, false);
     if (t >= half) {
       if (!this.qOn) { this.qOn = true; pulse.className = 'pulse q'; pulse.textContent = '?'; }
       return;
