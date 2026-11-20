@@ -228,6 +228,8 @@ body.selfOn .boardList { flex: none; height: calc(100vh - 47vh - 7vw); }
 .row.r2 { background: linear-gradient(90deg, rgba(200,210,230,.18), var(--panel)); }
 .row.r3 { background: linear-gradient(90deg, rgba(205,127,50,.2), var(--panel)); }
 .row.off { opacity: .4; }
+.row.me { border-color: var(--cham); box-shadow: 0 0 0 2px rgba(140,255,79,.5); }
+body.mirror #hQuit { display: none; }
 .row.up { animation: rowUp .8s; }
 .row.gain .sc { animation: gain .6s; }
 @keyframes rowUp { 0% { box-shadow: 0 0 0 0 rgba(61,255,154,.9); background: rgba(61,255,154,.35) } 100% { box-shadow: 0 0 0 10px rgba(61,255,154,0) } }
@@ -442,12 +444,35 @@ body.selfOn .boardList { flex: none; height: calc(100vh - 47vh - 7vw); }
   .gFoot { flex-wrap: wrap; gap: 6px 10px; }
   .gFoot > span { white-space: nowrap; }
   #hUrlS { display: none; }
-  /* 호스트가 폰으로 메인 화면을 띄우고 같이 할 때: 패드를 화면 아래에 고정하고 그만큼 비워둠 */
-  #player.embed { left: 0; right: 0; bottom: 0; width: auto; height: 40vh; border-radius: 18px 18px 0 0; border-bottom: 0; }
-  body.selfOn #hGame { padding-bottom: 40vh; }
+  /* 폰에서 메인 화면 + 내 패드: 패드는 아래에 고정, 위쪽은 문제 카드와 랭킹(랭킹은 그 안에서 스크롤) */
+  #player.embed { left: 0; right: 0; bottom: 0; width: auto; height: 37vh; border-radius: 18px 18px 0 0; border-bottom: 0; }
+  body.selfOn { overflow: hidden !important; }
+  body.selfOn #hGame { height: 63vh; height: calc(100dvh - 37vh); min-height: 0; grid-template-rows: auto minmax(0, 1fr); }
+  body.selfOn .gMain { padding: 8px 10px 4px; gap: 6px; }
+  body.selfOn .card { aspect-ratio: 16 / 6.6; border-radius: 18px; gap: 4px; }
+  body.selfOn .word { font-size: clamp(48px, min(16vw, 9vh), 110px); }
+  body.selfOn .badge { font-size: clamp(14px, min(4.4vw, 2.6vh), 24px); }
+  body.selfOn .reveal .ra { font-size: clamp(40px, min(13vw, 8vh), 90px); }
+  body.selfOn .reveal .rl, body.selfOn .reveal .rw { font-size: 13px; }
+  body.selfOn .ansInfo { font-size: 14px; min-height: 1.3em; }
+  body.selfOn .roundBadge { font-size: 20px; }
+  body.selfOn .timeNum { font-size: 30px; }
+  body.selfOn .gauge { height: 14px; }
+  body.selfOn .board { overflow-y: auto; min-height: 0; padding: 6px 10px; gap: 4px; }
+  body.selfOn .board h3 { font-size: 16px; }
+  body.mirror .gFoot { display: none; }
   #player.embed .padBtn { font-size: clamp(20px, min(7vw, 4.5vh), 36px); }
 }
 /* 가로로 눕힌 폰: 상단 정보를 한 줄로 줄이고 버튼 영역을 넓게 */
+/* 가로로 눕힌 폰에서 메인 화면 + 내 패드: 왼쪽은 메인 화면, 오른쪽 절반은 패드 */
+@media (max-height: 520px) and (max-width: 900px) {
+  #player.embed { top: 0; bottom: 0; left: auto; right: 0; width: 48vw; height: auto; border-radius: 18px 0 0 18px; border: 2px solid rgba(140,255,79,.45); border-right: 0; }
+  body.selfOn #hGame { height: 100vh; height: 100dvh; margin-right: 48vw; grid-template-columns: 1fr; }
+  body.selfOn .card { aspect-ratio: 16 / 7; }
+  body.selfOn .word { font-size: clamp(36px, min(8vw, 18vh), 90px); }
+  body.selfOn .badge { font-size: 13px; }
+  body.selfOn .ansInfo { display: none; }
+}
 @media (max-height: 520px) {
   #pGame { padding: 6px 10px max(6px, env(safe-area-inset-bottom)); gap: 6px; }
   #player:not(.embed) .pHead { min-height: 0; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 4px 14px; }
@@ -1096,7 +1121,14 @@ const Host = {
     this.qStart = now; this.deadline = now + CFG.qTime; this.lastSec = 4;
     this.firstOk = null; this.okCount = 0;
     for (const p of this.players.values()) Object.assign(p, { done: false, lockUntil: 0, qRt: 0, qPts: 0, qWrong: false });
-    // 문제 카드
+    this.renderCard();
+    this.renderAnsInfo();
+    SFX.pop();
+    for (const p of this.players.values()) if (p.bot) this.botThink(p);
+    this.changed(true);
+  },
+  // 화면 그리기 (호스트 화면과 참가자 폰의 '메인 화면 미러'가 같이 씀)
+  renderCard() {
     const q = this.q, card = $('hCard');
     $('hRound').textContent = this.round;
     $('hBadge').className = 'badge ' + q.mode;
@@ -1105,10 +1137,20 @@ const Host = {
     $('hWord').style.setProperty('--c', COLORS[q.ink].ink);
     show($('hReveal'), false); card.classList.remove('revealed');
     retrigger(card, 'enter');
-    $('hAnsInfo').innerHTML = `정답 <b>0</b> / ${this.activeCount()}명`;
-    SFX.pop();
-    for (const p of this.players.values()) if (p.bot) this.botThink(p);
-    this.changed(true);
+  },
+  renderAnsInfo() {
+    $('hAnsInfo').innerHTML = `정답 <b>${this.okCount}</b> / ${this.activeCount()}명` + (this.firstOk ? ` · ⚡ 최고 속도 <b>${esc(this.firstOk.name)}</b> ${(this.firstOk.rt / 1000).toFixed(2)}초` : '');
+  },
+  renderReveal() {
+    const q = this.q, C = COLORS[q.ans];
+    const rv = $('hReveal');
+    rv.innerHTML = `<div class="rl">정답은</div><div class="ra" style="--c:${C.ink};--fg:${C.fg}">${C.name}</div>
+      <div class="rw">${q.mode === 'color' ? `글자 <b>색깔</b> → ${C.name} (적힌 글자는 ‘${COLORS[q.word].name}’)` : `글자 <b>의미</b> → ${C.name} (글씨 색은 ${COLORS[q.ink].name})`}</div>`;
+    show(rv); $('hCard').classList.add('revealed');
+    const n = this.activeCount();
+    $('hAnsInfo').innerHTML = this.okCount
+      ? `정답 <b>${this.okCount}</b> / ${n}명 · ⚡ 최고 속도 <b>${esc(this.firstOk.name)}</b> ${(this.firstOk.rt / 1000).toFixed(2)}초 (+${this.firstOk.pts})`
+      : `😱 아무도 못 맞혔어요!`;
   },
   botThink(p) {
     const qid = this.qid;
@@ -1143,7 +1185,7 @@ const Host = {
       const atk = p.combo % CFG.combo === 0;
       HostNet.send(pid, { t: 'res', qid: this.qid, ok: true, pts, combo: p.combo, score: p.score, atk });
       SFX.blip(this.okCount);
-      $('hAnsInfo').innerHTML = `정답 <b>${this.okCount}</b> / ${this.activeCount()}명` + (this.firstOk ? ` · ⚡ 최고 속도 <b>${esc(this.firstOk.name)}</b> ${(this.firstOk.rt / 1000).toFixed(2)}초` : '');
+      this.renderAnsInfo();
       if (atk) this.attack(p);
     } else {
       p.combo = 0; p.wrong++; p.qWrong = true;
@@ -1169,15 +1211,7 @@ const Host = {
     this.phase = 'reveal';
     this.phaseEnd = Date.now() + CFG.reveal;
     for (const p of this.players.values()) if (!p.done) p.combo = 0;
-    const q = this.q, C = COLORS[q.ans];
-    const rv = $('hReveal');
-    rv.innerHTML = `<div class="rl">정답은</div><div class="ra" style="--c:${C.ink};--fg:${C.fg}">${C.name}</div>
-      <div class="rw">${q.mode === 'color' ? `글자 <b>색깔</b> → ${C.name} (적힌 글자는 ‘${COLORS[q.word].name}’)` : `글자 <b>의미</b> → ${C.name} (글씨 색은 ${COLORS[q.ink].name})`}</div>`;
-    show(rv); $('hCard').classList.add('revealed');
-    const n = this.activeCount();
-    $('hAnsInfo').innerHTML = this.okCount
-      ? `정답 <b>${this.okCount}</b> / ${n}명 · ⚡ 최고 속도 <b>${esc(this.firstOk.name)}</b> ${(this.firstOk.rt / 1000).toFixed(2)}초 (+${this.firstOk.pts})`
-      : `😱 아무도 못 맞혔어요!`;
+    this.renderReveal();
     SFX.ding();
     this.later(() => { if (this.round >= CFG.rounds) this.finish(); else this.nextQ(); }, CFG.reveal);
     this.changed(true);
@@ -1241,6 +1275,11 @@ const Host = {
     this.renderAll();
     const ranks = this.rankMap(), list = this.ranked(), n = this.players.size, t = Date.now();
     const top = list.slice(0, 3).map(p => ({ name: p.name, score: p.score }));
+    // 참가자 폰이 메인 화면과 똑같이 그릴 수 있게 랭킹·정답 현황을 같이 보냄
+    const view = ['count', 'q', 'reveal'].includes(this.phase) ? {
+      list: list.map(p => ({ id: p.id, name: p.name, score: p.score, combo: p.combo, correct: p.correct, connected: p.connected, done: p.done, qRt: p.qRt, qWrong: p.qWrong })),
+      ok: this.okCount, first: this.firstOk,
+    } : null;
     for (const p of this.players.values()) {
       if (p.bot || !p.connected && !HostNet.links.has(p.id)) continue;
       const msg = {
@@ -1252,6 +1291,7 @@ const Host = {
         ans: this.phase === 'reveal' ? this.q.ans : -1, qPts: p.qPts,
         q: (this.phase === 'q' || this.phase === 'reveal') && this.q ? { w: this.q.word, i: this.q.ink, m: this.q.mode } : null,
       };
+      if (view) msg.v = view;
       if (this.phase === 'final') msg.fin = { top, correct: p.correct, maxCombo: p.maxCombo, avg: p.correct ? p.rtSum / p.correct : 0 };
       HostNet.send(p.id, msg);
     }
@@ -1301,7 +1341,7 @@ const Host = {
     const list = this.ranked(), ranks = this.rankMap(), n = list.length;
     const narrow = window.innerWidth <= 900;
     const H = box.clientHeight || 400;
-    const rowH = narrow ? 44 : Math.max(30, Math.min(78, Math.floor(H / Math.max(n, 5))));
+    const rowH = narrow ? 36 : Math.max(30, Math.min(78, Math.floor(H / Math.max(n, 5))));
     box.style.height = narrow ? n * rowH + 'px' : '';
     const fs = Math.max(13, Math.min(21, rowH * .34));
     const prevIdx = new Map(this.lastOrder.map((id, i) => [id, i]));
@@ -1316,7 +1356,7 @@ const Host = {
         box.appendChild(row); this.rows.set(p.id, row);
       }
       const r = ranks.get(p.id);
-      row.className = 'row' + (r <= 3 && p.score > 0 ? ' r' + r : '') + (p.connected ? '' : ' off');
+      row.className = 'row' + (r <= 3 && p.score > 0 ? ' r' + r : '') + (p.connected ? '' : ' off') + (p.id === Player.pid ? ' me' : '');
       row.style.top = i * rowH + 'px'; row.style.height = (rowH - 5) + 'px'; row.style.setProperty('--fs', fs + 'px');
       row.querySelector('.rk').textContent = r;
       row.querySelector('.nm').textContent = p.name + (p.id === 'host-self' ? ' 👑' : '');
@@ -1351,7 +1391,7 @@ const Host = {
    ========================================================= */
 // 호스트 화면에 붙은 패드는 사이렌·카운트 소리를 호스트가 이미 내므로 정답/오답 소리만 냄
 const PSFX = new Proxy(SFX, { get(t, k) {
-  if (Player.embed && !['init', 'correct', 'wrong'].includes(k)) return () => {};
+  if (Player.isHost && !['init', 'correct', 'wrong'].includes(k)) return () => {};
   return typeof t[k] === 'function' ? t[k].bind(t) : t[k];
 } });
 const Player = {
@@ -1374,11 +1414,11 @@ const Player = {
       const b = $('pPad').querySelector(`[data-c="${c}"]`);
       b.style.left = slot % 2 ? 'calc(50% + 5px)' : '0';
       b.style.top = slot >= 2 ? 'calc(50% + 5px)' : '0';
-      b.querySelector('.key').textContent = this.embed ? slot + 1 : '';
+      b.querySelector('.key').textContent = this.isHost ? slot + 1 : '';
     });
   },
   startEmbedded(pid, name) {
-    this.embed = true; this.pid = pid; this.name = name; this.via = 'self'; this.joined = true;
+    this.embed = true; this.isHost = true; this.pid = pid; this.name = name; this.via = 'self'; this.joined = true;
     $('player').classList.add('embed');
     this.screen('pGame');
     $('pMe').innerHTML = `<span class="meTag">나</span>${esc(name)}`;
@@ -1399,6 +1439,7 @@ const Player = {
   },
   start() {
     show($('player'));
+    this.mirror = true;
     try { this.pid = sessionStorage.getItem('chamepop-pid') || ''; } catch (e) {}
     if (!this.pid) { this.pid = 'p' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36); try { sessionStorage.setItem('chamepop-pid', this.pid); } catch (e) {} }
     const room = (params.get('room') || '').toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
@@ -1637,7 +1678,8 @@ const Player = {
   /* ---------- 화면 ---------- */
   render() {
     const s = this.st; if (!s) return;
-    if (!this.embed) {
+    if (this.mirror) this.renderMirror(s);
+    else if (!this.embed) {
       if (s.phase === 'lobby') this.screen('pWait');
       else if (s.phase === 'final') this.screen('pFinal');
       else this.screen('pGame');
@@ -1666,6 +1708,45 @@ const Player = {
       st.className = 'pStatus ' + (got ? 'ok' : 'no');
       st.textContent = got ? `✅ +${s.qPts}점 · 정답은 ${COLORS[s.ans].name}` : `😵 놓쳤어요 · 정답은 ${COLORS[s.ans].name}`;
     } else if (s.phase === 'final') this.renderFinal();
+  },
+  // 게임 중에는 호스트와 같은 메인 화면(라운드·타이머·문제 카드·실시간 랭킹)을 띄우고 내 패드를 아래에 붙임
+  renderMirror(s) {
+    const inGame = ['count', 'q', 'reveal'].includes(s.phase);
+    if (inGame !== this.mirrorOn) {
+      this.mirrorOn = inGame;
+      show($('host'), inGame);
+      $('player').classList.toggle('embed', inGame);
+      document.body.classList.toggle('selfOn', inGame);
+      document.body.classList.toggle('mirror', inGame);
+      if (inGame) { Host.screen('hGame'); $('hCodeS').textContent = this.code; }
+      if (!this.mirrorRaf) { this.mirrorRaf = true; const raf = () => { if (this.mirrorOn) { Host.paint(); this.paintCount(); } requestAnimationFrame(raf); }; requestAnimationFrame(raf); }
+    }
+    if (!inGame) { this.screen(s.phase === 'final' ? 'pFinal' : 'pWait'); Host.rows.forEach(r => r.remove()); Host.rows.clear(); Host.lastOrder = []; return; }
+    this.screen('pGame');
+    const v = s.v || { list: [], ok: 0, first: null };
+    Host.players = new Map(v.list.map(p => [p.id, p]));
+    Host.phase = s.phase; Host.round = s.round;
+    Host.okCount = v.ok; Host.firstOk = v.first;
+    this.countEnd = s.phase === 'count' ? Date.now() + s.phaseLeft : 0;
+    if (s.q) {
+      Host.q = { word: s.q.w, ink: s.q.i, mode: s.q.m, ans: s.ans };
+      if (s.phase === 'q' && this.cardQ !== s.qid) { this.cardQ = s.qid; Host.renderCard(); PSFX.pop(); }
+      Host.deadline = s.phase === 'q' ? this.deadline : Date.now();
+      if (s.phase === 'q') Host.renderAnsInfo();
+      else if (s.phase === 'reveal' && this.revealQ !== s.qid) { this.revealQ = s.qid; Host.renderReveal(); PSFX.ding(); }
+    } else if (s.phase === 'count') {
+      $('hRound').textContent = '0'; $('hBadge').textContent = ''; $('hWord').textContent = ''; $('hAnsInfo').textContent = '';
+      show($('hReveal'), false); $('hCard').classList.remove('revealed');
+    }
+    Host.renderBoard();
+  },
+  paintCount() {
+    const left = this.countEnd - Date.now(), ov = $('hCountOv');
+    show(ov, left > 0);
+    if (left > 0) {
+      const n = String(Math.ceil(left / 1000)), el = $('hCountNum');
+      if (el.textContent !== n) { el.textContent = n; el.style.animation = 'none'; void el.offsetWidth; el.style.animation = ''; PSFX.beep(false); }
+    }
   },
   renderQ(s) {
     const box = $('pQ'), badge = $('pBadge'), word = $('pWord'), q = s.q;
