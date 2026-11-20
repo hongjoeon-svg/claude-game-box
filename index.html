@@ -302,6 +302,12 @@ $('tabs').onkeydown = e => {
 let saved = 'all';
 try { const v = localStorage.getItem('gamebox-tab'); if (TABS.some(t => t.id === v)) saved = v; } catch (e) {}
 select(saved, false);
+// 게임 중계 서버(Render 무료 플랜)는 한동안 안 쓰면 잠들어서 깨는 데 1분쯤 걸려요.
+// 모음집을 여는 순간 미리 깨워 두면, 게임을 고를 즈음엔 준비가 끝나 있어요.
+try {
+  const onOwn = /\.onrender\.com$/.test(location.hostname);
+  fetch((onOwn ? '' : 'https://claude-game-box.onrender.com') + '/healthz', { mode: 'no-cors', cache: 'no-store' }).catch(() => {});
+} catch (e) {}
 </script>
 </body>
 </html>

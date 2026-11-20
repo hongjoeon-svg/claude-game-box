@@ -652,6 +652,7 @@ body.selfOn .boardList { flex: none; height: calc(100vh - 47vh - 7vw); }
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js" onerror="var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js';document.head.appendChild(s)"></script>
+<script>if (typeof mqtt === 'undefined' && /\.onrender\.com$|^localhost$|^127\.0\.0\.1$/.test(location.hostname)) document.write('<script src="/vendor/mqtt.min.js"><\/script>');</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 'use strict';
@@ -830,7 +831,10 @@ document.querySelectorAll('.roleBtn').forEach(b => b.onclick = () => {
    - 공개 중계 서버(MQTT over WebSocket): 회사·LTE망처럼 P2P가 막히는 폰도 들어올 수 있게 함께 열어둠
    - BroadcastChannel: 같은 브라우저 여러 탭끼리 하는 멀티탭 시뮬레이션
    ========================================================= */
-const RELAYS = ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt'];
+// 우리 전용 중계 서버(Render): Render에서 열면 같은 서버, GitHub Pages 등에서 열면 Render 주소로. 공용 서버는 예비
+const ON_OWN_SERVER = /\.onrender\.com$|^localhost$|^127\.0\.0\.1$/.test(location.hostname);
+const OWN_RELAY = (ON_OWN_SERVER ? (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host : 'wss://claude-game-box.onrender.com') + '/mqtt';
+const RELAYS = [OWN_RELAY, 'wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt'];
 const topicHost = code => `chamepop1/${code}/host`;
 const topicPlayer = (code, pid) => `chamepop1/${code}/p/${pid}`;
 const randCode = () => { const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; return Array.from({ length: 4 }, () => A[Math.floor(Math.random() * A.length)]).join(''); };

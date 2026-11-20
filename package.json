@@ -1,0 +1,17 @@
+{
+  "name": "claude-game-box",
+  "private": true,
+  "description": "게임 모음집 서버: 게임 파일 + 참가자 폰과 메인 화면을 잇는 중계 서버(MQTT over WebSocket)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "aedes": "0.51.3",
+    "mqtt": "5.10.1",
+    "ws": "8.18.3"
+  }
+}

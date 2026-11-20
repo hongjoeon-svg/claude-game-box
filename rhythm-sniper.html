@@ -659,6 +659,7 @@ input, select { font: inherit; }
 
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js" onerror="var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js';document.head.appendChild(s)"></script>
+<script>if (typeof mqtt === 'undefined' && /\.onrender\.com$|^localhost$|^127\.0\.0\.1$/.test(location.hostname)) document.write('<script src="/vendor/mqtt.min.js"><\/script>');</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 'use strict';
@@ -906,7 +907,10 @@ const PSFX = {
    - PeerJS(WebRTC): 서버 없이 바로 붙는 P2P 연결 (호스트 = 방 코드 Peer ID)
    - BroadcastChannel: 같은 브라우저 여러 탭끼리 하는 로컬 테스트(가상 플레이어)
    ========================================================= */
-const RELAYS = ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt'];
+// 우리 전용 중계 서버(Render): Render에서 열면 같은 서버, GitHub Pages 등에서 열면 Render 주소로. 공용 서버는 예비
+const ON_OWN_SERVER = /\.onrender\.com$|^localhost$|^127\.0\.0\.1$/.test(location.hostname);
+const OWN_RELAY = (ON_OWN_SERVER ? (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host : 'wss://claude-game-box.onrender.com') + '/mqtt';
+const RELAYS = [OWN_RELAY, 'wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt'];
 const topicHost = code => `rhsniper1/${code}/host`;
 const topicPlayer = (code, pid) => `rhsniper1/${code}/p/${pid}`;
 const randCode = () => { const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; return Array.from({ length: 4 }, () => A[Math.floor(Math.random() * A.length)]).join(''); };

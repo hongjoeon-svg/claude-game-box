@@ -651,6 +651,7 @@
 </section>
 
 <script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js"></script>
+<script>if (typeof mqtt === 'undefined' && /\.onrender\.com$|^localhost$|^127\.0\.0\.1$/.test(location.hostname)) document.write('<script src="/vendor/mqtt.min.js"><\/script>');</script>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script>
@@ -667,7 +668,10 @@ const roomName = code => 'bomb-' + code.toLowerCase();
 // 일반 웹(GitHub Pages)에서의 기본 연결: 공개 MQTT 중계 서버(WebSocket).
 // 폰끼리 직접 잇는 WebRTC가 막히는 환경(카톡 인앱 브라우저, 통신사 망 등)에서도 동작.
 // 호스트는 두 서버에 동시에 붙어 있고, 참가자는 먼저 연결되는 쪽을 씀. PeerJS는 예비용.
-const BROKERS = ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt'];
+// 우리 전용 중계 서버(Render): Render에서 열면 같은 서버, GitHub Pages 등에서 열면 Render 주소로. 공용 서버는 예비
+const ON_OWN_SERVER = /\.onrender\.com$|^localhost$|^127\.0\.0\.1$/.test(location.hostname);
+const OWN_RELAY = (ON_OWN_SERVER ? (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host : 'wss://claude-game-box.onrender.com') + '/mqtt';
+const BROKERS = [OWN_RELAY, 'wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt'];
 const topicOf = (code, dir) => 'bombrelay-v2/' + code + '/' + dir;
 const rid = () => Math.random().toString(36).slice(2, 10);
 // 로그인 없이 누구나 들어오는 공개 주소 (GitHub Pages)

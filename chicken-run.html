@@ -543,6 +543,7 @@
 <script>if (typeof Peer === 'undefined') document.write('<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"><\/script>');</script>
 <script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js"></script>
 <script>if (typeof mqtt === 'undefined') document.write('<script src="https://cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js"><\/script>');</script>
+<script>if (typeof mqtt === 'undefined' && /\.onrender\.com$|^localhost$|^127\.0\.0\.1$/.test(location.hostname)) document.write('<script src="/vendor/mqtt.min.js"><\/script>');</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script>if (typeof qrcode === 'undefined') document.write('<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"><\/script>');</script>
 <script>
@@ -700,7 +701,10 @@ function pickNet() {
   return 'hybrid';   // 연결이 안 돼도 몰래 로컬로 바꾸지 않음 (링크를 받은 사람이 못 들어오게 되므로)
 }
 // 공개 MQTT 브로커(웹소켓). 호스트·참가자 모두 되는 브로커에 다 붙어서 같은 방 토픽으로 주고받음
-const MQTT_BROKERS = ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt', 'wss://test.mosquitto.org:8081/mqtt'];
+// 우리 전용 중계 서버(Render): Render에서 열면 같은 서버, GitHub Pages 등에서 열면 Render 주소로. 공용 서버는 예비
+const ON_OWN_SERVER = /\.onrender\.com$|^localhost$|^127\.0\.0\.1$/.test(location.hostname);
+const OWN_RELAY = (ON_OWN_SERVER ? (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host : 'wss://claude-game-box.onrender.com') + '/mqtt';
+const MQTT_BROKERS = [OWN_RELAY, 'wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt', 'wss://test.mosquitto.org:8081/mqtt'];
 const mqttTopic = code => 'claude-game-box/chickenrun-v1/' + code;
 // STUN + PeerJS 공개 TURN: 호스트(와이파이)와 참가자(LTE)가 다른 네트워크여도 연결되도록
 const PEER_OPTS = { config: { iceServers: [
