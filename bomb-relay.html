@@ -394,6 +394,55 @@
   .rankBig .dl.up { color: var(--good); } .rankBig .dl.down { color: var(--bad); }
   .deadBanner { background: #000a; border: 1px solid var(--line); border-radius: 14px; padding: 10px; text-align: center; font-weight: 800; }
 
+  /* 대기석 (호스트·폰 공통) */
+  .seats { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 12px; }
+  .seat { position: relative; border-radius: 20px; padding: 16px 8px 12px; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; min-width: 0;
+    background: linear-gradient(180deg, #2a2150, #1a1434); border: 1.5px solid var(--line); box-shadow: inset 0 1px 0 #ffffff14, 0 8px 20px #0005; }
+  .seat .no { position: absolute; top: 8px; left: 10px; font-family: var(--display); font-size: 13px; color: var(--muted); }
+  .seat .av { width: 52px; height: 52px; font-size: 22px; }
+  .seat .sName { font-weight: 900; font-size: 16px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .seat .sTag { font-size: 12px; font-weight: 800; color: var(--lav); background: #0d0a1c; border-radius: 999px; padding: 2px 9px; white-space: nowrap; }
+  .seat .kick { position: absolute; top: 6px; right: 8px; background: none; color: #7a6fa3; font-size: 14px; padding: 2px 4px; }
+  .seat .kick:hover { color: var(--bad); }
+  .seat.bot { border-color: #5a6bb0; }
+  .seat.local { border-color: var(--gold); }
+  .seat.me { border-color: var(--hot2); box-shadow: 0 0 0 3px #ff2d5544, 0 0 28px #ff2d5555; }
+  .seat.me .sTag { background: var(--hot); color: #fff; }
+  .seat.off { opacity: .45; }
+  .seat.new { animation: sit .5s cubic-bezier(.2,1.6,.4,1); }
+  @keyframes sit { from { transform: translateY(-24px) scale(.6); opacity: 0; } }
+  .seat.empty { background: transparent; border: 2px dashed #3d3168; box-shadow: none; color: #5d5290; }
+  .seat.empty .chair { width: 52px; height: 52px; border-radius: 50%; border: 2px dashed #3d3168; display: grid; place-items: center; font-size: 22px; }
+  .seat.empty .sName { color: #5d5290; font-weight: 800; }
+  .rulesMini { font-size: 13px; line-height: 1.6; color: #d8d0f5; padding: 12px 14px; text-align: left; width: 100%; }
+  .rulesMini b { color: #fff; }
+  .cfgRow { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+  .cfgRow span { background: var(--panel2); border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; font-size: 13px; font-weight: 800; }
+
+  /* 폰: 메인 화면과 같은 구성 */
+  .pScreen.scroll { overflow-y: auto; }
+  .holderBox.mini { padding: 8px 18px 8px 10px; align-self: center; }
+  .holderBox.mini .bomb { width: 54px; margin: -14px 0 -12px -4px; }
+  .holderBox.mini .holderName { font-size: 30px; }
+  .holderBox.mini .holderLabel { font-size: 12px; }
+  .pPanel { padding: 12px; }
+  .pPanel h3 { font-size: 15px; margin-bottom: 8px; padding-bottom: 8px; }
+  .pPanel .board li { padding: 6px 10px; grid-template-columns: 22px 30px minmax(0, 1fr) auto auto; }
+  .pPanel .board li .av { width: 30px; height: 30px; font-size: 13px; }
+  .pPanel .board li .nm { font-size: 15px; }
+  .pPanel .board li .sc { font-size: 18px; }
+  .pPanel .board li.mine:not(.holder) { border-color: var(--lav); }
+  .wordChips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .wordChips span { background: #ffffff0d; border: 1px solid #ffffff14; border-radius: 999px; padding: 4px 10px; font-weight: 800; font-size: 15px; }
+  .wordChips span small { color: var(--muted); font-weight: 700; font-size: 11px; margin-left: 4px; }
+  .wordChips span.veto { text-decoration: line-through; color: var(--bad); }
+  .wordChips .none { color: var(--muted); font-size: 13px; background: none; border: 0; padding: 0; }
+  .myLine { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 10px 14px; font-weight: 800; }
+  .myLine .rk { font-family: var(--display); font-size: 26px; color: var(--gold); }
+  #pRes .boomTitle { font-size: 42px; }
+  #pBigBoard, #pFinBoard { width: 100%; }
+  #pPodium { transform: scale(.62); transform-origin: bottom center; margin-top: -60px; }
+
   @media (max-width: 900px) {
     #hLobby { grid-template-columns: minmax(0, 1fr); }
     #hGame { grid-template-columns: minmax(0, 1fr); }
@@ -460,8 +509,8 @@
     <div class="pubUrl" data-puburl></div>
   </div>
       <div class="lobbyHead"><span data-bomb="shake"></span><h1 class="title">30초 시한폭탄 <span class="red">릴레이</span></h1></div>
-      <h2>참가자 <small id="hCount">0명</small></h2>
-      <div id="hPlayers"><span class="muted" id="hEmpty">아직 아무도 없어요. QR을 찍어 입장하세요!</span></div>
+      <h2>대기석 <small id="hCount">0명</small></h2>
+      <div id="hPlayers" class="seats"></div>
       <div class="settings glass">
         <div class="setting"><label>라운드 수</label><div class="seg" data-key="rounds"><button data-v="3">3</button><button data-v="5">5</button><button data-v="7">7</button><button data-v="10">10</button></div></div>
         <div class="setting"><label>퓨즈 (라운드 시간)</label><div class="seg" data-key="fuse"><button data-v="20">20초</button><button data-v="30">30초</button><button data-v="45">45초</button></div></div>
@@ -544,12 +593,18 @@
   </div>
 
   <!-- 대기 -->
-  <div class="pScreen pCenter hidden" id="pWait">
-    <div style="font-size:72px" id="pWaitEmoji">✅</div>
-    <div class="pTitle plain" id="pWaitTitle">입장 완료!</div>
-    <div class="resSub" id="pWaitSub">메인 화면에서 시작하면 바로 시작돼요</div>
-    <div class="statusCard" style="width:100%"><div class="big" id="pMeName">-</div><div class="sub" id="pWaitCount">0명 대기 중</div></div>
-    <p class="muted" style="font-size:13px">💡 화면을 켜 두세요. 폭탄이 오면 진동이 울려요!</p>
+  <div class="pScreen scroll hidden" id="pWait">
+    <div class="pHero" style="margin-bottom:4px"><div class="pTitle title" style="font-size:30px">대기석</div></div>
+    <div class="resSub" style="text-align:center" id="pWaitSub">메인 화면에서 시작하면 바로 시작돼요</div>
+    <div class="cfgRow" id="pCfg"></div>
+    <div class="seats" id="pSeats"></div>
+    <div class="rulesMini glass">
+      <b>게임 방법</b><br>
+      · 폭탄을 받으면 폰이 붉게 깜빡여요. <b>초성</b>에 맞는 단어를 쓰면 다른 사람에게 넘어가요.<br>
+      · 턴 제한을 넘기면 −5점, 퓨즈가 끝날 때 폭탄을 쥔 사람은 <b>−30점·목숨 −1</b>.<br>
+      · 이미 나온 단어는 못 써요. 빨리 넘길수록 보너스!
+    </div>
+    <p class="muted" style="font-size:13px;text-align:center">💡 화면을 켜 두세요. 폭탄이 오면 진동이 울려요!</p>
   </div>
 
   <!-- 카운트다운 -->
@@ -559,34 +614,38 @@
   </div>
 
   <!-- 게임 -->
-  <div class="pScreen hidden" id="pGame">
+  <div class="pScreen scroll hidden" id="pGame">
     <div class="pTop"><span data-watch=""></span><span class="sec" id="pSec">30<small>초</small></span><div class="pFuse"><i id="pFuseBar"></i></div><span class="pill">👥 <span id="pPeople">0</span>명</span></div>
     <div class="pMeta"><span>라운드 <b id="pRound">1</b>/<span id="pTotal">5</span> · <b id="pScore">0</b>점</span><span class="hearts" id="pHearts"></span></div>
-    <div class="statusCard turnBanner"><span data-bomb="shake"></span><div><div class="big" id="pStatus">😮‍💨 안전</div><div class="sub" id="pStatusSub">-</div></div></div>
+    <div class="statusCard turnBanner" id="pBanner"><span data-bomb="shake"></span><div><div class="big" id="pStatus">😮‍💨 안전</div><div class="sub" id="pStatusSub">-</div></div></div>
+    <div class="holderBox mini" id="pHolderBox"><div class="bomb" data-bomb="shake"></div><div class="holderText"><div class="holderLabel">지금 폭탄을 쥔 사람</div><div class="holderName" id="pHolder">-</div></div></div>
     <div class="deadBanner hidden" id="pDead">💀 탈락했어요 — 관전 중</div>
     <div class="choCard" id="pChoCard"><div class="lbl">초성</div><div class="chos" id="pCho">ㄱㅈ</div></div>
     <div class="pTurn" id="pTurnWrap"><i id="pTurnBar"></i></div>
-    <div class="field"><input id="pWord" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="send" placeholder="단어를 입력하세요!"></div>
-    <button class="btn danger" id="pPass"><span data-bomb=""></span>폭탄 넘기기</button>
+    <div id="pInputArea">
+      <div class="field"><input id="pWord" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="send" placeholder="단어를 입력하세요!"></div>
+      <button class="btn danger" id="pPass" style="margin-top:10px"><span data-bomb=""></span>폭탄 넘기기</button>
+    </div>
     <div class="pFeedback" id="pFb"></div>
+    <div class="lastWord" id="pLast" style="text-align:center">&nbsp;</div>
+    <div class="panel glass pPanel"><h3><span>👑 생존자 현황</span><span class="n" id="pAlive"></span></h3><ol class="board" id="pBoard"></ol></div>
+    <div class="panel glass pPanel"><h3><span>📖 사용된 단어</span><span class="n" id="pWordCount">0</span></h3><div class="wordChips" id="pWords"></div></div>
   </div>
 
   <!-- 라운드 결과 -->
-  <div class="pScreen pCenter hidden" id="pRes">
-    <div class="resEmoji" id="pResEmoji">😎</div>
-    <div class="resTitle" id="pResTitle">생존!</div>
-    <div class="resSub" id="pResSub">+20점</div>
-    <div class="rankBig" id="pResRank">1위</div>
+  <div class="pScreen scroll hidden" id="pRes" style="align-items:center">
+    <div class="boomTitle" id="pBoom">💥 펑!</div>
+    <div class="statusCard myLine"><span><span id="pResEmoji">😎</span> <span id="pResTitle">생존!</span><br><small class="muted" id="pResSub">+20점</small></span><span class="rk" id="pResRank">1위</span></div>
+    <ol class="board" id="pBigBoard"></ol>
     <div class="resSub" id="pResNext">다음 라운드 준비 중…</div>
   </div>
 
   <!-- 최종 -->
-  <div class="pScreen pCenter hidden" id="pFin">
-    <div class="resEmoji" id="pFinEmoji">🏆</div>
-    <div class="resTitle">최종 결과</div>
-    <div class="rankBig" id="pFinRank">1위</div>
-    <div class="resSub" id="pFinScore">0점</div>
-    <div class="statusCard" style="width:100%" id="pFinTop"></div>
+  <div class="pScreen scroll hidden" id="pFin" style="align-items:center">
+    <div class="title" style="font-size:40px">최종 <span class="red">결과</span></div>
+    <div class="podium" id="pPodium"></div>
+    <div class="statusCard myLine"><span><span id="pFinEmoji">🏆</span> 나의 순위 · <span id="pFinScore">0점</span></span><span class="rk" id="pFinRank">1위</span></div>
+    <ol class="board" id="pFinBoard"></ol>
     <div class="resSub">호스트가 다시 시작하면 자동으로 이어져요</div>
   </div>
 </section>
@@ -710,6 +769,28 @@ function avatarHTML(name) {
   return `<span class="av" style="--h:${h}">${esc(ini)}</span>`;
 }
 
+/* ---------- 대기석 ---------- */
+// list: [{id, name, kind('p'|'l'|'b…'), connected}] · opt: {meId, onKick}
+function renderSeats(el, list, opt = {}) {
+  const seen = el._seen || (el._seen = new Set());
+  const total = Math.max(8, Math.ceil((list.length + 1) / 4) * 4);
+  let html = '';
+  for (let i = 0; i < total; i++) {
+    const p = list[i];
+    if (!p) { html += `<div class="seat empty"><span class="no">${i + 1}</span><div class="chair">＋</div><div class="sName">빈자리</div></div>`; continue; }
+    const isBot = p.kind[0] === 'b', isLocal = p.kind === 'l', isMe = p.id === opt.meId;
+    const tag = isMe ? '나' : isBot ? '🤖 AI' + (p.kind.length > 1 ? ' · ' + p.kind.slice(1) : '') : isLocal ? '🙋 메인 화면' : (p.connected ? '📱 참가자' : '연결 끊김');
+    const cls = ['seat', isBot && 'bot', isLocal && 'local', isMe && 'me', !p.connected && 'off', !seen.has(p.id) && 'new'].filter(Boolean).join(' ');
+    html += `<div class="${cls}" data-id="${esc(p.id)}"><span class="no">${i + 1}</span>${opt.onKick ? '<button class="kick" title="내보내기">✕</button>' : ''}${avatarHTML(p.name)}<div class="sName">${esc(p.name.replace(/^🤖/, ''))}</div><div class="sTag">${tag}</div></div>`;
+  }
+  el.innerHTML = html;
+  list.forEach(p => seen.add(p.id));
+  if (opt.onKick) el.querySelectorAll('.seat[data-id] .kick').forEach(b => b.onclick = () => opt.onKick(b.closest('.seat').dataset.id));
+}
+function podiumHTML(r) {
+  return [1, 0, 2].filter(i => r[i]).map(i => `<div class="pod p${i + 1}"><div style="font-size:40px">${['👑', '🥈', '🥉'][i]}</div><div class="nm">${esc(r[i].name)}</div><div class="sc">${r[i].score}점</div><div class="blk">${i + 1}</div></div>`).join('');
+}
+
 /* ---------- 리더보드 (FLIP 애니메이션) ---------- */
 function heartStr(lives, max) { return '❤️'.repeat(Math.max(0, lives)) + '🖤'.repeat(Math.max(0, max - lives)); }
 function animateNumber(el, from, to, ms = 900) {
@@ -733,7 +814,7 @@ function renderBoard(el, rows, opt = {}) {
     let li = existing.get(r.id);
     if (!li) { li = document.createElement('li'); li.dataset.id = r.id; }
     existing.delete(r.id);
-    li.className = (r.holder ? 'holder ' : '') + (r.alive ? '' : 'dead ');
+    li.className = (r.holder ? 'holder ' : '') + (r.alive ? '' : 'dead ') + (r.mine ? 'mine ' : '');
     let dl = '';
     if (opt.showDelta && r.delta) dl = `<span class="dl ${r.delta > 0 ? 'up' : 'down'}">${r.delta > 0 ? '▲' : '▼'}${Math.abs(r.delta)}</span>`;
     const badge = r.holder ? '<em class="hb">💣 폭탄 보유!</em>' : (r.alive ? '<span class="ok">✓</span>' : '');
@@ -1251,7 +1332,11 @@ const Host = {
       roundLeft: Math.max(0, this.roundEnd - t), roundMs: this.cfg.fuse * 1000,
       cdLeft: Math.max(0, this.cdEnd - t), nextLeft: Math.max(0, this.nextAt - t),
       result: this.lastResult,
-      players: this.ranked().map(p => [p.id, p.name, p.score, p.lives, p.alive ? 1 : 0, p.rank, p.delta, p.roundChange]),
+      players: this.ranked().map(p => [p.id, p.name, p.score, p.lives, p.alive ? 1 : 0, p.rank, p.delta, p.roundChange,
+        p.bot ? 'b' + BOT_LEVELS[p.bot].label : p.id === LOCAL_ID ? 'l' : 'p', p.connected ? 1 : 0, p.prevScore || 0, p.prevRank || 0, p.joinedAt]),
+      words: this.used.slice(0, 10).map(e => [e.w, e.by, e.veto ? 1 : 0]),
+      wordCount: this.used.length,
+      last: this.lastWord ? [this.lastWord.w, this.lastWord.by] : null,
     };
   },
   broadcast() {
@@ -1262,27 +1347,16 @@ const Host = {
   },
 
   /* ----- 화면 ----- */
+  seatList() {
+    return [...this.players.values()].sort((a, b) => a.joinedAt - b.joinedAt).map(p => ({
+      id: p.id, name: p.name, connected: p.connected,
+      kind: p.bot ? 'b' + BOT_LEVELS[p.bot].label : p.id === LOCAL_ID ? 'l' : 'p',
+    }));
+  },
   renderLobby() {
     const ps = [...this.players.values()];
     $('hCount').textContent = ps.length + '명';
-    const wrap = $('hPlayers');
-    const have = new Set([...wrap.querySelectorAll('.chip')].map(c => c.dataset.id));
-    show($('hEmpty'), ps.length === 0);
-    ps.forEach(p => {
-      let c = wrap.querySelector(`.chip[data-id="${CSS.escape(p.id)}"]`);
-      if (!c) {
-        c = document.createElement('span'); c.className = 'chip'; c.dataset.id = p.id;
-        c.innerHTML = `${avatarHTML(p.name)}<span class="cn"></span><button title="내보내기">✕</button>`;
-        c.querySelector('button').onclick = () => this.kick(p.id);
-        wrap.appendChild(c);
-      }
-      have.delete(p.id);
-      c.querySelector('.cn').textContent = p.name.replace(/^🤖/, '') + (p.bot ? ' · ' + BOT_LEVELS[p.bot].label : '') + (p.id === LOCAL_ID ? ' (이 화면)' : '');
-      c.classList.toggle('off', !p.connected);
-      c.classList.toggle('bot', !!p.bot);
-      c.classList.toggle('local', p.id === LOCAL_ID);
-    });
-    have.forEach(id => wrap.querySelector(`.chip[data-id="${CSS.escape(id)}"]`)?.remove());
+    renderSeats($('hPlayers'), this.seatList(), { onKick: id => this.kick(id) });
     $('hStart').disabled = ps.length < 2;
     $('hStartHint').textContent = ps.length < 2 ? '2명 이상 모이면 시작할 수 있어요 · 혼자라면 나도 참가 + AI 추가' : `${ps.length}명 준비 완료!`;
     if (this.phase !== 'lobby') this.renderSide();
@@ -1359,9 +1433,7 @@ const Host = {
   },
   renderFinal() {
     const r = this.ranked();
-    const pod = $('hPodium');
-    const order = [1, 0, 2];
-    pod.innerHTML = order.filter(i => r[i]).map(i => `<div class="pod p${i + 1}"><div style="font-size:40px">${['👑', '🥈', '🥉'][i]}</div><div class="nm">${esc(r[i].name)}</div><div class="sc">${r[i].score}점</div><div class="blk">${i + 1}</div></div>`).join('');
+    $('hPodium').innerHTML = podiumHTML(r);
     $('finalBoard').innerHTML = '';
     renderBoard($('finalBoard'), r.slice(3).map(p => ({ id: p.id, name: p.name, score: p.score, lives: p.lives, maxLives: this.cfg.lives, alive: p.alive })));
     [...$('finalBoard').children].forEach((li, i) => li.querySelector('.rk').textContent = i + 4);
@@ -1562,7 +1634,9 @@ const Player = {
       this.closeRelay();
       this.screen('pJoin'); this.resetJoinBtn(); this.err('호스트가 내보냈어요');
     } else if (m.t === 'state') {
-      const list = (m.players || []).map(a => ({ id: a[0], name: a[1], score: a[2], lives: a[3], alive: !!a[4], rank: a[5], delta: a[6], roundChange: a[7] }));
+      const list = (m.players || []).map(a => ({ id: a[0], name: a[1], score: a[2], lives: a[3], alive: !!a[4], rank: a[5], delta: a[6], roundChange: a[7],
+        kind: a[8] || 'p', connected: a[9] !== 0, prevScore: a[10] || 0, prevRank: a[11] || 0, joinedAt: a[12] || 0 }));
+      m.list = list;
       const you = list.find(x => x.id === this.pid);
       if (!you) return;  // 아직 등록 전이거나 내보내짐
       if (!this.joined) { this.joined = true; clearTimeout(this.joinTimer); this.requestWake(); SFX.good(); }
@@ -1633,9 +1707,9 @@ const Player = {
     $('player').classList.toggle('hot', holding);
     if (s.phase === 'lobby') {
       this.screen('pWait');
-      $('pWaitEmoji').textContent = '✅'; $('pWaitTitle').textContent = '입장 완료!';
-      $('pWaitSub').textContent = '메인 화면에서 시작하면 바로 시작돼요';
-      $('pMeName').textContent = me.name; $('pWaitCount').textContent = `${s.count}명 대기 중`;
+      $('pWaitSub').textContent = `${s.count}명 입장 · 메인 화면에서 시작하면 바로 시작돼요`;
+      $('pCfg').innerHTML = `<span>라운드 ${s.total}</span><span>퓨즈 ${Math.round(s.roundMs / 1000)}초</span><span>턴 ${Math.round(s.turnMs / 1000)}초</span><span>목숨 ${s.maxLives}</span>`;
+      renderSeats($('pSeats'), [...s.list].sort((a, b) => a.joinedAt - b.joinedAt), { meId: this.pid });
     } else if (s.phase === 'countdown') {
       this.screen('pCount');
       $('pCountRound').textContent = `라운드 ${s.round} / ${s.total}`;
@@ -1646,26 +1720,44 @@ const Player = {
       $('pPeople').textContent = s.count;
       $('pHearts').textContent = me.alive ? heartStr(me.lives, s.maxLives) : '💀';
       show($('pDead'), !me.alive);
+      // 메인 화면과 같은 구성: 폭탄 쥔 사람, 초성, 턴 바, 방금 단어, 생존자 현황, 사용된 단어
+      show($('pBanner'), holding);
+      show($('pHolderBox'), !holding);
+      show($('pInputArea'), holding);
       if (holding) {
         $('pStatus').innerHTML = '지금이 <b>너의 차례야!</b>';
         $('pStatusSub').textContent = `${Math.round(s.turnMs / 1000)}초 안에 단어를 입력하세요!`;
-        $('pChoCard').classList.remove('wait');
-        $('pChoCard').querySelector('.lbl').textContent = '초성';
-        $('pCho').textContent = s.chosung;
-      } else {
-        $('pStatus').textContent = me.alive ? '😮‍💨 안전' : '👀 관전 중';
-        $('pStatusSub').textContent = `폭탄은 지금 「${s.holderName}」에게`;
-        $('pChoCard').classList.add('wait');
-        $('pChoCard').querySelector('.lbl').textContent = '대기 중';
-        $('pCho').textContent = '폭탄을 받으면 초성이 공개돼요';
       }
-      show($('pTurnWrap'), holding);
+      const hn = $('pHolder');
+      if (hn.textContent !== s.holderName) { hn.textContent = s.holderName || '-'; hn.classList.remove('swap'); void hn.offsetWidth; hn.classList.add('swap'); }
+      $('pChoCard').classList.remove('wait');
+      $('pChoCard').querySelector('.lbl').textContent = holding ? '내 초성' : '초성';
+      $('pCho').textContent = s.chosung || '';
+      $('pLast').innerHTML = s.last ? `방금: <b>${esc(s.last[0])}</b> — ${esc(s.last[1])}` : '&nbsp;';
+      renderBoard($('pBoard'), s.list.map(x => ({ id: x.id, name: x.name, score: x.score, lives: x.lives, maxLives: s.maxLives, alive: x.alive, holder: x.id === s.holderId, mine: x.id === this.pid })));
+      $('pAlive').textContent = `생존 ${s.list.filter(x => x.alive).length}/${s.list.length}`;
+      $('pWordCount').textContent = s.wordCount || 0;
+      $('pWords').innerHTML = (s.words || []).length ? s.words.map(w => `<span class="${w[2] ? 'veto' : ''}">${esc(w[0])}<small>${esc(w[1].replace(/^🤖/, ''))}</small></span>`).join('') : '<span class="none">아직 없어요</span>';
+      show($('pTurnWrap'), true);
       $('pPass').disabled = !holding;
       $('pWord').disabled = !me.alive;
       if (!holding && this.lastHolding === false && this.lastPhase !== 'playing') { $('pFb').textContent = ''; }
     } else if (s.phase === 'roundEnd') {
       this.screen('pRes');
       const boom = s.result && s.result.loserId === this.pid;
+      if (this.lastPhase !== 'roundEnd' && s.result) {
+        $('pBoom').innerHTML = `💥 ${esc(s.result.loserName)} 펑!<small>${s.result.eliminated ? '💀 탈락했습니다' : '−30점 · 목숨 −1'} / 생존자 전원 +20</small>`;
+        // 메인 화면처럼: 이전 순위로 깔았다가 새 순위로 이동
+        const big = $('pBigBoard'); big.innerHTML = '';
+        const prev = [...s.list].sort((a, b) => (a.prevRank || 99) - (b.prevRank || 99));
+        renderBoard(big, prev.map(x => ({ id: x.id, name: x.name, score: x.prevScore, lives: x.lives, maxLives: s.maxLives, alive: true, holder: x.id === s.result.loserId, mine: x.id === this.pid })));
+        clearTimeout(this.boardTimer);
+        this.boardTimer = setTimeout(() => {
+          const cur = this.st; if (!cur || cur.phase !== 'roundEnd') return;
+          renderBoard(big, cur.list.map(x => ({ id: x.id, name: x.name, score: x.score, fromScore: x.prevScore, lives: x.lives, maxLives: cur.maxLives, alive: x.alive, delta: x.delta, mine: x.id === this.pid,
+            flash: x.id === cur.result.loserId ? 'flashBoom' : x.delta > 0 ? 'flashUp' : x.delta < 0 ? 'flashDown' : null })), { showDelta: true, slow: true });
+        }, 1400);
+      }
       $('pResEmoji').textContent = boom ? (me.alive ? '💥' : '💀') : (me.alive ? '😎' : '👻');
       $('pResTitle').textContent = boom ? (me.alive ? '펑! 폭발했어요' : '펑! 탈락…') : (me.alive ? '생존!' : `${s.result.loserName} 폭발`);
       const rc = me.roundChange;
@@ -1677,7 +1769,12 @@ const Player = {
       $('pFinEmoji').textContent = me.rank === 1 ? '🏆' : me.rank <= 3 ? '🎉' : '🍻';
       $('pFinRank').textContent = `${me.rank}위`;
       $('pFinScore').textContent = `${me.score}점`;
-      $('pFinTop').innerHTML = s.top.map((x, i) => `<div style="font-size:18px;font-weight:800;padding:3px 0">${['🥇', '🥈', '🥉'][i]} ${esc(x.name)} <span class="muted">${x.score}점</span></div>`).join('');
+      if (this.lastPhase !== 'final') {
+        $('pPodium').innerHTML = podiumHTML(s.list);
+        const fb = $('pFinBoard'); fb.innerHTML = '';
+        renderBoard(fb, s.list.slice(3).map(x => ({ id: x.id, name: x.name, score: x.score, lives: x.lives, maxLives: s.maxLives, alive: x.alive, mine: x.id === this.pid })));
+        [...fb.children].forEach((li, i) => li.querySelector('.rk').textContent = i + 4);
+      }
       if (this.lastPhase !== 'final' && me.rank === 1) { SFX.fanfare(); vibrate([100, 50, 100, 50, 300]); }
     }
     if (this.lastPhase === 'countdown' && s.phase !== 'countdown') this.lastCd = 0;
@@ -1693,9 +1790,10 @@ const Player = {
       const rl = Math.max(0, s.roundLeft - el);
       $('pFuseBar').style.width = (rl / s.roundMs * 100) + '%';
       $('pSec').firstChild.textContent = Math.ceil(rl / 1000);
+      const tl = Math.max(0, s.turnLeft - el) / s.turnMs;
+      $('pTurnBar').style.width = (tl * 100) + '%';
+      $('pTurnBar').style.background = tl < .35 ? 'var(--hot)' : '#fff';
       if (s.holderId === this.pid) {
-        const tl = Math.max(0, s.turnLeft - el) / s.turnMs;
-        $('pTurnBar').style.width = (tl * 100) + '%';
         const t = now();
         if (t >= this.nextTickAt) { SFX.tick(tl < .4); vibrate(tl < .4 ? 120 : 50); this.nextTickAt = t + (tl < .4 ? 400 : 1000); }
       }
