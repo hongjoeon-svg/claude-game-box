@@ -310,7 +310,7 @@ body.selfOn .boardList { flex: none; height: calc(100vh - 47vh - 7vw); }
 .tipBox b { color: var(--cham); }
 
 #pGame { display: flex; flex-direction: column; height: 100%; padding: max(10px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom)); gap: 8px; }
-.pHead { flex: 0 0 auto; min-height: 21%; display: flex; flex-direction: column; gap: 6px; justify-content: center; }
+.pHead { flex: 0 0 auto; min-height: 0; display: flex; flex-direction: column; gap: 6px; justify-content: center; }
 .pRow { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .pNm { font-weight: 900; font-size: 18px; display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .pRank { font-family: var(--display); font-size: 22px; color: var(--yellow); white-space: nowrap; }
@@ -329,7 +329,29 @@ body.selfOn .boardList { flex: none; height: calc(100vh - 47vh - 7vw); }
 .pStatus.ok { color: var(--good); }
 .pStatus.no { color: var(--bad); }
 .pStatus.go { color: var(--yellow); animation: thump .6s infinite; }
-.pPadWrap { flex: 1 1 75%; position: relative; min-height: 0; }
+.pBody { flex: 1; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+.pPadWrap { flex: 1 1 62%; position: relative; min-height: 0; }
+/* 폰 문제 카드: 메인 화면이 안 보이는 원격 참가자도 문제를 볼 수 있게 */
+.pQ {
+  flex: 0 0 30%; min-height: 0; position: relative; overflow: hidden; border-radius: 20px;
+  background: linear-gradient(160deg, #1b1233, #0a0614 70%); border: 2px solid rgba(255,255,255,.1);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 6px;
+}
+.pQ.enter { animation: cardIn .3s cubic-bezier(.2,1.5,.4,1); }
+#pBadge { font-size: clamp(13px, min(4.6vw, 3vh), 24px); }
+#pBadge.plain { background: none; box-shadow: none; color: var(--muted); padding: 0; }
+.pWord {
+  font-family: var(--display); font-size: clamp(40px, min(17vw, 11vh), 130px); line-height: 1.05;
+  --c: #fff; color: var(--c); text-shadow: 0 0 .06em #fff4, 0 0 .18em var(--c), 0 0 .45em var(--c);
+}
+.pWord.pill { background: var(--c); color: var(--fg); text-shadow: none; padding: 0 .35em; border-radius: .22em; box-shadow: 0 0 30px var(--c); }
+.pWord.msg { font-size: clamp(22px, 7vw, 40px); color: var(--muted); text-shadow: none; }
+#player.embed .pQ { display: none; }
+.rulesList { list-style: none; display: flex; flex-direction: column; gap: 8px; width: min(100%, 420px); text-align: left; }
+.rulesList li { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; font-size: 14px; line-height: 1.55; }
+.rulesList li b { color: var(--cham); }
+#pJoin > :first-child, #pWait > :first-child, #pFinal > :first-child { margin-top: auto; }
+#pJoin > :last-child, #pWait > :last-child, #pFinal > :last-child { margin-bottom: auto; }
 .pad { position: absolute; inset: 0; }
 .padBtn {
   position: absolute; width: calc(50% - 5px); height: calc(50% - 5px);
@@ -444,6 +466,9 @@ body.selfOn .boardList { flex: none; height: calc(100vh - 47vh - 7vw); }
   .floatPts { font-size: 44px; }
   .pAtk { top: 20%; font-size: 20px; padding: 10px; }
   #pJoin, #pWait, #pFinal { justify-content: flex-start; }
+  .pBody { flex-direction: row; }
+  .pQ { flex: 0 0 36%; }
+  .pWord { font-size: clamp(32px, min(10vw, 20vh), 90px); }
   .bigEmoji { font-size: 48px; }
 }
 </style>
@@ -464,7 +489,7 @@ body.selfOn .boardList { flex: none; height: calc(100vh - 47vh - 7vw); }
     </button>
     <button class="roleBtn" data-role="player">
       <div class="ic">📱</div><b>참가자 (모바일)로 입장</b>
-      <span>폰이 컬러 버튼 컨트롤러가 돼요. 메인 화면을 보고 정답 색을 누구보다 빨리 누르세요!</span>
+      <span>폰이 컬러 버튼 컨트롤러가 돼요. 문제를 보고 정답 색을 누구보다 빨리 누르세요! 멀리 있는 친구도 카톡 링크로 같이 할 수 있어요.</span>
     </button>
   </div>
   <div class="rulesMini">
@@ -480,7 +505,7 @@ body.selfOn .boardList { flex: none; height: calc(100vh - 47vh - 7vw); }
     <div class="lobbyCol">
       <div style="display:flex;align-items:center;gap:14px"><span class="lizard" style="font-size:clamp(44px,5vw,90px)">🦎</span><h1 class="title">카멜레온<br>컬러 팡!</h1></div>
       <ol class="howto">
-        <li>📱 폰으로 <b>QR을 찍거나 카톡 링크</b>를 눌러 닉네임만 넣으면 입장! 문제는 <b>이 화면에만</b> 나와요.</li>
+        <li>📱 폰으로 <b>QR을 찍거나 카톡 링크</b>를 눌러 닉네임만 넣으면 입장! 문제는 <b>이 화면과 각자 폰</b>에 동시에 나와요.</li>
         <li>🎨 <b>글자 색깔!</b> → 글씨가 칠해진 색 / 📖 <b>글자 의미!</b> → 글자가 읽히는 색<br>
           예) <span class="exWord" style="color:var(--blue)">빨강</span> → 색깔이면 <b style="color:var(--blue)">파랑</b>, 의미면 <b style="color:var(--red)">빨강</b></li>
         <li>⚡ 문제당 <b>4초</b>. 빠를수록 <b>100 + 남은 초×50점</b>. 틀리면 콤보 초기화 + <b>1.5초 잠금</b>!</li>
@@ -580,7 +605,13 @@ body.selfOn .boardList { flex: none; height: calc(100vh - 47vh - 7vw); }
     <div class="bigEmoji lizard">🦎</div>
     <div class="waitTitle">입장 완료!</div>
     <div class="waitSub"><b id="pWaitName" style="color:var(--cham)"></b> 님, 메인 화면에 내 이름이 떴는지 확인하세요.<br>지금 <b id="pWaitCount">1</b>명 대기 중 · 호스트가 곧 시작해요</div>
-    <div class="tipBox">💡 문제는 <b>메인 화면에만</b> 나와요. 폰은 고개 숙이지 말고 <b>엄지로 감각적으로!</b><br>버튼 위치: 왼쪽 위 빨강 · 오른쪽 위 파랑 · 왼쪽 아래 노랑 · 오른쪽 아래 초록</div>
+    <ol class="rulesList">
+      <li>📱 문제는 <b>메인 화면과 내 폰</b>에 동시에 나와요. 폰 아래쪽 4개 컬러 버튼으로 정답을 눌러요.</li>
+      <li>🎨 <b>글자 색깔!</b> → 글씨가 칠해진 색 / 📖 <b>글자 의미!</b> → 글자가 읽히는 색<br>
+        예) <span class="exWord" style="color:var(--blue)">빨강</span> → 색깔이면 <b style="color:var(--blue)">파랑</b>, 의미면 <b style="color:var(--red)">빨강</b></li>
+      <li>⚡ 문제당 <b>4초</b>, 총 10문제. 빠를수록 <b>100 + 남은 초×50점</b>. 틀리면 콤보 초기화 + <b>1.5초 잠금</b>!</li>
+      <li>🦎 <b>5연속 콤보</b>를 달성하면 카멜레온 습격! 다른 모든 사람의 버튼이 <b>3초간 뒤섞여요</b>.</li>
+    </ol>
     <button class="btn kakao" id="pInvite">💬 친구도 부르기 (카톡 공유)</button>
   </div>
 
@@ -597,9 +628,12 @@ body.selfOn .boardList { flex: none; height: calc(100vh - 47vh - 7vw); }
       <div class="pTime"><div id="pTimeFill"></div></div>
       <div class="pStatus" id="pStatus"></div>
     </div>
-    <div class="pPadWrap">
-      <div class="pad off" id="pPad"></div>
-      <div class="lockOv hidden" id="pLock"><span>❌ 오답! 버튼 잠금</span><b id="pLockNum">1.5</b><div class="lockBar"><i id="pLockBar"></i></div></div>
+    <div class="pBody">
+      <div class="pQ" id="pQ"><div class="badge hidden" id="pBadge"></div><div class="pWord msg" id="pWord">곧 시작!</div></div>
+      <div class="pPadWrap">
+        <div class="pad off" id="pPad"></div>
+        <div class="lockOv hidden" id="pLock"><span>❌ 오답! 버튼 잠금</span><b id="pLockNum">1.5</b><div class="lockBar"><i id="pLockBar"></i></div></div>
+      </div>
     </div>
   </div>
 
@@ -1216,6 +1250,7 @@ const Host = {
         score: p.score, combo: p.combo, rank: ranks.get(p.id) || n, done: p.done,
         lockLeft: Math.max(0, p.lockUntil - t),
         ans: this.phase === 'reveal' ? this.q.ans : -1, qPts: p.qPts,
+        q: (this.phase === 'q' || this.phase === 'reveal') && this.q ? { w: this.q.word, i: this.q.ink, m: this.q.mode } : null,
       };
       if (this.phase === 'final') msg.fin = { top, correct: p.correct, maxCombo: p.maxCombo, avg: p.correct ? p.rtSum / p.correct : 0 };
       HostNet.send(p.id, msg);
@@ -1529,7 +1564,7 @@ const Player = {
     if (m.phase === 'q' && m.qid !== this.qid) {
       // 새 문제 시작
       this.qid = m.qid;
-      this.qStartLocal = now - (CFG.qTime - m.left);
+      this.qStartLocal = now;
       this.deadline = now + m.left;
       this.pending = 0;
       this.lockUntil = now + (m.lockLeft || 0);
@@ -1621,15 +1656,32 @@ const Player = {
     pad.classList.toggle('off', s.phase !== 'q');
     pad.classList.toggle('done', done);
     st.className = 'pStatus';
-    if (s.phase === 'count') st.textContent = '곧 시작! 메인 화면을 보세요 👀';
+    this.renderQ(s);
+    if (s.phase === 'count') st.textContent = '곧 시작! 준비하세요 👀';
     else if (s.phase === 'q') {
       if (done) { st.className = 'pStatus ok'; st.textContent = `✅ 정답! +${s.qPts || ''} · 다음 문제 대기`; }
-      else { st.className = 'pStatus go'; st.textContent = `Q${s.round}. 메인 화면 보고 팡! 👆`; }
+      else { st.className = 'pStatus go'; st.textContent = `Q${s.round}. 정답 색을 팡! 👆`; }
     } else if (s.phase === 'reveal') {
       const got = s.qPts > 0;
       st.className = 'pStatus ' + (got ? 'ok' : 'no');
       st.textContent = got ? `✅ +${s.qPts}점 · 정답은 ${COLORS[s.ans].name}` : `😵 놓쳤어요 · 정답은 ${COLORS[s.ans].name}`;
     } else if (s.phase === 'final') this.renderFinal();
+  },
+  renderQ(s) {
+    const box = $('pQ'), badge = $('pBadge'), word = $('pWord'), q = s.q;
+    if (s.phase === 'q' && q) {
+      if (box._qid !== s.qid) { box._qid = s.qid; retrigger(box, 'enter'); }
+      badge.className = 'badge ' + q.m;
+      badge.innerHTML = q.m === 'color' ? '🎨 글자 <em>색깔</em>을 누르세요!' : '📖 글자 <em>의미</em>를 누르세요!';
+      word.className = 'pWord'; word.textContent = COLORS[q.w].name; word.style.setProperty('--c', COLORS[q.i].ink);
+    } else if (s.phase === 'reveal' && s.ans >= 0) {
+      const C = COLORS[s.ans];
+      badge.className = 'badge plain'; badge.textContent = '정답은';
+      word.className = 'pWord pill'; word.textContent = C.name; word.style.setProperty('--c', C.ink); word.style.setProperty('--fg', C.fg);
+    } else {
+      badge.className = 'badge hidden';
+      word.className = 'pWord msg'; word.textContent = s.phase === 'count' ? '곧 시작!' : '';
+    }
   },
   renderFinal() {
     const s = this.st, f = s.fin; if (!f) return;
