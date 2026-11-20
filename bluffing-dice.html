@@ -349,7 +349,7 @@ input { font: inherit; }
 .pRound { font-size: 13px; font-weight: 900; background: rgba(255,255,255,.08); border-radius: 99px; padding: 5px 12px; white-space: nowrap; }
 .pStats { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 8px; }
 .pStat { background: var(--panel); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; padding: 9px 10px; }
-.pStat small { display: block; font-size: 11px; color: var(--muted); font-weight: 700; }
+.pStat small { display: block; white-space: nowrap; font-size: 11px; color: var(--muted); font-weight: 700; }
 .pStat b { font-family: var(--display); font-weight: 400; font-size: 24px; line-height: 1.1; }
 .pStat.gold b { color: var(--gold2); }
 .pTimer { display: flex; flex-direction: column; gap: 6px; }
@@ -466,9 +466,11 @@ body.selfOn .board .foot { display: none; }
 .ptHead span:last-child { color: var(--muted); font-weight: 700; font-size: 12px; }
 .ptRow { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto 52px; align-items: center; gap: 8px; padding: 7px 6px; border-top: 1px solid rgba(255,255,255,.06); }
 .ptRow .av { width: 30px; height: 30px; font-size: 13px; }
-.ptName { font-weight: 700; font-size: 15px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+.ptName { font-weight: 700; font-size: 15px; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; line-height: 1.2; }
+.ptName .nm { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ptName .ptSt { font-size: 11px; padding: 1px 7px; }
 .ptRow.me { background: rgba(230,192,99,.1); border-radius: 10px; }
-.ptRow.me .ptName::after { content: '나'; font-size: 10px; background: var(--gold); color: #2a1a04; border-radius: 6px; padding: 1px 5px; }
+.ptRow.me .nm::after { content: '나'; font-size: 10px; background: var(--gold); color: #2a1a04; border-radius: 6px; padding: 1px 5px; margin-left: 5px; vertical-align: 2px; }
 .ptRow.folded { opacity: .5; }
 .ptRow.win { background: rgba(230,192,99,.18); border-radius: 10px; box-shadow: inset 0 0 0 2px var(--gold); }
 .ptSt { font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 99px; background: rgba(255,255,255,.08); white-space: nowrap; }
@@ -527,6 +529,47 @@ body.hcompact #player.embed .diceZone { height: 120px; }
 @media (max-height: 520px) { body.hcompact .topbar { position: static; } }
 @media (max-width: 900px) {
   #hLobby { grid-template-columns: 1fr; }
+}
+/* 폰 호스트가 참여 중: 테이블 화면은 숨기고 참가자와 같은 화면만 */
+.pHostBar { display: none; }
+body.hostPhone #hGame { display: none !important; }
+body.hostPhone #host { min-height: 0; }
+body.hostPhone .pHostBar { display: flex; align-items: center; gap: 6px; padding: 8px 12px 0; flex-wrap: wrap; }
+.pHostBar span { font-size: 12px; font-weight: 900; color: var(--gold); margin-right: auto; }
+.pHostBar button { font-size: 12px; font-weight: 700; padding: 6px 10px; border-radius: 9px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.15); }
+/* 승부 공개: 결과와 테이블 현황을 먼저, 내 주사위는 아래로 */
+#pGame.showing #pAlert { display: none; }
+#pGame.showing #pRes { order: 5; }
+#pGame.showing #pTable { order: 6; }
+#pGame.showing #pDice { order: 7; }
+.diceZone.compact .tag { display: none; }
+.resCard .big { font-size: clamp(28px, 9vw, 40px); }
+/* 작은 폰: 간격과 크기를 줄여 버튼까지 한 화면에 */
+/* 최종 결과(호스트)를 폰에서 열었을 때 */
+#hFinal { overflow-y: auto; }
+@media (max-width: 640px), (max-height: 600px) {
+  #hFinal { background: radial-gradient(ellipse at 50% 20%, #2a210a, #050806 70%); justify-content: flex-start; gap: 16px; padding: 28px 14px calc(24px + env(safe-area-inset-bottom)); }
+  #hFinal h2 { font-size: 36px; text-align: center; }
+  .podium { gap: 8px; width: 100%; justify-content: center; }
+  .pod { gap: 6px; flex: 1; min-width: 0; max-width: 130px; }
+  .pod .av { width: 48px; height: 48px; font-size: 22px; }
+  .pod .pn { font-size: 15px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pod .pp { font-size: 18px; }
+  .pod .blk { width: 100%; font-size: 40px; }
+  .pod.p1 .blk { height: 130px; } .pod.p2 .blk { height: 96px; } .pod.p3 .blk { height: 72px; }
+  .finalList { font-size: 15px; gap: 6px 14px; }
+  .finalBtns { flex-direction: column; width: 100%; max-width: 360px; }
+  .finalBtns .btnStart { font-size: 18px; padding: 14px; }
+  .finalBtns .btnGhost { text-align: center; }
+}
+@media (max-height: 760px) {
+  .pScreen { gap: 10px; padding-top: 12px; }
+  .pStat { padding: 7px 9px; }
+  .pStat b { font-size: 21px; }
+  .pAlert { font-size: 14px; padding: 9px 12px; min-height: 0; }
+  .diceZone { min-height: 150px; }
+  .act { min-height: 74px; font-size: 20px; }
+  .resCard { padding: 12px; }
 }
 @media (max-height: 640px) {
   .diceZone { min-height: 150px; }
@@ -664,6 +707,7 @@ body.hcompact #player.embed .diceZone { height: 120px; }
 
 <!-- ================= 참가자 ================= -->
 <section id="player" class="hidden">
+  <div class="pHostBar" id="pHostBar"><span>👑 호스트</span><button id="phLink">🔗 링크 복사</button><button id="phSkip">⏭ 다음 단계</button><button id="phQuit">🏠 로비로</button></div>
   <div class="pEmbedHead" id="pEmbedHead"><span>🎴 내 패 · <b id="pEmbedName"></b></span><span class="tog">접기 ▾</span></div>
   <div class="pScreen pCenter" id="pJoin">
     <div class="logoDice" data-logo></div>
@@ -692,9 +736,9 @@ body.hcompact #player.embed .diceZone { height: 120px; }
       <div class="pRound" id="pRound">ROUND 1/5</div>
     </div>
     <div class="pStats">
-      <div class="pStat gold"><small>내 보유 포인트</small><b class="num" id="pPts">1,000</b></div>
-      <div class="pStat"><small>이번 라운드 베팅</small><b class="num" id="pContrib">0</b></div>
-      <div class="pStat"><small>총 판돈 POT</small><b class="num" id="pPot">0</b></div>
+      <div class="pStat gold"><small>내 포인트</small><b class="num" id="pPts">1,000</b></div>
+      <div class="pStat"><small>내 베팅</small><b class="num" id="pContrib">0</b></div>
+      <div class="pStat"><small>총 판돈</small><b class="num" id="pPot">0</b></div>
     </div>
     <div class="pTimer">
       <div class="row"><span id="pPhase">주사위 굴리는 중</span><span class="num" id="pSecs">5</span></div>
@@ -1055,7 +1099,10 @@ const Host = {
     $('hAgain').onclick = () => { SFX.init(); this.toLobby(); this.startGame(); };
     $('hToLobby').onclick = () => this.toLobby();
     document.addEventListener('pointerdown', () => SFX.init(), { once: true });
-    window.addEventListener('resize', () => { this.seatKey = ''; this.layoutSeats(); });
+    window.addEventListener('resize', () => { this.seatKey = ''; this.render(); });
+    $('phSkip').onclick = () => { if (this.phase !== 'lobby' && this.phase !== 'final') this.advance(); };
+    $('phQuit').onclick = () => { if (confirm('게임을 끝내고 로비로 돌아갈까요?')) this.toLobby(); };
+    $('phLink').onclick = e => copyText(this.joinUrl(false), e.currentTarget);
     // 호스트 화면이 꺼지거나 다른 앱에 다녀오면 연결이 멈추므로: 화면 켜짐 유지 + 돌아오면 바로 재연결
     const wake = async () => { try { if ('wakeLock' in navigator && document.visibilityState === 'visible') this.wake = await navigator.wakeLock.request('screen'); } catch (e) {} };
     wake(); document.addEventListener('pointerdown', wake, { once: true });
@@ -1411,6 +1458,13 @@ const Host = {
     // 호스트가 참여 중이면 게임 중에만 '내 패' 패널 표시
     const selfOn = this.players.has('host-self') && this.phase !== 'lobby';
     show($('player'), selfOn);
+    // 폰으로 연 호스트가 참여 중이면 참가자와 똑같은 전체 화면으로 (패널 대신)
+    const compact = this.isCompact();
+    $('player').classList.toggle('embed', selfOn && !compact);
+    if (document.body.classList.contains('hostPhone') !== (selfOn && compact)) {
+      document.body.classList.toggle('hostPhone', selfOn && compact);
+      if (selfOn && compact) scrollTo(0, 0);
+    }
     if (document.body.classList.contains('selfOn') !== selfOn) { document.body.classList.toggle('selfOn', selfOn); this.seatKey = ''; }
     if (this.phase === 'lobby') { this.renderLobby(); return; }
     if (this.phase === 'final') { this.renderBoard(); return; }
@@ -1455,12 +1509,13 @@ const Host = {
     $('hPlayers').innerHTML = ps.length ? ps.map(p => `<div class="lobbyChip ${p.connected ? '' : 'off'}">${avatar(p.name)}<span>${esc(p.name)}${p.id === 'host-self' ? ' <small style="color:var(--gold)">호스트</small>' : ''}${p.bot ? ` <small style="color:var(--muted)">AI·${BOT_LEVELS[p.bot].label}</small>` : ''}</span>${p.bot ? `<button class="rm" data-rm="${esc(p.id)}" title="빼기">✕</button>` : ''}</div>`).join('')
       : '<div class="lobbyEmpty">📱 폰으로 QR을 찍거나 방 코드를 입력해 입장하세요</div>';
   },
+  isCompact() { return innerWidth < 820 || innerHeight < 520; },
   seatOrder() { return [...this.players.values()].sort((a, b) => a.joinedAt - b.joinedAt); },
   layoutSeats() {
     const ps = this.seatOrder();
     const wrap = $('tableWrap'), W = wrap.clientWidth, H = wrap.clientHeight;
     // 폰처럼 작은 화면에서는 타원 테이블 대신 카드 목록으로
-    const compact = innerWidth < 820 || innerHeight < 520;
+    const compact = this.isCompact();
     document.body.classList.toggle('hcompact', compact);
     const key = ps.map(p => p.id).join(',') + '|' + W + 'x' + H + (compact ? 'c' : '');
     const seats = $('seats');
@@ -1936,6 +1991,7 @@ const Player = {
 
     this.renderTable(s, showRes);
     $('pDice').classList.toggle('compact', s.phase === 'show');
+    $('pGame').classList.toggle('showing', s.phase === 'show');
 
     // 안내 문구
     if (Date.now() < (this.alertHold || 0)) return;
@@ -1944,7 +2000,7 @@ const Player = {
     else if (s.phase === 'roll') msg = rolling ? '🎲 주사위를 굴리는 중…' : '🤫 주사위를 꾹 눌러 몰래 확인하세요. 곧 베팅 시작!';
     else if (s.phase === 'bet') {
       if (me.status === 'fold') msg = '🏳️ 이번 라운드는 다이했어요. 남은 사람들의 눈치싸움을 구경하세요';
-      else if (me.fullNeed > 0) { msg = `🔥 ${esc(s.lastRaiser)} 레이즈! <b>+${fmt(me.need)}P</b> 내고 콜하거나 다이. 안 따라오면 자동 다이!`; cls = 'red'; }
+      else if (me.fullNeed > 0) { msg = `🔥 ${esc(s.lastRaiser)} 레이즈! <b>+${fmt(me.need)}P</b> 콜 or 다이 (안 하면 자동 다이)`; cls = 'red'; }
       else if (me.status === 'raise') { msg = '🔥 레이즈 완료! 상대가 따라오는지 지켜보세요'; cls = 'gold'; }
       else if (me.status === 'call') { msg = '✋ 콜 완료 · 누가 레이즈하면 다시 선택해야 해요'; cls = 'blue'; }
       else if (me.status === 'allin') { msg = '💰 올인! 끝까지 갑니다'; cls = 'gold'; }
@@ -1969,7 +2025,7 @@ const Player = {
       } else mid = `<span class="ptSt st-${r.st}">${lbl[r.st] || ''}</span>`;
       const tagTxt = showDice && r.win ? '<span class="ptWin">👑 승</span>' : showDice && folded ? `<span class="ptSt st-fold">${lbl[r.st]}</span>` : '';
       return `<div class="ptRow ${r.name === s.me.name ? 'me' : ''} ${folded ? 'folded' : ''} ${showDice && r.win ? 'win' : ''}">
-        ${avatar(r.name)}<span class="ptName">${esc(r.name)}${tagTxt}</span>${mid}<span class="ptBet num">${r.bet ? fmt(r.bet) + 'P' : ''}</span></div>`;
+        ${avatar(r.name)}<span class="ptName"><span class="nm">${esc(r.name)}</span>${tagTxt}</span>${mid}<span class="ptBet num">${r.bet ? fmt(r.bet) + 'P' : ''}</span></div>`;
     }).join('');
   },
   paintTimer() {
