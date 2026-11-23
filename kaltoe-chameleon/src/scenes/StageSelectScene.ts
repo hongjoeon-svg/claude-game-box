@@ -1,6 +1,7 @@
 import { COLORS, GAME_WIDTH } from '../config';
 import { STAGES } from '../data/stages';
 import { SaveData } from '../services/SaveData';
+import { Sound } from '../services/SoundService';
 import { makeButton } from '../ui/Button';
 import { addText } from '../ui/text';
 import { BaseScene } from './BaseScene';
@@ -13,6 +14,7 @@ export class StageSelectScene extends BaseScene {
   create(): void {
     this.setupCamera();
     this.cameras.main.setBackgroundColor(COLORS.bg);
+    this.cameras.main.fadeIn(200);
 
     addText(this, GAME_WIDTH / 2, 56, '스테이지 선택', { size: 26, bold: true });
     addText(this, GAME_WIDTH / 2, 92, `⭐ ${SaveData.totalStars()} / ${STAGES.length * 3}`, {
@@ -61,6 +63,7 @@ export class StageSelectScene extends BaseScene {
         c.on('pointerout', () => c.setScale(1));
         c.on('pointerup', () => {
           c.setScale(1);
+          Sound.play('tap');
           this.scene.start('Game', { stageId: stage.id });
         });
       }

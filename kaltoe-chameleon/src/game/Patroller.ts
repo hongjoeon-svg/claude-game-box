@@ -27,6 +27,7 @@ export class Patroller {
   private surprise: SurpriseState = 'idle';
   private surpriseTimer = 0;
   private surpriseBase = 0;
+  private warnEvent = false;
 
   private readonly sprite: Phaser.GameObjects.Image | Phaser.GameObjects.Text;
   private readonly label: Phaser.GameObjects.Text;
@@ -81,9 +82,11 @@ export class Patroller {
     if (s) this.surpriseTimer = Phaser.Math.Between(s.minIntervalMs, s.maxIntervalMs);
   }
 
-  /** 기습 확인 경고가 떠 있는지 (효과음용) */
-  get surpriseWarning(): boolean {
-    return this.surprise === 'warn';
+  /** ‼️ 경고가 막 시작됐으면 한 번만 true (효과음용) */
+  takeWarnEvent(): boolean {
+    const e = this.warnEvent;
+    this.warnEvent = false;
+    return e;
   }
 
   update(dtMs: number): void {
@@ -102,6 +105,7 @@ export class Patroller {
       if (this.surprise === 'idle' && this.surpriseTimer <= 0) {
         this.surprise = 'warn';
         this.surpriseTimer = s.warnMs;
+        this.warnEvent = true;
       } else if (this.surprise === 'warn' && this.surpriseTimer <= 0) {
         this.surprise = 'look';
         this.surpriseTimer = s.holdMs;
