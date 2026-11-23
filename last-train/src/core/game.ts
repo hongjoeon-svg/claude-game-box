@@ -5,6 +5,8 @@ import { BASE_LENGTH, EYE_HEIGHT } from '../car/layout';
 import { TUNNEL_PERIOD } from '../car/textures';
 import { Input } from './input';
 import { Player } from './player';
+import type { Anomaly, AnomalyContext } from '../anomalies/types';
+import { allAnomalies, findAnomaly, rollAnomaly } from '../anomalies/registry';
 import { GOAL, LINE_NAME, STATIONS, TERMINAL, nextStationIndex } from './stations';
 
 export type Mode = 'title' | 'playing' | 'transition' | 'ending' | 'paused';
@@ -13,6 +15,10 @@ export type Choice = 'front' | 'back';
 export interface GameHooks {
   fade(to: number, ms: number): Promise<void>;
   onEnding(): void;
+  /** 이상현상을 맞게 알아채고 뒤로 돌아갔을 때 */
+  onDiscover?(a: Anomaly): void;
+  /** 이번 칸에 쓸 수 있는 이상현상 목록 (보유 팩·끈 항목 반영) */
+  pool?(): Anomaly[];
 }
 
 const TRAIN_SPEED = 15; // m/s, 창밖 터널 흐르는 속도
@@ -35,6 +41,12 @@ export class Game {
   t = 0;
   carTime = 0;
   backArmed = false;
+  /** 이번 칸의 이상현상 (없으면 null) */
+  anomaly: Anomaly | null = null;
+  private lastAnomalyId: string | null = null;
+  private firstCar = true;
+  private ctx: AnomalyContext | null = null;
+  private forced: string | null = new URLSearchParams(location.search).get('a');
   /** 런타임 상태 (이상현상이 바꿀 수 있음) */
   swayEnabled = true;
   tunnelDir = 1;
@@ -98,8 +110,20 @@ export class Game {
     this.input.enabled = true;
   }
 
+  /** 다음 칸 구성: 약 60% 확률로 이상현상 하나 (세션 첫 칸은 항상 평소 모습) */
   private makeConfig(): CarConfig {
-    return baseConfig(this.count, BASE_LENGTH);
+    const cfg = baseConfig(this.count, BASE_LENGTH);
+    const pool = this.hooks.pool ? this.hooks.pool() : allAnomalies();
+    let a: Anomaly | null = null;
+    if (this.forced) a = findAnomaly(this.forced) ?? null;
+    else if (!this.firstCar) a = rollAnomaly(pool, this.lastAnomalyId);
+    this.firstCar = false;
+    this.anomaly = a;
+    if (a) {
+      this.lastAnomalyId = a.id;
+      a.configure?.(cfg, Math.random);
+    }
+    return cfg;
   }
 
   private loadCar(cfg: CarConfig) {
@@ -129,6 +153,9 @@ export class Game {
     this.tunnelDir = 1;
     this.accent.intensity = 0;
     this.input.reset();
+    if (cfg.terminal) this.anomaly = null;
+    this.ctx = { game: this, car: this.car!, cfg, camera: this.camera, rnd: Math.random };
+    this.anomaly?.setup?.(this.ctx);
   }
 
   private async choose(choice: Choice) {
@@ -139,9 +166,10 @@ export class Game {
     const door = choice === 'front' ? this.car.frontDoor : this.car.backDoor;
     await this.animateDoor(door, 0.55);
     await this.hooks.fade(1, 450);
-    const anomalous = false; // 2단계에서 이상현상 시스템이 채움
-    const correct = (choice === 'back') === anomalous;
+    const found = this.anomaly;
+    const correct = (choice === 'back') === (found !== null);
     this.count = correct ? this.count + 1 : 0;
+    if (correct && found) this.hooks.onDiscover?.(found);
     if (this.count >= GOAL) {
       const cfg = baseConfig(GOAL, BASE_LENGTH);
       cfg.terminal = true;
@@ -259,6 +287,8 @@ export class Game {
       car.straps.setMatrixAt(i, m);
     });
     car.straps.instanceMatrix.needsUpdate = true;
+
+    if (this.ctx && this.anomaly?.update && this.mode !== 'title') this.anomaly.update(this.ctx, dt);
 
     // 창밖 터널
     if (!this.cfg?.terminal) {

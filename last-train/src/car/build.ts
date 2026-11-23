@@ -120,7 +120,7 @@ export function buildCar(cfg: CarConfig, res: CarResources): CarBuild {
   }
   // 에어컨 덕트 + 조명 하우징
   st.box(0.46, 0.03, L, 0, CEIL - 0.015, 0, C.duct);
-  for (let z = -half + 1.5; z < half - 1; z += 2.2) st.box(0.24, 0.004, 0.32, 0, CEIL - 0.031, z, 0x7d8084);
+  for (let z = -half + 1.5; z < half - 1; z += 2.2) st.box(0.24, 0.004, 0.32, 0, CEIL - 0.031, z, 0xa9acaf);
   for (const s of [-1, 1]) st.box(0.24, 0.045, L, s * 0.66, CEIL - 0.0225, 0, C.housing);
 
   // 형광등 (인스턴스, 하나씩 색을 바꿀 수 있음)
