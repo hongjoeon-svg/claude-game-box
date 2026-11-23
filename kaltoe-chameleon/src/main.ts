@@ -3,7 +3,7 @@ import { COLORS, GAME_HEIGHT, GAME_WIDTH, RENDER_SCALE } from './config';
 import { BootScene } from './scenes/BootScene';
 import { GameScene } from './scenes/GameScene';
 
-new Phaser.Game({
+const game = new Phaser.Game({
   type: Phaser.AUTO,
   parent: 'game',
   width: GAME_WIDTH * RENDER_SCALE,
@@ -20,3 +20,6 @@ new Phaser.Game({
   input: { activePointers: 3 },
   scene: [BootScene, GameScene],
 });
+
+// 개발 중 콘솔 디버깅용 (window.__game)
+if (import.meta.env.DEV) (window as unknown as { __game: Phaser.Game }).__game = game;
