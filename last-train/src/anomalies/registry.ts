@@ -14,6 +14,15 @@ export const PACKS: AnomalyPack[] = [
     productId: null,
     anomalies: [...EASY, ...NORMAL, ...SUBTLE, ...SCARE],
   },
+  // 추가 노선 자리 (인앱 결제로 판매 예정). anomalies 를 채우고 comingSoon 을 빼면 활성화된다.
+  {
+    id: 'fog',
+    name: '안개선',
+    desc: '안개가 스며드는 지하 구간을 달리는 추가 노선.',
+    productId: 'lasttrain.pack.fog',
+    comingSoon: true,
+    anomalies: [],
+  },
 ];
 
 export function allAnomalies(): Anomaly[] {

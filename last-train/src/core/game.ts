@@ -21,7 +21,15 @@ export interface GameHooks {
   onDiscover?(a: Anomaly): void;
   /** 이번 칸에 쓸 수 있는 이상현상 목록 (보유 팩·끈 항목 반영) */
   pool?(): Anomaly[];
+  /** 칸을 하나 지날 때마다 (맞았는지, 현재 진행도) */
+  onCarDone?(correct: boolean, count: number): void;
 }
+
+const _m = new THREE.Matrix4();
+const _q = new THREE.Quaternion();
+const _e = new THREE.Euler();
+const _one = new THREE.Vector3(1, 1, 1);
+const HEMI = 1.7;
 
 const TRAIN_SPEED = 15; // m/s, 창밖 터널 흐르는 속도
 
@@ -43,6 +51,8 @@ export class Game {
   t = 0;
   carTime = 0;
   backArmed = false;
+  runCars = 0;
+  runStart = 0;
   /** 이번 칸의 이상현상 (없으면 null) */
   anomaly: Anomaly | null = null;
   private lastAnomalyId: string | null = null;
@@ -71,9 +81,9 @@ export class Game {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.shadowMap.enabled = false;
     this.scene.background = new THREE.Color(0x000000);
-    this.scene.fog = new THREE.Fog(0x000000, 14, 38);
+    this.scene.fog = new THREE.Fog(0x000000, 11, 34);
     this.res = new CarResources(this.renderer.capabilities.getMaxAnisotropy());
-    this.hemi = new THREE.HemisphereLight(0xfffbf2, 0x9c988f, 1.9);
+    this.hemi = new THREE.HemisphereLight(0xfffbf2, 0x9c988f, HEMI);
     this.lamp = new THREE.PointLight(0xf4f8ff, 1.3, 7, 1.2);
     this.accent = new THREE.PointLight(0xff2020, 0, 5, 1.5);
     this.scene.add(this.hemi, this.lamp, this.accent, this.camera);
@@ -112,6 +122,9 @@ export class Game {
   /** 새 게임 시작 */
   startRun() {
     this.count = 0;
+    this.firstCar = true;
+    this.runCars = 0;
+    this.runStart = performance.now();
     this.enterCar(this.makeConfig());
     this.mode = 'playing';
     this.input.enabled = true;
@@ -184,7 +197,9 @@ export class Game {
     const found = this.anomaly;
     const correct = (choice === 'back') === (found !== null);
     this.count = correct ? this.count + 1 : 0;
+    this.runCars++;
     if (correct && found) this.hooks.onDiscover?.(found);
+    this.hooks.onCarDone?.(correct, this.count);
     if (this.count >= GOAL) {
       const cfg = baseConfig(GOAL, BASE_LENGTH);
       cfg.terminal = true;
@@ -298,10 +313,10 @@ export class Game {
     this.lamp.position.set(p.pos.x * 0.3, 1.35, p.pos.z - 1.0);
 
     // 손잡이 흔들림
-    const m = new THREE.Matrix4();
-    const q = new THREE.Quaternion();
-    const e = new THREE.Euler();
-    const one = new THREE.Vector3(1, 1, 1);
+    const m = _m;
+    const q = _q;
+    const e = _e;
+    const one = _one;
     car.strapInfo.forEach((si, i) => {
       const sw = s * (0.09 * Math.sin(this.t * 1.3 - 0.6 + si.phase) + 0.05 * Math.sin(this.t * 3.1 + si.phase * 3)) * si.amp + this.jolt * 1.6;
       const fw = s * 0.05 * Math.sin(this.t * 0.9 + si.phase * 2) * si.amp;
@@ -334,6 +349,7 @@ export class Game {
         this.mode = 'transition';
         this.input.enabled = false;
         this.input.reset();
+        this.input.releasePointer();
         this.hooks.onEnding();
       }
       return;
@@ -352,7 +368,7 @@ export class Game {
 
   /** 조명 전체 켜기/끄기 (정전 연출) */
   setLights(on: boolean) {
-    this.hemi.intensity = on ? 1.9 : 0.04;
+    this.hemi.intensity = on ? HEMI : 0.04;
     this.lamp.intensity = on ? 1.3 : 0;
     this.res.led.blackout = !on;
     if (this.car) {
@@ -374,6 +390,7 @@ export class Game {
       this.mode = 'paused';
       this.input.enabled = false;
       this.input.reset();
+      this.input.releasePointer();
     } else if (!on && this.mode === 'paused') {
       this.mode = this.prevMode;
       this.input.enabled = true;
@@ -385,6 +402,7 @@ export class Game {
     this.mode = 'title';
     this.input.enabled = false;
     this.input.reset();
+    this.input.releasePointer();
     this.count = 0;
     this.enterCar(baseConfig(0, BASE_LENGTH));
   }

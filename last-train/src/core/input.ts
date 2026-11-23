@@ -155,6 +155,9 @@ export class Input {
     this.base.classList.remove('on');
     this.keys.clear();
     this.lookDX = this.lookDY = 0;
+  }
+
+  releasePointer() {
     if (document.pointerLockElement) document.exitPointerLock();
   }
 }
