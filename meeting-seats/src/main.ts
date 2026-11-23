@@ -46,13 +46,16 @@ const nav: Nav = {
       { kind: 'level', key: L, title: `레벨 ${L}`, puzzle: g.puzzle, difficulty: g.difficulty },
       {
         onBack: () => nav.levels(),
-        onClear: (info) =>
+        onClear: (info) => {
+          // 클리어 창을 보는 동안 다음 레벨을 미리 만들어 둔다
+          if (L < LEVEL_COUNT) setTimeout(() => cached(`level-${L + 1}`, () => generateLevel(L + 1)), 700);
           showClear(info, `레벨 ${L} 회의 끝!`, {
             primaryLabel: L < LEVEL_COUNT ? `다음 레벨 (${L + 1})` : '레벨 선택',
             onPrimary: () => (L < LEVEL_COUNT ? gapThenPlay(L + 1) : nav.levels()),
             onHome: () => nav.home(),
             onRetry: () => nav.playLevel(L),
-          }),
+          });
+        },
       },
     );
     mount(screen.el);
