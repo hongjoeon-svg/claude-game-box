@@ -2,3 +2,4 @@
 export type Sfx = 'cross' | 'place' | 'clear' | 'error' | 'undo' | 'hint' | 'win' | 'tap';
 export function sfx(_name: Sfx): void {}
 export function vibrate(_pattern: number | number[]): void {}
+export function unlockAudio(): void {}
