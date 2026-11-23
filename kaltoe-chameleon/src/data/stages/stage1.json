@@ -1,0 +1,52 @@
+{
+  "id": 1,
+  "name": "첫 칼퇴",
+  "description": "튜토리얼 · 부장님이 느릿느릿 복도를 오갑니다.",
+  "timeLimitSec": 120,
+  "fastClearSec": 45,
+  "transformCooldownMs": 1000,
+  "strictness": "easy",
+  "showHints": true,
+  "props": ["plant", "chair", "water"],
+  "tips": [
+    "화면을 드래그하면 이동해요",
+    "멈춘 뒤 아래 버튼으로 소품 변신!",
+    "초록 점 = 지금 장소에 어울리는 소품",
+    "부장님 시야(노란 부채꼴)에서 움직이면 들켜요",
+    "엘리베이터 🛗 에 타면 칼퇴 성공!"
+  ],
+  "map": [
+    "###############",
+    "#mmmmm#kkkk#.E#",
+    "#mttmm#kcck#..#",
+    "#mttmm#kkkk#..#",
+    "#mmmmm#kkkk#..#",
+    "###m#####k##..#",
+    "#.............#",
+    "#.............#",
+    "#oooooo#oooooo#",
+    "#ododod#ododod#",
+    "#oooooo#oooooo#",
+    "#ododod#ododod#",
+    "#oooooo#oooooo#",
+    "#.............#",
+    "#.............#",
+    "#oooooo#kkkkkk#",
+    "#ododod#kcckkk#",
+    "#oooooo#kkkkkk#",
+    "#P.....#kkkkkk#",
+    "###############"
+  ],
+  "patrollers": [
+    {
+      "type": "boss",
+      "speed": 32,
+      "fovDeg": 70,
+      "viewDist": 130,
+      "path": [[2, 13], [12, 13]],
+      "mode": "pingpong",
+      "waitMs": 1600,
+      "lookAround": true
+    }
+  ]
+}
