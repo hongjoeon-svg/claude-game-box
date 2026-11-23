@@ -222,5 +222,9 @@ export class BoardView {
       d.classList.add('cheer');
     }
     this.el.classList.add('won');
+    const stamp = document.createElement('div');
+    stamp.className = 'stamp';
+    stamp.textContent = '회의 성공!';
+    this.el.appendChild(stamp);
   }
 }

@@ -1006,3 +1006,92 @@ button:disabled {
   .clear-stats b { font-size: 19px; }
   .modal .btn { height: 46px; }
 }
+
+/* ---------- 클리어 연출 ---------- */
+.stamp {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 3;
+  padding: 8px 22px;
+  border: 5px solid #e2412a;
+  border-radius: 14px;
+  color: #e2412a;
+  background: rgba(255, 253, 249, 0.88);
+  font-size: calc(var(--size) * 0.11);
+  font-weight: 900;
+  white-space: nowrap;
+  letter-spacing: -0.02em;
+  transform: translate(-50%, -50%) rotate(-12deg);
+  animation: stamp 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) 0.15s both;
+  pointer-events: none;
+}
+
+@keyframes stamp {
+  from { opacity: 0; transform: translate(-50%, -50%) rotate(-12deg) scale(2.6); }
+  to { opacity: 1; transform: translate(-50%, -50%) rotate(-12deg) scale(1); }
+}
+
+.confetti {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.confetti i {
+  position: absolute;
+  top: -20px;
+  width: 9px;
+  height: 14px;
+  border-radius: 2px;
+  opacity: 0;
+  animation: fall var(--t) cubic-bezier(0.3, 0.6, 0.6, 1) var(--d) forwards;
+}
+
+@keyframes fall {
+  0% { opacity: 1; transform: translate(0, 0) rotate(0); }
+  85% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--x), 105vh) rotate(var(--r)); }
+}
+
+.clear-wrap.show .clear-title {
+  animation: title-in 0.5s cubic-bezier(0.2, 1.5, 0.4, 1) 0.1s both;
+}
+
+@keyframes title-in {
+  from { opacity: 0; transform: scale(0.3); }
+}
+
+.clear-wrap.show .clear-face {
+  animation: jump 0.7s ease-in-out calc(0.2s + var(--i) * 0.08s) 3 both;
+}
+
+@keyframes jump {
+  0%, 100% { transform: translateY(0); }
+  35% { transform: translateY(-14px) rotate(-6deg); }
+  60% { transform: translateY(0) scaleY(0.9); }
+}
+
+.clear-wrap.show .big-star {
+  animation: star-in 0.45s cubic-bezier(0.2, 1.8, 0.4, 1) calc(0.45s + var(--i) * 0.26s) both;
+}
+
+.clear-wrap.show .big-star.off {
+  animation-name: star-off;
+}
+
+@keyframes star-in {
+  from { opacity: 0; transform: scale(0) rotate(-90deg); }
+}
+
+@keyframes star-off {
+  from { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

@@ -1,6 +1,7 @@
 /** 클리어 창: "회의 성공!" + 시간 + 별 */
 import { faceImg } from '../characters';
 import { formatTime, h, ICONS } from '../ui/dom';
+import { sfx } from '../audio';
 import type { ClearInfo } from './gameScreen';
 
 export interface ClearActions {
@@ -51,6 +52,22 @@ export function showClear(info: ClearInfo, subtitle: string, actions: ClearActio
       ),
     ),
   );
+  // 색종이
+  const conf = wrap.querySelector('.confetti')!;
+  const colors = ['#ff7a59', '#ffb627', '#5cc98a', '#8fd6ff', '#bfaeff', '#f7b0f0'];
+  for (let i = 0; i < 46; i++) {
+    const p = h('i');
+    p.style.left = `${Math.random() * 100}%`;
+    p.style.background = colors[i % colors.length];
+    p.style.setProperty('--d', `${(Math.random() * 0.6).toFixed(2)}s`);
+    p.style.setProperty('--t', `${(1.8 + Math.random() * 1.4).toFixed(2)}s`);
+    p.style.setProperty('--x', `${Math.round((Math.random() - 0.5) * 160)}px`);
+    p.style.setProperty('--r', `${Math.round(Math.random() * 720 - 360)}deg`);
+    if (i % 3 === 0) p.style.borderRadius = '50%';
+    conf.appendChild(p);
+  }
   document.body.appendChild(wrap);
   requestAnimationFrame(() => wrap.classList.add('show'));
+  // 별이 하나씩 뿅
+  for (let i = 0; i < info.stars; i++) setTimeout(() => sfx('star'), 450 + i * 260);
 }

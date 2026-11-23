@@ -262,6 +262,7 @@ export class GameScreen {
   private win() {
     this.finished = true;
     this.pause();
+    document.getElementById('toast')?.classList.remove('show');
     this.clearHint();
     this.board.locked = true;
     this.updateButtons();
