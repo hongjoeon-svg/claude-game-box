@@ -1,7 +1,6 @@
 import Phaser from 'phaser';
 import {
   COLORS,
-  GAME_HEIGHT,
   GAME_WIDTH,
   HUD_HEIGHT,
   MAP_COLS,
@@ -20,7 +19,6 @@ import { Patroller } from '../game/Patroller';
 import { Player } from '../game/Player';
 import { PropButtonBar } from '../game/PropButtonBar';
 import { VirtualJoystick } from '../game/VirtualJoystick';
-import { makeButton } from '../ui/Button';
 import { addText } from '../ui/text';
 import { BaseScene } from './BaseScene';
 
@@ -309,18 +307,6 @@ export class GameScene extends BaseScene {
       timeSec: this.elapsedMs / 1000,
       maxSuspicion: this.maxSuspicion,
     };
-    this.showEndOverlay(result);
-  }
-
-  /** (임시) 결과 오버레이 — 4단계에서 결과 화면으로 교체 */
-  private showEndOverlay(r: RunResult): void {
-    const title = r.outcome === 'clear' ? '칼퇴 성공! 🎉' : r.outcome === 'caught' ? '들켰다… 😱' : '야근 확정… 🌙';
-    this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.6).setDepth(400).setInteractive();
-    addText(this, GAME_WIDTH / 2, 330, title, { size: 30, bold: true }).setDepth(401);
-    addText(this, GAME_WIDTH / 2, 380, `시간 ${r.timeSec.toFixed(1)}초 · 최대 의심 ${Math.floor(r.maxSuspicion)}%`, {
-      size: 14,
-      color: COLORS.subText,
-    }).setDepth(401);
-    makeButton(this, GAME_WIDTH / 2, 450, 200, 54, '다시하기', () => this.scene.restart({ stageId: r.stageId })).setDepth(401);
+    this.time.delayedCall(outcome === 'clear' ? 500 : 300, () => this.scene.start('Result', { result }));
   }
 }

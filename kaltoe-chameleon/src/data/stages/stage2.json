@@ -1,0 +1,44 @@
+{
+  "id": 2,
+  "name": "회의 끝난 오후",
+  "description": "부장님이 사무실을 한 바퀴씩 돕니다. 소품 판정이 조금 깐깐해져요.",
+  "timeLimitSec": 100,
+  "fastClearSec": 50,
+  "strictness": "normal",
+  "props": ["plant", "chair", "box", "water"],
+  "tips": ["애매한 소품(노란 점)도 이제 조금씩 의심받아요"],
+  "map": [
+    "###############",
+    "#E.#mmmmmmmmmm#",
+    "#..#mmttttttmm#",
+    "#..#mmttttttmm#",
+    "#..#mmmmmmmmmm#",
+    "#..######m#####",
+    "#.............#",
+    "#.............#",
+    "#.oooo#.#oooo.#",
+    "#.odod#.#odod.#",
+    "#.oooo#.#oooo.#",
+    "#.odod#.#odod.#",
+    "#.oooo#.#oooo.#",
+    "#.............#",
+    "#.............#",
+    "####.#####.####",
+    "#kkkk.#oooooo.#",
+    "#kcck.#ododod.#",
+    "#kkkk.#oooooP.#",
+    "###############"
+  ],
+  "patrollers": [
+    {
+      "type": "boss",
+      "speed": 42,
+      "fovDeg": 70,
+      "viewDist": 140,
+      "path": [[1, 6], [13, 6], [13, 14], [1, 14]],
+      "mode": "loop",
+      "waitMs": 700,
+      "lookAround": true
+    }
+  ]
+}

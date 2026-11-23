@@ -2,6 +2,9 @@ import Phaser from 'phaser';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH, RENDER_SCALE } from './config';
 import { BootScene } from './scenes/BootScene';
 import { GameScene } from './scenes/GameScene';
+import { ResultScene } from './scenes/ResultScene';
+import { StageSelectScene } from './scenes/StageSelectScene';
+import { TitleScene } from './scenes/TitleScene';
 
 const game = new Phaser.Game({
   type: Phaser.AUTO,
@@ -18,7 +21,7 @@ const game = new Phaser.Game({
     arcade: { debug: false },
   },
   input: { activePointers: 3 },
-  scene: [BootScene, GameScene],
+  scene: [BootScene, TitleScene, StageSelectScene, GameScene, ResultScene],
 });
 
 // 개발 중 콘솔 디버깅용 (window.__game)
