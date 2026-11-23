@@ -1,5 +1,8 @@
 import type { Anomaly, AnomalyPack } from './types';
 import { EASY } from './base/easy';
+import { NORMAL } from './base/normal';
+import { SUBTLE } from './base/subtle';
+import { SCARE } from './base/scare';
 
 export const ANOMALY_CHANCE = 0.6;
 
@@ -9,7 +12,7 @@ export const PACKS: AnomalyPack[] = [
     name: '심야순환선',
     desc: '자정역을 출발해 새벽역으로 향하는 막차.',
     productId: null,
-    anomalies: [...EASY],
+    anomalies: [...EASY, ...NORMAL, ...SUBTLE, ...SCARE],
   },
 ];
 

@@ -4,6 +4,8 @@ import { baseConfig, type CarConfig } from '../car/config';
 import { BASE_LENGTH, EYE_HEIGHT } from '../car/layout';
 import { TUNNEL_PERIOD } from '../car/textures';
 import { Input } from './input';
+import { AudioEngine } from './audio';
+import { Haptics } from './haptics';
 import { Player } from './player';
 import type { Anomaly, AnomalyContext } from '../anomalies/types';
 import { allAnomalies, findAnomaly, rollAnomaly } from '../anomalies/registry';
@@ -50,6 +52,11 @@ export class Game {
   /** 런타임 상태 (이상현상이 바꿀 수 있음) */
   swayEnabled = true;
   tunnelDir = 1;
+  frozenStrap = -1;
+  announceReversed = false;
+  private announced = false;
+  readonly audio = new AudioEngine();
+  readonly haptics = new Haptics();
   private jolt = 0;
   private joltVel = 0;
   private nextJolt = 4;
@@ -152,6 +159,12 @@ export class Game {
     this.swayEnabled = !cfg.terminal;
     this.tunnelDir = 1;
     this.accent.intensity = 0;
+    this.frozenStrap = -1;
+    this.announceReversed = false;
+    this.announced = false;
+    this.setLights(true);
+    this.audio.setTravel(!cfg.terminal, 0.2);
+    this.audio.setHum(true);
     this.input.reset();
     if (cfg.terminal) this.anomaly = null;
     this.ctx = { game: this, car: this.car!, cfg, camera: this.camera, rnd: Math.random };
@@ -164,6 +177,8 @@ export class Game {
     this.input.enabled = false;
     this.input.reset();
     const door = choice === 'front' ? this.car.frontDoor : this.car.backDoor;
+    this.audio.door();
+    this.haptics.impact('MEDIUM');
     await this.animateDoor(door, 0.55);
     await this.hooks.fade(1, 450);
     const found = this.anomaly;
@@ -201,7 +216,9 @@ export class Game {
 
   /** 종착역: 열차가 서고 오른쪽 문이 열린다 */
   private runTerminal() {
+    window.setTimeout(() => this.audio.announcement(false), 600);
     window.setTimeout(() => {
+      this.audio.door();
       if (this.mode !== 'ending' || !this.car) return;
       const car = this.car;
       const start = performance.now();
@@ -245,6 +262,7 @@ export class Game {
       if (this.nextJolt <= 0) {
         this.joltVel += (Math.random() < 0.5 ? -1 : 1) * (0.05 + Math.random() * 0.05);
         this.nextJolt = 3 + Math.random() * 5;
+        if (this.mode === 'playing') this.haptics.impact('LIGHT');
       }
     }
     this.joltVel += -this.jolt * 40 * dt - this.joltVel * 4 * dt;
@@ -257,7 +275,13 @@ export class Game {
     if (this.mode === 'playing' || this.mode === 'ending') {
       const lk = this.input.consumeLook();
       this.player.look(lk.dx, lk.dy, this.sensitivity);
+      const prevPhase = this.player.bobPhase;
       this.player.update(dt, this.input.moveX, this.input.moveY, L);
+      if (Math.floor(prevPhase / Math.PI) !== Math.floor(this.player.bobPhase / Math.PI)) this.audio.step();
+      if (!this.announced && this.mode === 'playing' && this.player.pos.z < L / 2 - 3) {
+        this.announced = true;
+        this.audio.announcement(this.announceReversed);
+      }
       this.checkTriggers(L, dt);
     } else this.input.consumeLook();
 
@@ -281,7 +305,8 @@ export class Game {
     car.strapInfo.forEach((si, i) => {
       const sw = s * (0.09 * Math.sin(this.t * 1.3 - 0.6 + si.phase) + 0.05 * Math.sin(this.t * 3.1 + si.phase * 3)) * si.amp + this.jolt * 1.6;
       const fw = s * 0.05 * Math.sin(this.t * 0.9 + si.phase * 2) * si.amp;
-      e.set(fw, 0, -sw * Math.sign(si.pos.x || 1));
+      if (i === this.frozenStrap) e.set(0, 0, 0);
+      else e.set(fw, 0, -sw * Math.sign(si.pos.x || 1));
       q.setFromEuler(e);
       m.compose(si.pos, q, one);
       car.straps.setMatrixAt(i, m);
@@ -319,9 +344,28 @@ export class Game {
       if (this.backArmed) void this.choose('back');
       else if (this.lockedCooldown <= 0) {
         this.lockedCooldown = 2;
-        this.jolt += 0.01; // 잠긴 문 덜컹 (3단계에서 소리 추가)
+        this.audio.locked();
+        this.haptics.impact('LIGHT');
       }
     }
+  }
+
+  /** 조명 전체 켜기/끄기 (정전 연출) */
+  setLights(on: boolean) {
+    this.hemi.intensity = on ? 1.9 : 0.04;
+    this.lamp.intensity = on ? 1.3 : 0;
+    this.res.led.blackout = !on;
+    if (this.car) {
+      const c = new THREE.Color(on ? 0xffffff : 0x050505);
+      for (let i = 0; i < this.car.tubePositions.length; i++) this.car.tubes.setColorAt(i, c);
+      this.car.tubes.instanceColor!.needsUpdate = true;
+    }
+    if (!on) this.accent.intensity = 0;
+  }
+
+  /** 카메라를 툭 치는 충격 (점프스케어) */
+  kick(v: number) {
+    this.joltVel += v;
   }
 
   pause(on: boolean) {

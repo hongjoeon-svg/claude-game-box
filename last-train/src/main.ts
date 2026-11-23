@@ -27,6 +27,7 @@ const game = new Game(document.getElementById('view') as HTMLCanvasElement, {
   fade,
   onEnding: async () => {
     await fade(1, 1200);
+    game.audio.stop();
     game.toTitle();
     document.getElementById('title')!.classList.remove('hidden');
     await fade(0, 800);
@@ -34,6 +35,8 @@ const game = new Game(document.getElementById('view') as HTMLCanvasElement, {
 });
 
 document.getElementById('board')!.addEventListener('click', async () => {
+  game.audio.unlock();
+  game.audio.start();
   await fade(1, 400);
   document.getElementById('title')!.classList.add('hidden');
   game.startRun();

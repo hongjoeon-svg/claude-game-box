@@ -43,11 +43,11 @@ export function makeTunnelTexture(): THREE.CanvasTexture {
   g.fillStyle = '#fff4dc';
   g.fillRect(lx - 22, ly - 5, 44, 10);
   // 비상구 표지
-  g.fillStyle = '#0b3d1c';
-  g.fillRect(760, 132, 70, 30);
-  g.fillStyle = '#4dff87';
-  g.font = font(18, 800);
-  g.fillText('비상구', 768, 154);
+  g.fillStyle = '#082a14';
+  g.fillRect(770, 136, 46, 20);
+  g.fillStyle = '#2fae5c';
+  g.font = font(12, 800);
+  g.fillText('비상구', 775, 151);
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   t.wrapS = THREE.RepeatWrapping;

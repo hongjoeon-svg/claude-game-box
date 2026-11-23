@@ -346,7 +346,7 @@ export function buildCar(cfg: CarConfig, res: CarResources): CarBuild {
       // 스티커 (문 옆 기둥)
       if (!cfg.terminal) {
         for (const side of [-1, 1]) {
-          signs.quad(V(s * (HALF_W - 0.006), 1.3, z + side * (DOOR_W / 2 + 0.13)), u, V(0, 1, 0), 0.17, 0.085, 0xffffff, atlas.uv('sticker'));
+          signs.quad(V(s * (HALF_W - 0.006), 1.35, z + side * (DOOR_W / 2 + 0.135)), u, V(0, 1, 0), 0.2, 0.1, 0xffffff, atlas.uv('sticker'));
         }
       }
     });
