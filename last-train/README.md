@@ -51,3 +51,28 @@ src/
 - 그림자 없음, 조명 3개(반구광 + 플레이어 위 점광원 + 연출용 점광원)
 - 객차 정적 도형 1메시, 표지 1메시, 형광등·손잡이·옆문은 InstancedMesh → 약 20 드로우콜
 - 픽셀 비율 최대 2, 안티앨리어싱 끔, 전광판 텍스처 업로드는 초당 15회
+
+## iOS 앱 (Capacitor 8)
+
+`ios/` 에 Xcode 프로젝트가 들어 있다. 의존성은 Swift Package Manager 로 받으므로 CocoaPods 는 필요 없다.
+macOS + Xcode 16 이상에서:
+
+```bash
+npm install
+npm run ios        # 웹 빌드 → ios/ 로 복사(cap sync) → Xcode 열기
+```
+
+웹 코드를 고친 뒤에는 `npm run ios:sync` 만 다시 실행하면 된다.
+
+이미 해 둔 설정
+- 번들 ID `com.example.lasttrain` (**출시 전에 반드시 본인 것으로 변경**: `capacitor.config.ts` 의 `appId` + Xcode Signing & Capabilities)
+- 앱 이름 "막차 이상현상", iPhone 전용, 세로 고정, 상태 표시줄·홈 인디케이터 숨김
+- 화면 가장자리 스와이프가 조작을 가로채지 않도록 시스템 제스처 지연 (`ios/App/App/SceneDelegate.swift` 의 `GameViewController`)
+- 웹뷰 바운스 스크롤 끔, 배경 검정, 암호화 수출 규정 면제(`ITSAppUsesNonExemptEncryption = NO`)
+- 진동: `@capacitor/haptics` (Taptic Engine)
+- 임시 아이콘/스플래시: `npm run icons` 로 다시 생성 (`resources/make_icons.py`)
+
+Xcode 에서 할 일
+1. App 타깃 > Signing & Capabilities > Team 선택
+2. 실기기 연결 후 ▶ 실행 (처음엔 기기에서 설정 > 일반 > VPN 및 기기 관리 > 개발자 앱 신뢰)
+3. 출시: Product > Archive → Distribute App → App Store Connect
