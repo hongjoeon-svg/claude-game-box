@@ -1,0 +1,54 @@
+{
+  "id": 4,
+  "name": "과장님 합류",
+  "description": "엘리베이터 앞은 과장님이 지키고, 부장님은 사무실을 돕니다.",
+  "timeLimitSec": 100,
+  "fastClearSec": 55,
+  "strictness": "strict",
+  "props": ["plant", "copier", "water", "box", "chair"],
+  "tips": ["순찰자가 둘! 두 시야를 모두 피하세요"],
+  "map": [
+    "###############",
+    "#kkkk#.E.#mmmm#",
+    "#kcck#...#mttm#",
+    "#kkkk#...#mttm#",
+    "#kkkk##.##mmmm#",
+    "##k#.......#m##",
+    "#.............#",
+    "#.oooooooooo..#",
+    "#.odododododo.#",
+    "#.oooooooooo..#",
+    "#.odododododo.#",
+    "#.oooooooooo..#",
+    "#.............#",
+    "###.###.###.###",
+    "#mmmm#ooo#kkkk#",
+    "#mttm#odo#kcck#",
+    "#mmmm#ooo#kkkk#",
+    "#mmmm#o.o#kkkk#",
+    "#.....oPo.....#",
+    "###############"
+  ],
+  "patrollers": [
+    {
+      "type": "boss",
+      "speed": 50,
+      "fovDeg": 70,
+      "viewDist": 150,
+      "path": [[1, 6], [13, 6], [13, 12], [1, 12]],
+      "mode": "loop",
+      "waitMs": 400,
+      "lookAround": true
+    },
+    {
+      "type": "manager",
+      "speed": 30,
+      "fovDeg": 80,
+      "viewDist": 110,
+      "path": [[4, 5], [10, 5]],
+      "mode": "pingpong",
+      "waitMs": 1400,
+      "lookAround": true
+    }
+  ]
+}

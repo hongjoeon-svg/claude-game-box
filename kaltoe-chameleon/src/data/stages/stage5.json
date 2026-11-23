@@ -1,0 +1,55 @@
+{
+  "id": 5,
+  "name": "부장님의 기습 확인",
+  "description": "부장님이 가끔 뒤를 휙 돌아봅니다. ‼️ 가 뜨면 바로 멈추세요!",
+  "timeLimitSec": 110,
+  "fastClearSec": 60,
+  "strictness": "strict",
+  "props": ["plant", "copier", "water", "box", "chair"],
+  "tips": ["부장님 머리 위에 ‼️ 가 뜨면 곧 뒤돌아봐요!"],
+  "map": [
+    "###############",
+    "#E..#mmmmmmmmm#",
+    "#...#mmtttttmm#",
+    "#...#mmtttttmm#",
+    "##.##mmmmmmmmm#",
+    "#.......##m####",
+    "#.............#",
+    "#oooooo#kkkkkk#",
+    "#ododoo#kcckkk#",
+    "#oooooo#kkkkkk#",
+    "#ododoo#kkkkkk#",
+    "#oooooo##k#####",
+    "#.............#",
+    "#.............#",
+    "#oooo#.##.oooo#",
+    "#odoo#.##.odoo#",
+    "#oooo#.##.oooo#",
+    "#odoo#....odoo#",
+    "#oooo#...Poooo#",
+    "###############"
+  ],
+  "patrollers": [
+    {
+      "type": "boss",
+      "speed": 45,
+      "fovDeg": 75,
+      "viewDist": 160,
+      "path": [[1, 12], [13, 12]],
+      "mode": "pingpong",
+      "waitMs": 600,
+      "surpriseCheck": { "minIntervalMs": 3500, "maxIntervalMs": 6500, "warnMs": 600, "holdMs": 1300 }
+    },
+    {
+      "type": "manager",
+      "speed": 38,
+      "fovDeg": 75,
+      "viewDist": 130,
+      "path": [[1, 6], [13, 6]],
+      "mode": "pingpong",
+      "waitMs": 1000,
+      "lookAround": true,
+      "surpriseCheck": { "minIntervalMs": 6000, "maxIntervalMs": 9000, "warnMs": 700, "holdMs": 1000 }
+    }
+  ]
+}
