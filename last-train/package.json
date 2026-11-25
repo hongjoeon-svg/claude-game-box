@@ -1,0 +1,30 @@
+{
+  "name": "last-train-anomaly",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:host": "vite --host",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host",
+    "typecheck": "tsc --noEmit",
+    "ios:sync": "npm run build && cap sync ios",
+    "ios:open": "cap open ios",
+    "ios": "npm run build && cap sync ios && cap open ios",
+    "icons": "python3 resources/make_icons.py",
+    "web": "npm run build && node scripts/inline.mjs"
+  },
+  "dependencies": {
+    "@capacitor/core": "^8.6.2",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/ios": "^8.6.2",
+    "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.6.2",
+    "@types/three": "^0.170.0",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11"
+  }
+}
