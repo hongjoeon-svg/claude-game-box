@@ -76,3 +76,9 @@ Xcode 에서 할 일
 1. App 타깃 > Signing & Capabilities > Team 선택
 2. 실기기 연결 후 ▶ 실행 (처음엔 기기에서 설정 > 일반 > VPN 및 기기 관리 > 개발자 앱 신뢰)
 3. 출시: Product > Archive → Distribute App → App Store Connect
+
+## 게임 모음집 미리보기
+```bash
+npm run web   # 빌드 결과를 HTML 한 파일로 합쳐 저장소 루트의 last-train.html 로 내보냄
+```
+모음집(`index.html`)의 "막차 이상현상" 카드가 이 파일을 연다. 게임 코드를 고친 뒤 다시 실행하고 커밋할 것.

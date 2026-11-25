@@ -12,7 +12,8 @@
     "ios:sync": "npm run build && cap sync ios",
     "ios:open": "cap open ios",
     "ios": "npm run build && cap sync ios && cap open ios",
-    "icons": "python3 resources/make_icons.py"
+    "icons": "python3 resources/make_icons.py",
+    "web": "npm run build && node scripts/inline.mjs"
   },
   "dependencies": {
     "@capacitor/core": "^8.6.2",
