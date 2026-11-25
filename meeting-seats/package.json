@@ -7,7 +7,8 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "build:page": "vite build && node scripts/buildPage.mjs"
   },
   "license": "ISC",
   "devDependencies": {

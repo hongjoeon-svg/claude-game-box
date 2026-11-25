@@ -10,7 +10,10 @@ npm install
 npm run dev      # 개발 서버 (같은 Wi-Fi 의 폰에서도 접속 가능)
 npm test         # vitest (퍼즐 1000개 유일해 검증 포함)
 npm run build    # dist/ 로 빌드 (상대 경로라 Capacitor 에 바로 넣을 수 있음)
+npm run build:page  # 게임 모음용: 저장소 루트의 meeting-seats.html 한 장으로 빌드
 ```
+
+게임 모음 페이지(`index.html`)는 루트의 `meeting-seats.html` 을 연다. **게임 코드를 고친 뒤에는 `npm run build:page` 를 다시 돌려서 이 파일도 함께 커밋해야** GitHub Pages 에 반영된다.
 
 개발 중 `?level=37` 을 붙이면 잠긴 레벨도 바로 열린다. `?daily` 는 오늘의 퍼즐.
 
