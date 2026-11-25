@@ -28,6 +28,7 @@ npm run dev
 | `npm run preview` | 빌드 결과물 미리보기 |
 | `npm run validate` | 스테이지 JSON만 검사 |
 | `npm run typecheck` | TypeScript 타입 검사만 |
+| `npm run build:site` | 메인 게임 목록 페이지용 빌드 → `play/`. 게임 코드를 고친 뒤 실행하고 `play/`도 함께 커밋 |
 
 ### 조작
 
