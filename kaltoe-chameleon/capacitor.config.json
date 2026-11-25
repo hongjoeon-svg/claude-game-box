@@ -1,0 +1,8 @@
+{
+  "appId": "com.example.kaltoechameleon",
+  "appName": "칼퇴 카멜레온",
+  "webDir": "dist",
+  "ios": {
+    "contentInset": "never"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "id": 3,
+  "name": "결재 서류 대란",
+  "description": "구석구석 도는 부장님. 이제 애매한 소품은 바로 수상하게 보여요.",
+  "timeLimitSec": 100,
+  "fastClearSec": 55,
+  "strictness": "strict",
+  "props": ["plant", "copier", "water", "box", "chair"],
+  "tips": ["이제 딱 어울리는 소품만 안전해요!"],
+  "map": [
+    "###############",
+    "#oooooo#mmmmmm#",
+    "#ododoo#mttttm#",
+    "#oooooo#mttttm#",
+    "#ododoo#mmmmmm#",
+    "#oooooo###m####",
+    "###.###......E#",
+    "#.............#",
+    "#.....###.....#",
+    "#kkkk.###.oooo#",
+    "#kcck.###.dodo#",
+    "#kkkk.###.oooo#",
+    "#kkkk.....dodo#",
+    "#######.#.oooo#",
+    "#mmmmm#.#.....#",
+    "#mtttm#.#####.#",
+    "#mtttm#.......#",
+    "#mmmmm.......P#",
+    "#mmmmm#########",
+    "###############"
+  ],
+  "patrollers": [
+    {
+      "type": "boss",
+      "speed": 48,
+      "fovDeg": 70,
+      "viewDist": 150,
+      "path": [[1, 7], [13, 7], [13, 14], [9, 14], [9, 7]],
+      "mode": "loop",
+      "waitMs": 800,
+      "lookAround": true
+    }
+  ]
+}
