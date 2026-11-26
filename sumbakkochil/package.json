@@ -1,0 +1,20 @@
+{
+  "name": "sumbakkochil",
+  "private": true,
+  "version": "0.1.0",
+  "description": "숨바꼭칠 - 몸에 색을 칠해 배경에 숨는 1인용 위장 퍼즐",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vite": "^5.4.21",
+    "vitest": "^2.1.9"
+  }
+}
