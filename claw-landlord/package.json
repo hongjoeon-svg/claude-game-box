@@ -1,0 +1,22 @@
+{
+  "name": "claw-landlord",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "뽑기방 건물주 — 인형뽑기 인크리멘털 (1단계 프로토타입)",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host",
+    "typecheck": "tsc --noEmit",
+    "build:site": "npm run build -- --outDir play --emptyOutDir"
+  },
+  "dependencies": {
+    "matter-js": "0.20.0"
+  },
+  "devDependencies": {
+    "@types/matter-js": "^0.20.2",
+    "typescript": "5.9.3",
+    "vite": "7.3.8"
+  }
+}
